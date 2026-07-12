@@ -1,0 +1,420 @@
+import Mathlib.Data.Nat.Notation
+import Mathlib.Data.Real.Basic
+import Mathlib.Tactic
+
+import VersoManual
+import TextbookTemplate.Meta.Lean
+import TextbookTemplate.Papers
+
+
+-- This is a chapter that's included
+import TextbookTemplate.Nat
+
+
+-- This gets access to most of the manual genre (which is also useful for textbooks)
+open Verso.Genre Manual
+
+-- This gets access to Lean code that's in code blocks, elaborated in the same process and
+-- environment as Verso
+open Verso.Genre.Manual.InlineLean
+
+
+open TextbookTemplate
+
+set_option pp.rawOnError true
+
+
+#doc (Manual) "Basic Properties of Real Numbers" =>
+```lean
+namespace Section_1_2
+```
+
+We will begin with the basic properties of addition, which are four:
+
+- *$`\mathrm{S_1}` (Commutative property)*
+For any real numbers `a` and `b`, the following holds:
+$$`a + b = b + a`
+
+```lean
+example (a b : ℝ) : a + b = b + a := add_comm a b
+```
+- *$`\mathrm{S_2}` (Associative property)*
+For any real numbers `a`, `b` amd `c`, the following holds:
+$$`(a + b) + c = a + (b + c)`
+
+```lean
+example (a b c : ℝ) : (a + b) + c = a + (b + c) := by
+  exact add_assoc a b c
+```
+
+- *$`\mathrm{S_3}` (Property of existence of the neutral element)*
+There exists a real number called _zero_ that we denote as `0` such that,
+for every real number `a`:
+$$`0 + a = a + 0 = a`
+
+```lean
+example (a : ℝ) : 0 + a = a := zero_add a
+example (a : ℝ) : a + 0 = a := add_zero a
+```
+
+- *$`\mathrm{S_4}` (Property of existence of the additive inverse)*
+Given a real number `a`, there exists a real number that we call the _additive inverse
+of `a`_, and we indicate as `-a`, such that:
+
+$$`a + (-a) = (-a) + a = 0`
+
+```lean
+example (a : ℝ) : a + (-a) = 0 := by
+  exact add_neg_cancel a
+example (a : ℝ) : (-a) + a = 0 := by
+  exact neg_add_cancel a
+```
+
+The basic properties of the product are also four and correspond exactly to
+those of addition:
+
+
+- *$`\mathrm{P_1}` (Commutative property)*
+For any real numbers $`a` and $`b`, the following holds
+$$`a \cdot b = b \cdot a`
+
+```lean
+example (a b : ℝ) : a * b = b * a := by
+  exact mul_comm a b
+```
+
+- *$`\mathrm{P_2}` (Associative property)*
+For any real numbers $`a, b`, and $`c`, the following holds
+$$`a \cdot (b \cdot c) = (a \cdot b) \cdot c`
+
+```lean
+example (a b c : ℝ) : (a * b) * c = a * (b * c):= by
+  exact mul_assoc a b c
+```
+
+- *$`\mathrm{P_3}` (Property of existence of the neutral element)*
+There exists a real number distinct from *zero* that we call _one_ and denote
+as $`1` such that, for every real number:
+$$`a \cdot 1 = 1 \cdot 1 = a`
+
+
+```lean
+example (a : ℝ) : 1 * a = a := by
+  exact one_mul a
+
+example (a : ℝ) : a * 1 = a := by
+  exact mul_one a
+```
+
+- *$`\mathrm{P_4}` (Property of existence of the multiplicative inverse)*
+Given a real number $`a`, _distinct from zero_, there exists a real number that we
+call the _multiplicative inverse of $`a`_, and we denote as $`a^{-1}`, such that:
+
+$$`a \cdot a^{-1} = a^{-1} \cdot a = 1`
+
+
+```lean
+example (a : ℝ) (hₐ : a ≠ 0)  : a * a⁻¹ = 1 := by
+  exact mul_inv_cancel₀ hₐ
+
+example (a : ℝ) (hₐ : a ≠ 0)  : a⁻¹ * a = 1 := by
+  exact inv_mul_cancel₀ hₐ
+```
+- *$`\mathrm{D}`: (Distributive property)*
+For any real numbers $`a, b`, and $`c`, the following holds:
+$$`a \cdot (b + c) = a \cdot b + a \cdot c`
+$$`(a + b) \cdot c = a \cdot c + b \cdot c`
+
+```lean
+example (a b c : ℝ) : a * (b + c) = a * b + a * c := by
+  exact mul_add a b c
+
+example (a b c : ℝ) : (a + b) * c = a * c + b * c := by
+  exact add_mul a b c
+```
+
+The final properties we indicate now refer to the order relation that exists
+between real numbers.
+
+The notation $`a < b` means _$`a` is less than $`b`_ and is exactly the same as
+$`b > a` (_$`b` is greater than $`a`_).
+
+- *$`\mathrm{O_1}` (Property of trichotomy)*
+If $`a` and $`b` are two real numbers, _one, and only one_,
+of the following possibilities holds:
+
+    - $$`a < b`
+
+    - $$`a = b`
+
+    - $$`a > b`
+
+```lean
+example (a b : ℝ) : a < b ∨ a = b ∨ b < a :=
+  lt_trichotomy a b
+```
+
+- *$`\mathrm{O_2}` (Transitive property)*
+If $`a`, $`b`, and $`c` are real numbers that satisfy $`a < b` and $`b < c`,
+then it necessarily must be: $`a < c`
+
+```lean
+example (a b c : ℝ) (ha : a < b) (hb : b < c ) : a < c := by
+  exact lt_trans ha hb
+```
+
+- *$`\mathrm{O_3}`: (Property of monotonicity of addition)*
+If $`a` and $`b` are real numbers that satisfy $`a < b`, then for any real
+number $`c`, the following holds:
+$$`a + c < b + c`
+
+```lean
+example (a b c : ℝ) (h_a : a < b) : a + c <  b + c :=
+  add_lt_add_left h_a c
+```
+
+- *$`\mathrm{O_4}`: (Property of monotonicity of the product)*
+If $`a` and $`b` are real numbers that satisfy $`a < b`,
+then for any real number $`c > 0`, the following holds:
+
+$$`c \cdot a < b \cdot c`
+
+```lean
+example
+  (a b c : ℝ)
+  (h_a : a < b)
+  (h_c : 0 < c) : a * c <  b * c := by
+    exact mul_lt_mul_of_pos_right h_a h_c
+```
+
+# Elementary properties of real numbers
+
+We are now going to deduce some elementary properties of real numbers using
+only the properties just listed.
+
+The attentive reader will have noticed that we promised a list of 14 properties
+and only 13 have appeared;
+the remaining one we will not need for now and will be the subject of study in
+a future paragraph.
+
+We begin by proving the _cancellation property_ which is stated as follows:
+If $`a, b`, and $`c` are real numbers such that:
+$$`a + c = b + c`
+then:
+$$`a = b`
+(in other words, a term that appears added to both sides can be canceled).
+
+To demonstrate this property, we start from the assumed equality:
+$$`a + c = b + c`
+
+```lean
+theorem add_cancel
+  (a b c : ℝ) (h : a + c = b + c) : a = b := by
+  calc
+    a = a + 0 := Eq.symm (add_zero a)
+    _ = a + (c + (-c)) :=
+      congrArg (λ x => a + x) (Eq.symm (add_neg_cancel c))
+    _ = (a + c) + (-c) := Eq.symm (add_assoc a c (-c))
+    _ = (b + c) + (-c) := congrArg (λ x => x + (-c)) h
+    _ = b + (c + (-c)) := add_assoc b c (-c)
+    _ = b + 0 := congrArg (λ  x => b + x) (add_neg_cancel c)
+    _ = b := add_zero b
+```
+
+Another property we demonstrate is the _uniqueness of zero_ which is stated
+as follows:
+
+If $`a` and $`b` are real numbers such that: $`a+b=a` then it must be:
+$`b=0`.
+
+This his demonstration is simple:
+
+```lean
+lemma uniqueness_zero
+  (a b : ℝ)(h : a + b = a) : b = 0 := by
+  calc
+  b = b + 0 := Eq.symm (add_zero b)
+  _ = b + (a + (-a)) :=
+    congrArg (λ x => b + x) (Eq.symm (add_neg_cancel a))
+  _ = (b + a) + (-a) := Eq.symm (add_assoc b a (-a))
+  _ = (a + b) + (-a) :=
+    congrArg (λ x => x + (-a)) (add_comm b a)
+  _ = a + (-a) := congrArg (λ x => x + (-a)) h
+  _ = 0 := add_neg_cancel a
+```
+We are now in a position to prove :
+$$`a \cdot 0 =0` whatever the real number $`a` may be:
+
+```lean
+lemma mul_by_zero (a : ℝ) : a * 0 = 0 := by
+  have : a * 0 = a * 0 + a * 0 :=
+  calc
+    a * 0 = a * (0 + 0) :=
+      congrArg (λ x => a * x) (Eq.symm (add_zero 0))
+    _     = a * 0 + a * 0 :=
+      LeftDistribClass.left_distrib a 0 0
+  exact (uniqueness_zero (a * 0) (a * 0) (Eq.symm this))
+```
+
+(Indeed, in the statement about uniqueness of zero one must take $`a\cdot 0`
+as $`a` and also $`a\cdot 0` as $`b`)
+
+This last demonstration illustrates the following fact:
+once a property has been demonstrated starting from basic properties,
+then said property can be used as a starting point to prove new properties.
+
+It is clear that in this way, in the last instance, we only use the properties
+from the given list.
+
+The product also has its cancellation law:
+
+If $`a\cdot b = a\cdot c` and $`a \ne 0`, then $`b = c`.
+
+```lean
+theorem mul_cancel (a b c : ℝ)
+  (h : a * b = a * c)
+  (hₐ : a ≠ 0) : b = c := by
+  calc
+    b = 1 * b := by exact (one_mul b).symm
+    _ = (a⁻¹ * a) * b := by rw [inv_mul_cancel₀ hₐ]
+    _ = a⁻¹ * (a * b) := mul_assoc   a⁻¹ a b
+    _ = a⁻¹ * (a * c) := by rw [h]
+    _ = (a⁻¹ * a) * c := Eq.symm (mul_assoc   a⁻¹ a c)
+    _= 1 * c :=
+      congrArg (fun x => x * c) (inv_mul_cancel₀ hₐ)
+    _= c := one_mul c
+```
+
+We now proceed to prove the _rule of signs_.
+In the first place, it holds:
+$$`−(−a) = a`
+for every real number $`a`.
+
+Indeed, by definition $`−(−a)` is the additive inverse of $`−a`, that is:
+
+```lean
+lemma op_op_cancel (a : ℝ) : -(-a) = a := by
+  have h : -(-a) + (-a) = a + (-a) := by
+    calc
+    -(-a) + (-a) = 0 := neg_add_cancel (-a)
+    _ = a + (-a) := Eq.symm (add_neg_cancel a)
+  exact (add_cancel (-(-a)) a (-a) h)
+```
+
+We continue proving:
+$$`(−a) \cdot b = −(a \cdot b)`
+for any real numbers $`a` and $`b`.
+This property is proven in the following way:
+
+```lean
+lemma op_po_op (a b : ℝ) : (-a) * b = -(a * b) := by
+  have : (-a) * b + a * b = 0 := by
+    calc
+    (-a) * b + a * b = ((-a) + a) * b :=
+      Eq.symm (RightDistribClass.right_distrib (-a) a b)
+    _ = 0 * b := by rw [neg_add_cancel a]
+    _ = b * 0 := mul_comm 0 b
+    _ = 0 := mul_by_zero b
+  have this : (-a) * b + a * b = -(a * b) + a * b := by
+    calc
+    (-a) * b + a * b = 0 := this
+    _ =  -(a * b) + a * b := by rw [neg_add_cancel (a * b)]
+  exact (add_cancel ((-a) * b) (-(a * b))  (a * b) this)
+```
+
+To finish this section, we are going to prove the following fact:
+$$`0<1`
+
+Let's start with the following fact: If $`a` is a _nonzero real number_, then
+$`a^2 > 0`:
+
+```lean
+lemma square_gt_0' (a : ℝ) (hₐ : a > 0) : a * a > 0 := by
+  calc
+    0 = 0 * a := by rw [mul_comm, mul_by_zero]
+    _ < a * a := by exact mul_lt_mul_of_pos_right hₐ hₐ
+
+lemma square_gt_0 (a : ℝ)
+  (hₐ : a > 0 ∨ a < 0) : a * a > 0 := by
+  cases hₐ with
+  | inl h₁ =>
+      calc 0
+        _ = 0 * a := by rw [mul_comm, mul_by_zero a]
+        _ < a * a := by
+          exact (mul_lt_mul_of_pos_right h₁ h₁)
+  | inr a_lt_0 =>
+    have :-a > 0 := by
+      calc
+        0 = a + (-a) := by rw [add_neg_cancel a]
+        _ < 0 + (-a) := add_lt_add_left a_lt_0 (-a)
+        _= -a := zero_add (-a)
+    calc
+    a * a = -(-(a * a)) := Eq.symm (op_op_cancel (a * a))
+    _ = -((-a) * a) := by rw [op_po_op a a]
+    _ = -(a * (-a)) := by rw [mul_comm (-a) a]
+    _ = (-a) * (-a) := by rw  [op_po_op a (-a)]
+    _ > 0 := square_gt_0' (-a) this
+
+lemma zero_lt_sq (a : ℝ) (hₐ : a ≠ 0) : 0 < a * a := by
+  rcases lt_trichotomy a 0 with hneg | hzero | hpos
+  . -- hneg : a < 0
+    exact (square_gt_0 a (Or.inr hneg))
+  . exfalso
+    exact hₐ hzero
+  . exact (square_gt_0 a (Or.inl hpos))
+
+
+example : 0 < (1 : ℝ) := by
+  calc
+  (1 : ℝ) = 1 * 1 := by rw [mul_one 1]
+  _ > 0 := zero_lt_sq 1 (one_ne_zero)
+```
+This property is called {lean}`zero_lt_one' ℝ` or
+{lean}`zero_lt_one (α := ℝ)` in Lean 4
+
+
+We will leave the rest of the elementary properties of real numbers as an
+exercise. Let us say from now on that $`a−b` means $`a+(−b)` and that,
+for $`b ≠ 0`, $`a/b` means $`a⋅b^{−1}`.
+
+Likewise, we will stop indicating the product with a dot,
+so that $`ab` will signify $`a · b`.
+
+# Exercises
+
+1. Prove in detail the following properties derived from addition and indicate
+at each step which basic or previously derived properties are used:
+  * a. If $`a` and $`b` are real numbers such that $`a+b=0`,
+  then $`b=−a` (Uniqueness of the additive inverse).
+  * b. If $`a` is distinct from zero, then $`−a` is also distinct from zero.
+  * c.  If $`a−b=b−a`, then `a=b`.
+
+2. Prove the following properties derived from addition and the product
+(with the same recommendations as in the previous exercise):
+  * a.  If $`ab=0`, then $`a=0` or $`b=0`.
+  * b. $`(−1)⋅a=−a`.
+  * c. $`(a+b)(a−b)=a^2 - b^2`
+
+3. Prove the following properties derived from the product
+(same recommendations):
+  * a. If ab=a and $`a ≠ 0`, then $`b=1` (Uniqueness of the neutral element).
+  * b. If $`a ≠ 0`, then $`a^{−1}≠ 0`
+  * c. If $`a ≠ 0`, then $`(a^{−1})^{-1} = a`.
+  * d. If $`a ≠ 0` and $`b ≠ 0`, then $`(ab)^{−1} = b^{-1}a^{−1}`
+
+4. Prove the following properties derived from addition,
+the product, and order:
+  * a. $`0 < a` if and only if $`−a < 0` (the _if and only if_
+  signifies proving both implications: if $`0 < a`, then $`−a < 0`).
+  * b. If $`a < b` and $`c < d`, then $`a + c < b + d`.
+  * c. $`a < b` if and only if $`−b < −a`.
+  * d. If 4`0 < a` and $`0 < b`, then $`0 < ab`.
+  * e. If $`a < 0` and $`b < 0`, then $`0 < ab`.
+  * f. If $`a < 0` and $`0 < b`, then $`ab < 0`.
+  * g. If $`a > 0`, $`b > 0`, and $`a < `b, then $`a^2 < b^2`
+  * h. If $a ≠ 0, then $`a^2 > 0`. Deduce 1>0 again.
+  * i. If $`a^2 + b^2 = 0`, then `a` and `b` are zero.
+
+```lean
+end Section_1_2
+```
