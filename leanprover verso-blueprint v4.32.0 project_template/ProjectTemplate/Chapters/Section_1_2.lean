@@ -418,6 +418,17 @@ Explanation of the Lean-specific ingredients.
     $`a \cdot 0 = a \cdot 0 + a \cdot 0`,
     which will later be simplified to conclude that $`a \cdot 0 = 0`.
 
+* The `have` tactic introduces an intermediate result that will be used
+  later in the proof. It creates a new local hypothesis whose proof
+  follows immediately after the `:=`.
+  In this example, `have : a * 0 = a * 0 + a * 0 := ...`
+  tells Lean that we will first prove the equality
+  $$`a \cdot 0 = a \cdot 0 + a \cdot 0.`
+  Once this proof is complete, the resulting equality becomes a local
+  hypothesis (named `this` by default) that is available for the remainder
+  of the proof. The final line uses this intermediate result to deduce
+  that $`a \cdot 0 = 0.`
+
 * The `calc` environment writes the argument as a chain of equalities.
     Each line establishes that the current expression equals the next one,
     so the desired equality follows by transitivity.
@@ -469,6 +480,90 @@ then said property can be used as a starting point to prove new properties.
 It is clear that in this way, in the last instance, we only use the properties
 from the given list.
 
+The product also has its cancellation law:
+
+
+:::theorem "mul_left_cancel" (parent := "order_core")(lean := "mul_left_cancel₀")
+If $`a\cdot b = a\cdot c` and $`a \ne 0`, then $`b = c`.
+:::
+
+```lean "mul_left_cancel"
+example (a b c : ℝ)
+    (ha : a ≠ 0) (h : a * b = a * c) : b = c := by
+  exact mul_left_cancel₀ ha h
+```
+
+:::proof "mul_left_cancel"
+*Explanation of the Lean-specific ingredients.*
+
+* The proof is written as a chain of equalities using the `calc`
+  environment. Each line establishes that the current expression is equal
+  to the next one, so the desired equality follows by transitivity.
+
+* The main new ingredient in this proof is the tactic `rw`
+  (short for *rewrite*). The command
+  `rw [h]` tells Lean to replace an occurrence of one side of the equality
+  `h` by the other side. Thus, if
+  `h : x = y`, then `rw [h]` rewrites `x` as `y`,
+  while `rw [← h]` rewrites `y` as `x`.
+  In many situations, `rw` automatically performs the work that would
+  otherwise require an explicit application of `Eq.symm` and `congrArg`.
+
+* The first rewrite, `rw [one_mul b]`,
+  uses the theorem $`1 \cdot b = b` in the reverse direction,
+  changing $`b` into $`1 \cdot b.`
+  Notice that although `one_mul b` is stated as $`1 \cdot b = b,`
+  the `rw` tactic automatically recognizes that the opposite direction is
+  needed and performs the reverse rewrite.
+
+* The second rewrite, `rw [inv_mul_cancel₀ hₐ]`,
+  replaces the factor $`1`
+  by $`a^{-1}\cdot a,`
+  since the theorem $`a^{-1}\cdot a = 1` holds whenever $`a \neq 0`.
+  Again, `rw` automatically applies the equality in the required direction.
+
+* The theorem `mul_assoc` states that
+  $$`(x \cdot y)\cdot z = x\cdot(y\cdot z).`
+  It is used to reassociate the factors so that the hypothesis
+  `h : a \cdot b = a \cdot c` appears as a subexpression.
+
+* The rewrite `rw [h]` replaces the subexpression
+  $`a \cdot b` by $`a \cdot c`
+  inside the larger expression
+  $`a^{-1}\cdot(a\cdot b).`
+  Earlier proofs required an explicit use of `congrArg` to rewrite inside a
+  function, but the `rw` tactic performs this substitution automatically.
+
+* The remaining rewrites undo the previous steps.
+  Another application of `mul_assoc` groups the factors as
+  $$`(a^{-1}\cdot a)\cdot c,`
+  the theorem `inv_mul_cancel₀ hₐ` rewrites this as
+  $`1\cdot c,`
+  and finally `one_mul c` simplifies the expression to
+  $`c.`
+
+This proof illustrates one of the main advantages of the `rw` tactic:
+instead of explicitly applying `Eq.symm` to reverse equalities and
+`congrArg` to rewrite inside larger expressions, `rw` searches for matching
+subexpressions and performs the necessary substitutions automatically,
+using either direction of an equality whenever appropriate.
+
+The Lean proof is
+:::
+
+```lean "mul_left_cancel"
+example (a b c : ℝ)
+  (h : a * b = a * c)
+  (hₐ : a ≠ 0) : b = c := by
+  calc
+    b = 1 * b := by rw [one_mul b]
+    _ = (a⁻¹ * a) * b := by rw [inv_mul_cancel₀ hₐ]
+    _ = a⁻¹ * (a * b) := by exact mul_assoc   a⁻¹ a b
+    _ = a⁻¹ * (a * c) := by rw [h]
+    _ = (a⁻¹ * a) * c := by rw [mul_assoc   a⁻¹ a c]
+    _= 1 * c := by rw [inv_mul_cancel₀ hₐ]
+    _= c := by exact one_mul c
+```
 
 ```lean "end namespace"
 end Section_1_2
