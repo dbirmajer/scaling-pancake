@@ -240,7 +240,22 @@ of the following possibilities holds:
 example (a b : ℝ) : a < b ∨ a = b ∨ b < a :=
   lt_trichotomy a b
 ```
+In particular, if a real number $`a` is _different from 0_, it must be either
+$`a < 0` or $`a > 0`.
 
+:::theorem "lt_or_gt_of_ne" (parent := "order_core")(lean := "lt_or_gt_of_ne")
+if a real number $`a` is _different from 0_, it must be either
+$`a < 0` or $`a > 0`.
+:::
+
+```lean "lt_or_gt_of_ne"
+example {a b : ℝ} (h : a ≠ 0) : a < 0 ∨ 0 < a := by
+  exact lt_or_gt_of_ne h
+```
+
+:::definition "positive and negative" (parent := "order_core")
+Postive and negative numbers
+:::
   * *Transitive property*
 
 :::theorem "lt_trans" (parent := "order_core")(lean := "lt_trans")
@@ -550,8 +565,7 @@ example (a b c : ℝ)
   `h : a \cdot b = a \cdot c` appears as a subexpression.
 
 * The rewrite `rw [h]` replaces the subexpression
-  $`a \cdot b` by $`a \cdot c`
-  inside the larger expression
+  $`a \cdot b` by $`a \cdot c` inside the larger expression
   $`a^{-1}\cdot(a\cdot b).`
   Earlier proofs required an explicit use of `congrArg` to rewrite inside a
   function, but the `rw` tactic performs this substitution automatically.
@@ -710,7 +724,7 @@ example (a b : ℝ) : (-a) * (-b) = a * b := by
 
 The following theorem states that the opposite of a number has the opposite sign:
 :::theorem "neg_neg_iff_pos" (parent := "properties_core")(lean := "neg_neg_iff_pos")
-For any real number $`a`, negative a is less than zero if and only if
+For any real number $`a`, negative $`a` is less than zero if and only if
  $`a` is greater than zero.
 :::
 
@@ -775,8 +789,7 @@ example {a : ℝ} :
 
   Likewise, in the second subgoal, `intro h` assumes `h : 0 < a`
   and changes the goal from
-  $$`(0<a)\rightarrow(-a<0)`
-  to $`-a<0.`
+  $$`(0<a)\rightarrow(-a<0)` to $`-a < 0.`
 
 * Each implication is then proved using a `calc` block.
   In the forward direction, the proof begins with the identity
@@ -816,8 +829,8 @@ This proof illustrates two of Lean's most common logical tactics.
 
 
 :::definition "square"
-If $a$ is a real number, then the square of $a$ is the product of $a$ with itself:
-$a^2 = a \cdot a$.
+If $a$ is a real number, then the square of $a$ is the product of $`a` with
+itself: $`a^2 = a \cdot a`.
 :::
 
 We will. now prove the following fact:
@@ -836,7 +849,11 @@ example : ∀ a : ℝ, (a ≠ 0) → a^2 > 0 := by
 ```lean "todo"
 example (a : ℝ): (a ≠ 0) → a^2 > 0 := by
   intro h
-  sorry
+  have h' : a < 0 ∨ 0 < a := by
+    exact lt_or_gt_of_ne h
+  rcases h' with hNeg | hPos
+  . sorry
+  . sorry
 --  exact mul_self_pos.2 h
 ```
 
