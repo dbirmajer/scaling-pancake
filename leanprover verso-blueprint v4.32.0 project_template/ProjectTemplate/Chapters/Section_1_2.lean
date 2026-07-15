@@ -292,8 +292,7 @@ Core statements about multiplication on real numbers.
 
 We begin by proving the _cancellation property_ which is stated as follows:
 If $`a, b`, and $`c` are real numbers such that:
-$$`a + c = b + c`
-then:
+$$`a + c = b + c` then:
 $$`a = b`
 (in other words, a term that appears added to both sides can be canceled).
 
@@ -309,6 +308,22 @@ $`\; a = b`
 example {a b c : ℝ}
   (h : a + c = b + c) : a = b := by
     exact add_right_cancel h
+```
+
+A Lean proof:
+
+```lean "add_right_cancel"
+example
+  (a b c : ℝ) (h : a + c = b + c) : a = b := by
+  calc
+    a = a + 0 := Eq.symm (add_zero a)
+    _ = a + (c + (-c)) :=
+      congrArg (λ x => a + x) (Eq.symm (add_neg_cancel c))
+    _ = (a + c) + (-c) := Eq.symm (add_assoc a c (-c))
+    _ = (b + c) + (-c) := congrArg (λ x => x + (-c)) h
+    _ = b + (c + (-c)) := add_assoc b c (-c)
+    _ = b + 0 := congrArg (λ  x => b + x) (add_neg_cancel c)
+    _ = b := add_zero b
 ```
 
 :::proof "add_right_cancel"
@@ -348,25 +363,10 @@ so the entire chain establishes the desired result by transitivity.
   $$`(a + c) + (-c) = (b + c) + (-c),`
   while `congrArg (λ x => a + x) h` adds the same quantity `a` to
   both sides of an equality.
-
-The Lean proof is
 :::
 
-```lean "add_right_cancel"
-example
-  (a b c : ℝ) (h : a + c = b + c) : a = b := by
-  calc
-    a = a + 0 := Eq.symm (add_zero a)
-    _ = a + (c + (-c)) :=
-      congrArg (λ x => a + x) (Eq.symm (add_neg_cancel c))
-    _ = (a + c) + (-c) := Eq.symm (add_assoc a c (-c))
-    _ = (b + c) + (-c) := congrArg (λ x => x + (-c)) h
-    _ = b + (c + (-c)) := add_assoc b c (-c)
-    _ = b + 0 := congrArg (λ  x => b + x) (add_neg_cancel c)
-    _ = b := add_zero b
-```
 
-  * Exercise: Prove the following lemma in Lean 4:
+  * Exercise: Prove the following theorem in Lean 4:
 :::theorem "add_left_cancel" (parent := "properties_core")(lean := "add_left_cancel")
 If $`a, b`, and $`c` are real numbers such that:
 $`\; a + b = a + c\;`
@@ -378,6 +378,12 @@ $`\; b = c`
 example {a b c : ℝ}
   (h : a + b = a + c) : b = c := by
     exact add_left_cancel h
+```
+
+```lean "add_left_cancel_ex"
+example {a b c : ℝ}
+  (h : a + b = a + c) : b = c := by
+    sorry
 ```
 
 Another property we demonstrate is the _uniqueness of zero_ which is stated
@@ -410,6 +416,21 @@ example (a : ℝ) : a * 0 = 0 :=
   mul_zero a
 ```
 
+A Lean proof is:
+
+```lean "mul_zero"
+example (a : ℝ) : a * 0 = 0 := by
+  have : a * 0 = a * 0 + a * 0 :=
+  calc
+    a * 0 = a * (0 + 0) := by
+      exact congrArg (λ x => a * x) ((add_zero 0).symm)
+    _     = a * 0 + a * 0 := by
+      exact mul_add a 0 0
+  exact (add_right_eq_self (this.symm))
+```
+(Indeed, in the lemma `add_right_eq_self` one must take as parameters
+$`a\cdot 0` as $`a` and also $`a\cdot 0` as $`b`)
+
 :::proof "mul_zero"
 Explanation of the Lean-specific ingredients.
 
@@ -436,11 +457,12 @@ Explanation of the Lean-specific ingredients.
 * The theorem `add_zero 0` states that $`0 + 0 = 0`.
     Since the proof needs the equality in the opposite direction,
     Lean uses `Eq.symm (add_zero 0)`, which gives $`0 = 0 + 0`.
+    Equivalently, every equality has a `.symm` method, so the same result can be written more concisely as `(add_zero 0).symm`.
 
 * The theorem `congrArg` applies the same function to both sides of an
     equality. Here the function is $`x \mapsto a \cdot x`,
     so `congrArg (λ x => a * x) (Eq.symm (add_zero 0))`
-    transforms $`0 = 0 + 0` into $`a \cdot 0 = a \cdot (0 + 0).`
+    transforms $`0 = 0 + 0` into $`a \cdot 0 = a \cdot (0 + 0)`.
 
 * The distributive law is provided by the theorem
     `mul_add a 0 0`, which states that
@@ -455,23 +477,8 @@ Explanation of the Lean-specific ingredients.
     Then `add_right_eq_self`
     concludes that the extra summand must be zero: $`a \cdot 0 = 0.`
     This is exactly the desired result.
-
-The Lean proof is
 :::
 
-```lean "mul_zero"
-example (a : ℝ) : a * 0 = 0 := by
-  have : a * 0 = a * 0 + a * 0 :=
-  calc
-    a * 0 = a * (0 + 0) := by
-      exact congrArg (λ x => a * x) (Eq.symm (add_zero 0))
-    _     = a * 0 + a * 0 := by
-      exact mul_add a 0 0
-  exact (add_right_eq_self (Eq.symm this))
-```
-
-(Indeed, in the lemma `add_right_eq_self` one must take as parameters
-$`a\cdot 0` as $`a` and also $`a\cdot 0` as $`b`)
 
 This last demonstration illustrates the following fact:
 once a property has been demonstrated starting from basic properties,
@@ -483,7 +490,7 @@ from the given list.
 The product also has its cancellation law:
 
 
-:::theorem "mul_left_cancel" (parent := "order_core")(lean := "mul_left_cancel₀")
+:::theorem "mul_left_cancel" (parent := "properties_core")(lean := "mul_left_cancel₀")
 If $`a\cdot b = a\cdot c` and $`a \ne 0`, then $`b = c`.
 :::
 
@@ -491,6 +498,21 @@ If $`a\cdot b = a\cdot c` and $`a \ne 0`, then $`b = c`.
 example (a b c : ℝ)
     (ha : a ≠ 0) (h : a * b = a * c) : b = c := by
   exact mul_left_cancel₀ ha h
+```
+A Lean proof is:
+
+```lean "mul_left_cancel"
+example (a b c : ℝ)
+  (h : a * b = a * c)
+  (hₐ : a ≠ 0) : b = c := by
+  calc
+    b = 1 * b := by rw [one_mul b]
+    _ = (a⁻¹ * a) * b := by rw [inv_mul_cancel₀ hₐ]
+    _ = a⁻¹ * (a * b) := by exact mul_assoc   a⁻¹ a b
+    _ = a⁻¹ * (a * c) := by rw [h]
+    _ = (a⁻¹ * a) * c := by rw [mul_assoc   a⁻¹ a c]
+    _= 1 * c := by rw [inv_mul_cancel₀ hₐ]
+    _= c := by exact one_mul c
 ```
 
 :::proof "mul_left_cancel"
@@ -547,24 +569,165 @@ instead of explicitly applying `Eq.symm` to reverse equalities and
 `congrArg` to rewrite inside larger expressions, `rw` searches for matching
 subexpressions and performs the necessary substitutions automatically,
 using either direction of an equality whenever appropriate.
-
-The Lean proof is
 :::
 
-```lean "mul_left_cancel"
-example (a b c : ℝ)
-  (h : a * b = a * c)
-  (hₐ : a ≠ 0) : b = c := by
-  calc
-    b = 1 * b := by rw [one_mul b]
-    _ = (a⁻¹ * a) * b := by rw [inv_mul_cancel₀ hₐ]
-    _ = a⁻¹ * (a * b) := by exact mul_assoc   a⁻¹ a b
-    _ = a⁻¹ * (a * c) := by rw [h]
-    _ = (a⁻¹ * a) * c := by rw [mul_assoc   a⁻¹ a c]
-    _= 1 * c := by rw [inv_mul_cancel₀ hₐ]
-    _= c := by exact one_mul c
+
+We now proceed to prove the _rule of signs_. In the first place, it holds:
+:::theorem "neg_neg" (parent := "properties_core")(lean := "neg_neg")
+for every real number $`a`, $`−(−a) = a`.
+:::
+
+```lean "neg_neg"
+theorem neg_neg_eq (a : ℝ) : - (-a) = a := by
+  exact neg_neg a
+```
+Indeed, by definition $`−(−a)` is the additive inverse of $`−a`, that is:
+
+```lean "neg_neg"
+example {a : ℝ} : -(-a) = a := by
+  have h : -(-a) + (-a) = a + (-a) := by
+    calc
+    -(-a) + (-a) = 0 := by exact neg_add_cancel (-a)
+    _ = a + (-a) := by rw [add_neg_cancel a]
+  exact add_right_cancel h
 ```
 
+We continue proving:
+:::theorem "neg_mul" (parent := "properties_core")(lean := "neg_mul")
+$$`(−a) \cdot b = −(a \cdot b)`
+for any real numbers $`a` and $`b`.
+:::
+
+```lean "neg_mul"
+example (a b : ℝ) : (-a) * b = -(a * b) := by
+  exact neg_mul a b
+```
+A Lean proof:
+
+```lean "neg_mul"
+example (a b : ℝ) : (-a) * b = -(a * b) := by
+  have : (-a) * b + a * b = 0 := by
+    calc
+    (-a) * b + a * b = ((-a) + a) * b := by
+      rw [add_mul (-a) a b]
+    _ = 0 := by
+      rw [neg_add_cancel a, mul_comm 0 b, mul_zero]
+  have this : (-a) * b + a * b = -(a * b) + a * b := by
+    calc
+    (-a) * b + a * b = 0 := this
+    _ =  -(a * b) + a * b := by rw [neg_add_cancel (a * b)]
+  exact (add_right_cancel  this)
+```
+:::proof "neg_mul"
+*Explanation of the Lean-specific ingredients.*
+
+* As in previous examples, the proof begins with a `have` statement,
+  introducing an intermediate result that will be used later.
+  The first intermediate goal is
+  $$`(-a)\cdot b + a\cdot b = 0.`
+  Once this has been established, it becomes available as a local
+  hypothesis (named `this` by default).
+
+* The `calc` environment organizes the proof as a chain of equalities.
+  Each line proves that the current expression is equal to the next one,
+  and the entire chain is justified by transitivity.
+
+* The first equality uses the distributive law
+  `add_mul (-a) a b`, which states that
+  $$`((-a) + a) \cdot b = (-a) \cdot b + a \cdot b.`
+  Since the proof requires the equality in the opposite direction,
+  the command `rw [add_mul (-a) a b]`
+  automatically rewrites
+  $$`(-a) \cdot b + a\cdot b`
+  as
+  $$`((-a) + a) \cdot b.`
+
+* The next step illustrates an important feature of the `rw` tactic:
+  *several rewrites can be performed with a single command.*
+
+  The line `rw [neg_add_cancel a, mul_comm 0 b, mul_zero]`
+
+  applies three theorems consecutively.
+
+  * First, `neg_add_cancel a` rewrites
+    $$`(-a) + a`
+    as $`0`, producing $`0\cdot b.`
+
+  * Next, `mul_comm 0 b` uses the commutativity of multiplication to
+    rewrite $`0\cdot b` as $`b\cdot0.`
+
+  * Finally, `mul_zero` rewrites $`b\cdot0` as $`0.`
+
+  Thus a single `rw` command performs three successive substitutions,
+  each using the result of the previous one.
+
+* A second `have` statement introduces another intermediate equality:
+  $$`(-a)\cdot b+a\cdot b=-(a\cdot b)+a\cdot b.`
+  Its first step simply reuses the equality proved previously.
+
+* The next rewrite,
+  `rw [neg_add_cancel (a * b)]`,
+  again uses an equality in the reverse direction.
+  Since
+  $$`-(a \cdot b)+(a \cdot b) = 0,`
+  the tactic rewrites $`0` as $`-(a\cdot b)+(a\cdot b).`
+
+* The proof concludes with the cancellation theorem
+  `add_right_cancel`.
+  Since both sides of the equality have the same term
+  $$`a\cdot b`
+  added to them, cancellation yields
+  $$`(-a)\cdot b = -(a\cdot b),`
+  which is exactly the desired result.
+
+This proof demonstrates two important aspects of the `rw` tactic.
+
+* First, `rw` automatically determines whether an equality should be used
+  in its forward or reverse direction.
+
+* Second, a single command may contain *a list of theorems*. Lean applies
+  these rewrites from left to right, updating the goal after each one.
+  This often produces short, readable proofs that would otherwise require
+  several separate rewrite commands or explicit uses of `Eq.symm` and
+  `congrArg`.
+:::
+
+  * Exercise: Prove the following theorem in Lean 4:
+:::theorem "neg_mul_neg"
+$$`(−a) \cdot (-b) = a \cdot b`
+for any real numbers $`a` and $`b`.
+:::
+
+```lean "neg_mul_neg"
+theorem neg_mul_neg_eq (a b : ℝ) : (-a) * (-b) = a * b := by
+  exact neg_mul_neg a b
+```
+
+```lean "neg_mul_neg_exercise"
+example (a b : ℝ) : (-a) * (-b) = a * b := by
+  sorry
+```
+
+We will. now prove the following fact:
+:::theorem "todo"
+Let $`a` be a real number. if $`a ≠ 0`, then $`a^2 > 0`
+:::
+
+```lean "todo"
+example : ∀ a : ℝ, (a ≠ 0) → a^2 > 0 := by
+  intro a h
+  sorry
+--  exact mul_self_pos.2 h
+```
+
+```lean "todo"
+example (a : ℝ): (a ≠ 0) → a^2 > 0 := by
+  intro h
+  sorry
+--  exact mul_self_pos.2 h
+```
+
+To finish this section, we are going to prove the following fact:
 ```lean "end namespace"
 end Section_1_2
 ```
