@@ -83,7 +83,7 @@ example (x : Real) : 0 + x  = x := by
 ```
 
   * *Existence of the additive inverse*
-Given a real number $`a`, there exists a real number that we call the _additive inverse_ of $`a`, and we indicate as `-a`, such that:
+Given a real number $`a`, there exists a real number that we call the _opposite_ of $`a`, and we indicate as `-a`, such that:
 $$`a + (-a) = (-a) + a = 0`
 
 :::theorem "add_neg_cancel" (parent := "addition_core-1")(lean := "add_neg_cancel")
@@ -708,10 +708,123 @@ example (a b : ℝ) : (-a) * (-b) = a * b := by
   sorry
 ```
 
+The following theorem states that the opposite of a number has the opposite sign:
+:::theorem "neg_neg_iff_pos" (parent := "properties_core")(lean := "neg_neg_iff_pos")
+For any real number $`a`, negative a is less than zero if and only if
+ $`a` is greater than zero.
+:::
+
+```lean "neg_neg_iff_pos"
+theorem neg_lt_zero {a : ℝ} :
+  (- a < 0) ↔ (0 < a) := by
+  exact neg_neg_iff_pos
+```
+
+A Lean 4 proof:
+
+```lean "neg_neg_iff_pos_proof"
+example {a : ℝ} :
+  (-a < 0) ↔ (0 < a) := by
+  constructor
+  · intro h
+    calc 0
+      = (-a) + a := by rw [neg_add_cancel]
+    _ < 0 + a := by  exact add_lt_add_left h a
+    _ = a := by exact zero_add a
+  · intro h
+    calc 0
+      = a + (-a) := by rw [add_neg_cancel]
+    _ > 0 + (-a) := by  exact (add_lt_add_left h (-a))
+    _ = -a := by exact zero_add (-a)
+```
+
+:::proof "neg_neg_iff_pos"
+*Explanation of the Lean-specific ingredients.*
+
+* The statement to be proved is a *biconditional*
+  $$`(-a < 0) \iff (0 < a).`
+  A biconditional consists of two implications:
+  $$`(-a < 0) \Longrightarrow (0 < a)`
+  and
+  $$`(0 < a) \Longrightarrow (-a < 0).`
+
+* The tactic `constructor` tells Lean to prove each implication
+  separately. After the command
+
+  `constructor`
+
+  the original goal is replaced by two subgoals:
+
+  1. $$`(-a < 0)\rightarrow (0 < a),`
+  2. $$`(0 < a) \rightarrow (-a < 0).`
+
+  Once both implications have been established, Lean concludes the
+  biconditional.
+
+* The bullets `·` simply separate the proofs of the two subgoals.
+  The first bullet proves the forward implication, while the second
+  proves the reverse implication.
+
+* The tactic `intro` introduces the assumption of an implication into the
+  local context.
+
+  For example, in the first subgoal the command `intro h`
+  assumes the hypothesis `h : -a < 0` and changes the goal from
+  $$`(-a < 0) \rightarrow (0 < a)`
+  to $`0 < a.`
+
+  Likewise, in the second subgoal, `intro h` assumes `h : 0 < a`
+  and changes the goal from
+  $$`(0<a)\rightarrow(-a<0)`
+  to $`-a<0.`
+
+* Each implication is then proved using a `calc` block.
+  In the forward direction, the proof begins with the identity
+  $$`0 = (-a) + a,`
+  obtained by rewriting the theorem `neg_add_cancel` in the reverse direction.
+
+* The theorem `add_lt_add_left h a`
+  expresses the monotonicity of addition.
+  Since $`-a < 0,` adding the same number $`a`$ to both sides gives
+  $$`(-a) + a < 0 + a.`
+
+* Finally, `zero_add a` rewrites $`0+a` as $`a,` yielding $`0<a.`
+
+* The reverse implication follows the same pattern.
+  The identity $`0 = a + (-a)`. comes from the theorem
+  `add_neg_cancel` rewritten in the opposite direction.
+
+* Applying `add_lt_add_left h (-a)` to the hypothesis $`0<a`
+  adds $`-a`$ to both sides, producing $`0+(-a)<a+(-a).`
+
+  Since the `calc` proof is written from top to bottom, this inequality
+  appears as $`a + (-a) > 0 + (-a),`
+  which is mathematically equivalent.
+
+* Finally, `zero_add (-a)` simplifies $`0+(-a)` to $`-a,`
+  giving $`-a < 0.`
+
+This proof illustrates two of Lean's most common logical tactics.
+
+* The tactic `constructor` decomposes a conjunction or biconditional into
+  its component parts, creating one goal for each part.
+
+* The tactic `intro` introduces the assumption of an implication (or a
+  universally quantified variable) into the local context, allowing it to
+  be referred to by name in the remainder of the proof.
+:::
+
+
+:::definition "square"
+If $a$ is a real number, then the square of $a$ is the product of $a$ with itself:
+$a^2 = a \cdot a$.
+:::
+
 We will. now prove the following fact:
 :::theorem "todo"
 Let $`a` be a real number. if $`a ≠ 0`, then $`a^2 > 0`
 :::
+
 
 ```lean "todo"
 example : ∀ a : ℝ, (a ≠ 0) → a^2 > 0 := by
