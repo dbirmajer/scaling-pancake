@@ -289,9 +289,9 @@ $$`c \cdot a < b \cdot c`
 ```lean "mul_lt_mul_of_pos_right"
 example
   (a b c : ℝ)
-  (h_a : a < b)
-  (h_c : 0 < c) : a * c <  b * c := by
-    exact mul_lt_mul_of_pos_right h_a h_c
+  (hab : a < b)
+  (hc : 0 < c) : a * c <  b * c := by
+    exact mul_lt_mul_of_pos_right hab hc
 ```
                                                         ◇◇◇◇◇◇
 We are now going to deduce some elementary properties of real numbers using
@@ -665,7 +665,7 @@ example (a b : ℝ) : (-a) * b = -(a * b) := by
 
   * First, `neg_add_cancel a` rewrites
     $$`(-a) + a`
-    as $`0`, producing $`0\cdot b.`
+    as $`0`, producing $`0 \cdot b.`
 
   * Next, `mul_comm 0 b` uses the commutativity of multiplication to
     rewrite $`0\cdot b` as $`b\cdot0.`
@@ -676,7 +676,7 @@ example (a b : ℝ) : (-a) * b = -(a * b) := by
   each using the result of the previous one.
 
 * A second `have` statement introduces another intermediate equality:
-  $$`(-a)\cdot b+a\cdot b=-(a\cdot b)+a\cdot b.`
+  $$`(-a) \cdot b + a \cdot b = - (a \cdot b) + a \cdot b.`
   Its first step simply reuses the equality proved previously.
 
 * The next rewrite,
@@ -763,10 +763,8 @@ example {a : ℝ} :
   $$`(0 < a) \Longrightarrow (-a < 0).`
 
 * The tactic `constructor` tells Lean to prove each implication
-  separately. After the command
-
-  `constructor`
-
+  separately.
+  After the command `constructor`
   the original goal is replaced by two subgoals:
 
   1. $$`(-a < 0)\rightarrow (0 < a),`
@@ -814,7 +812,7 @@ example {a : ℝ} :
   appears as $`a + (-a) > 0 + (-a),`
   which is mathematically equivalent.
 
-* Finally, `zero_add (-a)` simplifies $`0+(-a)` to $`-a,`
+* Finally, `zero_add (-a)` simplifies $`0 + (-a)` to $`-a,`
   giving $`-a < 0.`
 
 This proof illustrates two of Lean's most common logical tactics.
@@ -828,36 +826,165 @@ This proof illustrates two of Lean's most common logical tactics.
 :::
 
 
-:::definition "square"
+:::definition "sq" (parent := "properties_core")(lean := "sq")
 If $a$ is a real number, then the square of $a$ is the product of $`a` with
 itself: $`a^2 = a \cdot a`.
 :::
 
+```lean "sq"
+example (a : ℝ) : a ^ 2 = a * a := by
+  exact sq a
+```
 We will. now prove the following fact:
-:::theorem "todo"
-Let $`a` be a real number. if $`a ≠ 0`, then $`a^2 > 0`
+:::theorem "sq_pos_of_ne_zero"
+Let $`a` be a real number. if $`a ≠ 0`, then $`0 < a ^ 2`
 :::
 
-
-```lean "todo"
-example : ∀ a : ℝ, (a ≠ 0) → a^2 > 0 := by
-  intro a h
-  sorry
---  exact mul_self_pos.2 h
+```lean "sq_pos_of_ne_zero"
+theorem real_sq_pos {a : ℝ} (h : a ≠ 0) : a ^ 2 > 0 := by
+  exact sq_pos_of_ne_zero h
 ```
-
-```lean "todo"
-example (a : ℝ): (a ≠ 0) → a^2 > 0 := by
+```lean "sq_pos_of_ne_zero_proof"
+example (a : ℝ): (a ≠ 0) → 0 < a ^ 2  := by
+  have hPos : ∀ a : ℝ, 0 < a → 0 < a ^ 2 := by
+    intro a aPos
+    calc 0
+       = 0 * a := by  rw [zero_mul a]
+     _ < a * a := by exact mul_lt_mul_of_pos_right aPos aPos
+     _ = a ^ 2 := by rw [← sq]
   intro h
-  have h' : a < 0 ∨ 0 < a := by
+  have h' : a < 0 ∨  0 < a:= by
     exact lt_or_gt_of_ne h
-  rcases h' with hNeg | hPos
-  . sorry
-  . sorry
---  exact mul_self_pos.2 h
+  rcases h' with aNeg | aPos
+  . -- a < 0
+    have : - (- a) < 0 := by exact (neg_neg a).trans_lt aNeg
+    have aOppPos : 0 < (- a) := by
+      exact neg_neg_iff_pos.mp this
+    have : 0 < (- a) ^ 2 := by
+      exact hPos (-a) aOppPos
+    calc 0
+
+      < (- a) ^ 2 := by exact this
+    _ = (- a) * (-a) := by exact sq (- a)
+    _ = a * a := by exact neg_mul_neg a a
+    _  = a ^ 2 := by exact (sq a).symm
+  . -- 0 < a
+    exact hPos a aPos
 ```
+
+
+:::proof "sq_pos_of_ne_zero"
+*Explanation of the Lean-specific ingredients.*
+
+* The proof begins by establishing an auxiliary result with `have`:
+
+  $$`\forall a \in \mathbb R, \; 0 <a \Longrightarrow 0 < a^2.`
+
+  This lemma is named `hPos` and is used later in both cases of the proof.
+  By proving it once, we avoid repeating the same argument.
+
+* The tactic `intro` is used twice in this proof.
+  * The first occurrence, `intro a` introduces the universally quantified
+    variable in the proof of `hPos`.
+
+  * The second occurrence, `intro h` introduces the assumption
+    `h : a ≠ 0` of the implication `a ≠ 0 → 0 < a ^ 2`.
+    After this command, the goal is simply `0 < a ^ 2`.
+
+* From the hypothesis `h : a ≠ 0`, the theorem `lt_or_gt_of_ne h`
+  produces the disjunction `a < 0 ∨ 0 < a.`
+  Thus Lean has reduced the problem to the two possible signs of a
+  nonzero real number.
+
+* The command `rcases h' with `aNeg | aPos` performs *case analysis* on
+  the disjunction.
+
+  The hypothesis `h' : a < 0 ∨ 0 < a` has the logical form `P ∨ Q`.
+  To prove a statement from a disjunction, one must show that it follows
+  from either alternative.
+
+  The command `rcases` therefore creates two separate goals.
+
+    * In the first goal, Lean assumes the left-hand alternative
+    `aNeg : a < 0`  and asks us to prove `0 < a ^ 2`.
+
+    * In the second goal, Lean assumes the right-hand alternative
+    `aPos : 0 < a` and again asks us to prove `0 < a ^ 2`.
+
+  Once both cases have been completed, Lean concludes that the theorem
+  holds regardless of which alternative of the disjunction is true.
+
+  * The second case is immediate.
+    Since we already proved the auxiliary lemma  `hPos`,
+    the command `exact hPos a aPos` simply applies that lemma.
+
+  *  The first case is more interesting.
+
+    We know `a < 0`, but the auxiliary lemma requires a _positive_ number.
+    The idea is therefore to apply the lemma to `-a`.
+
+  * The line
+  `have : -(-a) < 0 := by
+      exact (neg_neg a).trans_lt aNega`  uses the method `trans_lt`.
+    If `h_1 : x = y` and `h_2 : y < z`, then `h1.trans_lt h2`
+    produces the inequality `x < z`.
+
+  In this proof, `neg_neg a : - (-a) = a` and `aNeg : a < 0`. Therefore
+  `(neg_neg a).trans_lt aNeg` proves `-(-a) < 0`.
+
+
+  This is simply the transitivity of equality and inequality: since
+  `- (- a) = a` and `a < 0`, it follows that `- (-a) < 0`.
+
+* The theorem `neg_neg_iff_pos` proved earlier states that
+  `- x < 0 ↔ 0 < x`.
+
+
+  The notation `neg_neg_iff_pos.mp` means "apply the forward implication" of
+  this equivalence. Thus `neg_neg_iff_pos.mp this` transforms
+  `- (- a) < 0` into `0 < - a`.
+
+
+* Since `- a` is positive, the auxiliary lemma `hPos` immediately yields
+  `0 < (-a) ^ 2`.
+
+
+* The final `calc` block rewrites this square until it becomes `a ^2`.
+
+  * The theorem `sq (- a)` rewrites `(-a) ^ 2` as `(-a) · (-a)`.
+
+
+
+  * The theorem `neg_mul_neg` simplifies `(-a)(-a)=a \cdot a`.
+
+
+
+  * Finally, `(sq a).symm` rewrites `a ·  a` as `a ^ 2`.
+
+
+Thus we conclude 0 <a ^ 2`, completing the negative case.
+
+* This proof illustrates two important proof techniques.
+
+
+  * The command \verb|rcases| is used to eliminate a disjunction.
+
+A proof of \(P\lor Q\) is handled by considering the two cases separately,
+
+one assuming \(P\) and the other assuming \(Q\).
+
+  * The method \verb|trans_lt| combines an equality with a strict
+
+inequality.
+
+If `h₁ : x = y` and `h₂ : y < z`, then `h₁.trans_lt h₂` proves
+  `x < z`.
+It is a convenient way to exploit an equality immediately before
+applying an inequality.
+:::
 
 To finish this section, we are going to prove the following fact:
 ```lean "end namespace"
+
 end Section_1_2
 ```
