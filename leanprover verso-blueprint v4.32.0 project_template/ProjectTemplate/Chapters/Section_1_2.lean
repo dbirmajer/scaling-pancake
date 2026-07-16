@@ -249,7 +249,7 @@ $`a < 0` or $`a > 0`.
 :::
 
 ```lean "lt_or_gt_of_ne"
-example {a b : ℝ} (h : a ≠ 0) : a < 0 ∨ 0 < a := by
+example {a : ℝ} (h : a ≠ 0) : a < 0 ∨ 0 < a := by
   exact lt_or_gt_of_ne h
 ```
 
@@ -328,8 +328,8 @@ example {a b c : ℝ}
 A Lean proof:
 
 ```lean "add_right_cancel"
-example
-  (a b c : ℝ) (h : a + c = b + c) : a = b := by
+theorem add_right_cancel
+  {a b c : ℝ} (h : a + c = b + c) : a = b := by
   calc
     a = a + 0 := Eq.symm (add_zero a)
     _ = a + (c + (-c)) :=
@@ -378,6 +378,34 @@ so the entire chain establishes the desired result by transitivity.
   $$`(a + c) + (-c) = (b + c) + (-c),`
   while `congrArg (λ x => a + x) h` adds the same quantity `a` to
   both sides of an equality.
+
+* In this theorem the variables are declared as `{a b c : ℝ}`
+  rather than `(a b c : ℝ)`.
+
+  The parentheses declare *explicit arguments*, while the braces declare
+  *implicit arguments*.
+
+  An explicit argument must always be supplied when the theorem is used.
+  For example, `add_comm a b` explicitly passes the values of `a` and `b` to the
+  theorem `add_comm`.
+
+  By contrast, an implicit argument is usually inferred automatically by
+  `Lean` from the other arguments. In the theorem
+  `theorem add_right_cancel {a b c : ℝ} (h : a + c = b + c) : a = b`
+  the variables `a`, `b`, and `c` are implicit, while the hypothesis `h`
+  is an explicit argument.
+
+  Once `Lean` sees a proof of `h : a + c = b + c`
+  it can determine the values of `a`, `b`, and `c` by inspecting the type
+  of `h`. Therefore, when applying the theorem, we can simply write
+  `add_right_cancel h` rather than `add_right_cancel a b c h`.
+
+  Implicit arguments make theorem applications shorter and easier to read,
+  while still allowing the arguments to be supplied explicitly if desired.
+
+  For example, `@add_right_cancel ℝ a b c h`
+  tells Lean to expose all implicit arguments and require them to be
+  supplied manually.
 :::
 
 
@@ -396,8 +424,8 @@ example {a b c : ℝ}
 ```
 
 ```lean "add_left_cancel_ex"
-example {a b c : ℝ}
-  (h : a + b = a + c) : b = c := by
+theorem add_left_cancel {a b c : ℝ}
+  (_ : a + b = a + c) : b = c := by
     sorry
 ```
 
@@ -517,7 +545,7 @@ example (a b c : ℝ)
 A Lean proof is:
 
 ```lean "mul_left_cancel"
-example (a b c : ℝ)
+theorem mu_left_cancel₀ (a b c : ℝ)
   (h : a * b = a * c)
   (hₐ : a ≠ 0) : b = c := by
   calc
@@ -592,13 +620,13 @@ for every real number $`a`, $`−(−a) = a`.
 :::
 
 ```lean "neg_neg"
-theorem neg_neg_eq (a : ℝ) : - (-a) = a := by
+example (a : ℝ) : - (-a) = a := by
   exact neg_neg a
 ```
 Indeed, by definition $`−(−a)` is the additive inverse of $`−a`, that is:
 
 ```lean "neg_neg"
-example {a : ℝ} : -(-a) = a := by
+theorem neg_neg (a : ℝ) : -(-a) = a := by
   have h : -(-a) + (-a) = a + (-a) := by
     calc
     -(-a) + (-a) = 0 := by exact neg_add_cancel (-a)
@@ -619,7 +647,7 @@ example (a b : ℝ) : (-a) * b = -(a * b) := by
 A Lean proof:
 
 ```lean "neg_mul"
-example (a b : ℝ) : (-a) * b = -(a * b) := by
+theorem neg_mul (a b : ℝ) : (-a) * b = -(a * b) := by
   have : (-a) * b + a * b = 0 := by
     calc
     (-a) * b + a * b = ((-a) + a) * b := by
@@ -713,12 +741,12 @@ for any real numbers $`a` and $`b`.
 :::
 
 ```lean "neg_mul_neg"
-theorem neg_mul_neg_eq (a b : ℝ) : (-a) * (-b) = a * b := by
+ example (a b : ℝ) : (-a) * (-b) = a * b := by
   exact neg_mul_neg a b
 ```
 
 ```lean "neg_mul_neg_exercise"
-example (a b : ℝ) : (-a) * (-b) = a * b := by
+theorem neg_mul_neg_eq (a b : ℝ) : (-a) * (-b) = a * b := by
   sorry
 ```
 
@@ -729,7 +757,7 @@ For any real number $`a`, negative $`a` is less than zero if and only if
 :::
 
 ```lean "neg_neg_iff_pos"
-theorem neg_lt_zero {a : ℝ} :
+example {a : ℝ} :
   (- a < 0) ↔ (0 < a) := by
   exact neg_neg_iff_pos
 ```
@@ -737,7 +765,7 @@ theorem neg_lt_zero {a : ℝ} :
 A Lean 4 proof:
 
 ```lean "neg_neg_iff_pos_proof"
-example {a : ℝ} :
+theorem neg_neg_iff_pos {a : ℝ} :
   (-a < 0) ↔ (0 < a) := by
   constructor
   · intro h
@@ -782,24 +810,22 @@ example {a : ℝ} :
 
   For example, in the first subgoal the command `intro h`
   assumes the hypothesis `h : -a < 0` and changes the goal from
-  $$`(-a < 0) \rightarrow (0 < a)`
-  to $`0 < a.`
+  `- a < 0 → 0 < a` to `0 < a`.
 
   Likewise, in the second subgoal, `intro h` assumes `h : 0 < a`
-  and changes the goal from
-  $$`(0<a)\rightarrow(-a<0)` to $`-a < 0.`
+  and changes the goal from `0 < a → - a < 0` to $`- a < 0`.
 
 * Each implication is then proved using a `calc` block.
   In the forward direction, the proof begins with the identity
-  $$`0 = (-a) + a,`
-  obtained by rewriting the theorem `neg_add_cancel` in the reverse direction.
+  `0 = (-a) + a`, obtained by rewriting the theorem `neg_add_cancel` in
+  the reverse direction.
 
 * The theorem `add_lt_add_left h a`
   expresses the monotonicity of addition.
-  Since $`-a < 0,` adding the same number $`a`$ to both sides gives
-  $$`(-a) + a < 0 + a.`
+  Since `- a < 0,` adding the same number `a` to both sides gives
+  `(- a) + a < 0 + a.`
 
-* Finally, `zero_add a` rewrites $`0+a` as $`a,` yielding $`0<a.`
+* Finally, `zero_add a` rewrites `0 + a` as `a`, yielding `0 < a`.
 
 * The reverse implication follows the same pattern.
   The identity $`0 = a + (-a)`. comes from the theorem
@@ -841,11 +867,13 @@ Let $`a` be a real number. if $`a ≠ 0`, then $`0 < a ^ 2`
 :::
 
 ```lean "sq_pos_of_ne_zero"
-theorem real_sq_pos {a : ℝ} (h : a ≠ 0) : a ^ 2 > 0 := by
+example {a : ℝ} : a ≠ 0 → a ^ 2 > 0 := by
+  intro h
   exact sq_pos_of_ne_zero h
 ```
 ```lean "sq_pos_of_ne_zero_proof"
-example (a : ℝ): (a ≠ 0) → 0 < a ^ 2  := by
+theorem sq_pos_of_ne_zero {a : ℝ}:
+  a ≠ 0 → 0 < a ^ 2  := by
   have hPos : ∀ a : ℝ, 0 < a → 0 < a ^ 2 := by
     intro a aPos
     calc 0
@@ -896,7 +924,7 @@ example (a : ℝ): (a ≠ 0) → 0 < a ^ 2  := by
   Thus Lean has reduced the problem to the two possible signs of a
   nonzero real number.
 
-* The command `rcases h' with `aNeg | aPos` performs *case analysis* on
+* The command `rcases h` with `aNeg | aPos` performs *case analysis* on
   the disjunction.
 
   The hypothesis `h' : a < 0 ∨ 0 < a` has the logical form `P ∨ Q`.
@@ -924,8 +952,8 @@ example (a : ℝ): (a ≠ 0) → 0 < a ^ 2  := by
     The idea is therefore to apply the lemma to `-a`.
 
   * The line
-  `have : -(-a) < 0 := by
-      exact (neg_neg a).trans_lt aNega`  uses the method `trans_lt`.
+    `have : -(-a) < 0 := by exact (neg_neg a).trans_lt aNega`
+    uses the method `trans_lt`.
     If `h_1 : x = y` and `h_2 : y < z`, then `h1.trans_lt h2`
     produces the inequality `x < z`.
 
@@ -949,20 +977,15 @@ example (a : ℝ): (a ≠ 0) → 0 < a ^ 2  := by
   `0 < (-a) ^ 2`.
 
 
-* The final `calc` block rewrites this square until it becomes `a ^2`.
+* The final `calc` block rewrites this square until it becomes `a ^ 2`.
 
   * The theorem `sq (- a)` rewrites `(-a) ^ 2` as `(-a) · (-a)`.
 
-
-
   * The theorem `neg_mul_neg` simplifies `(-a)(-a)=a \cdot a`.
 
+  * Finally, `(sq a).symm` rewrites `a * a` as `a ^ 2`.
 
-
-  * Finally, `(sq a).symm` rewrites `a ·  a` as `a ^ 2`.
-
-
-Thus we conclude 0 <a ^ 2`, completing the negative case.
+  Thus we conclude `0 < a ^ 2`, completing the negative case.
 
 * This proof illustrates two important proof techniques.
 
@@ -978,40 +1001,64 @@ Thus we conclude 0 <a ^ 2`, completing the negative case.
 
 To finish this section, we are going to prove the following fact: `0 < 1`.
 
-:::theorem "zero_lt_one'" (parent := "properties_core")(lean := "zero_lt_one'")
-`0 < 1`.
+:::theorem "zero_lt_one" (parent := "properties_core")(lean := "zero_lt_one")
+`(0 : ℝ) < (1 : ℝ)`.
 :::
 
 ```lean "zero_lt_one"
 example : (0 : ℝ) < (1 : ℝ) := by
-  exact zero_lt_one' ℝ
+  exact zero_lt_one
 ```
 
 ```lean "zero_lt_one"
-example : (0 : ℝ) < (1 : ℝ) := by
+theorem zero_lt_one  : (0 : ℝ)  < (1 : ℝ) := by
   calc (0 : ℝ)
     < 1 ^ 2 := by exact sq_pos_of_ne_zero (one_ne_zero)
   _ = 1 * 1 := by exact sq 1
   _ = 1 := by exact one_mul 1
 ```
+```lean "end namespace"
+end Section_1_2
+```
 
 We will leave the rest of the elementary properties of real numbers as an
-exercise. Let us say from now on that $`a−b` means $`a+(−b)` and that,
-for $`b ≠ 0`, $`a/b` means $`a⋅b^{−1}`.
+exercise. Let us say from now on that $`a − b` means $`a + (−b)` and that,
+for $`b ≠ 0`, $`a / b` means $`a ⋅ b^{−1}`.
 
 Likewise, we will stop indicating the product with a dot,
-so that $`ab` will signify $`a · b`.
+so that $`a b` will signify $`a · b`.
 
 # Exercises
 
-1. Prove in detail the following properties derived from addition and indicate
-at each step which basic or previously derived properties are used:
-  * a. If $`a` and $`b` are real numbers such that $`a+b=0`,
-  then $`b=−a` (Uniqueness of the additive inverse).
+1. Use Lean 4 to prove in detail the following properties derived from
+addition and indicate at each step which basic or previously derived properties
+are used:
+  * a. If $`a` and $`b` are real numbers such that $`a + b = 0`,
+  then $`b = −a` (Uniqueness of the additive inverse).
   * b. If $`a` is distinct from zero, then $`−a` is also distinct from zero.
-  * c.  If $`a−b=b−a`, then `a=b`.
+  * c.  If $`a − b = b − a`, then `a = b`.
 
-```lean "end namespace"
+2. Prove the following properties derived from addition and the product
+(with the same recommendations as in the previous exercise):
+  * a.  If $`a b = 0`, then $`a = 0` or $`b = 0`.
+  * b. $`(−1)⋅a = − a`.
+  * c. $`(a + b)(a − b) = a ^ 2 - b ^ 2`
 
-end Section_1_2
-```
+3. Prove the following properties derived from the product
+  (same recommendations):
+  * a. If `a b = a` and $`a ≠ 0`, then $`b = 1` (Uniqueness of the neutral element).
+  * b. If $`a ≠ 0`, then $`a^{−1} ≠ 0`
+  * c. If $`a ≠ 0`, then $`(a^{−1})^{-1} = a`.
+  * d. If $`a ≠ 0` and $`b ≠ 0`, then $`(ab)^{−1} = b^{-1}a^{−1}`
+
+4. Prove the following properties derived from addition,
+the product, and order:
+  * a. $`0 < a` if and only if $`−a < 0` (the _if and only if_
+  signifies proving both implications: if $`0 < a`, then $`−a < 0`).
+  * b. If $`a < b` and $`c < d`, then $`a + c < b + d`.
+  * c. $`a < b` if and only if $`−b < −a`.
+  * d. If $`0 < a` and $`0 < b`, then $`0 < ab`.
+  * e. If $`a < 0` and $`b < 0`, then $`0 < ab`.
+  * f. If $`a < 0` and $`0 < b`, then $`ab < 0`.
+  * g. If $`0 < a`, `0 < b`, and $`a < `b, then `a² < b²`
+  * i. If `a² + b² = 0`, then `a` and `b` are zero.
