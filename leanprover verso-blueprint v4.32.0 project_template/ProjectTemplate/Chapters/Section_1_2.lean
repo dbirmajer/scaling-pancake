@@ -966,24 +966,51 @@ Thus we conclude 0 <a ^ 2`, completing the negative case.
 
 * This proof illustrates two important proof techniques.
 
+  * The command `rcases` is used to eliminate a disjunction.
+    A proof of `P ∨ Q` is handled by considering the two cases separately,
+    one assuming `P` and the other assuming `Q`.
 
-  * The command \verb|rcases| is used to eliminate a disjunction.
+  * The method `trans_lt` combines an equality with a strict inequality.
 
-A proof of \(P\lor Q\) is handled by considering the two cases separately,
-
-one assuming \(P\) and the other assuming \(Q\).
-
-  * The method \verb|trans_lt| combines an equality with a strict
-
-inequality.
-
-If `h₁ : x = y` and `h₂ : y < z`, then `h₁.trans_lt h₂` proves
-  `x < z`.
-It is a convenient way to exploit an equality immediately before
-applying an inequality.
+    If `h₁ : x = y` and `h₂ : y < z`, then `h₁.trans_lt h₂` proves
+    `x < z`.
 :::
 
-To finish this section, we are going to prove the following fact:
+To finish this section, we are going to prove the following fact: `0 < 1`.
+
+:::theorem "zero_lt_one'" (parent := "properties_core")(lean := "zero_lt_one'")
+`0 < 1`.
+:::
+
+```lean "zero_lt_one"
+example : (0 : ℝ) < (1 : ℝ) := by
+  exact zero_lt_one' ℝ
+```
+
+```lean "zero_lt_one"
+example : (0 : ℝ) < (1 : ℝ) := by
+  calc (0 : ℝ)
+    < 1 ^ 2 := by exact sq_pos_of_ne_zero (one_ne_zero)
+  _ = 1 * 1 := by exact sq 1
+  _ = 1 := by exact one_mul 1
+```
+
+We will leave the rest of the elementary properties of real numbers as an
+exercise. Let us say from now on that $`a−b` means $`a+(−b)` and that,
+for $`b ≠ 0`, $`a/b` means $`a⋅b^{−1}`.
+
+Likewise, we will stop indicating the product with a dot,
+so that $`ab` will signify $`a · b`.
+
+# Exercises
+
+1. Prove in detail the following properties derived from addition and indicate
+at each step which basic or previously derived properties are used:
+  * a. If $`a` and $`b` are real numbers such that $`a+b=0`,
+  then $`b=−a` (Uniqueness of the additive inverse).
+  * b. If $`a` is distinct from zero, then $`−a` is also distinct from zero.
+  * c.  If $`a−b=b−a`, then `a=b`.
+
 ```lean "end namespace"
 
 end Section_1_2
