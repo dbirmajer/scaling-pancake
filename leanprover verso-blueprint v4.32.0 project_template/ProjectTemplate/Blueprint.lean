@@ -7,6 +7,7 @@ import ProjectTemplate.Chapters.Addition
 import ProjectTemplate.Chapters.Collatz
 import ProjectTemplate.Chapters.Multiplication
 import ProjectTemplate.Chapters.Section_1_2
+import ProjectTemplate.Chapters.Section_1_3
 
 open Verso.Genre
 open Verso.Genre.Manual
@@ -19,6 +20,8 @@ then ends with a separate Collatz chapter that is intentionally unfinished. It
 is intentionally small, so it can serve as a starting point for a new project.
 
 {include 0 ProjectTemplate.Chapters.Section_1_2}
+{include 0 ProjectTemplate.Chapters.Section_1_3}
+
 {include 0 ProjectTemplate.Chapters.Addition}
 {include 0 ProjectTemplate.Chapters.Multiplication}
 {include 0 ProjectTemplate.Chapters.Collatz}

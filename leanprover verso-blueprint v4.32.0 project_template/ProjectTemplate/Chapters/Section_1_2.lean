@@ -9,7 +9,7 @@ open Verso.Genre
 open Verso.Genre.Manual
 open Informal
 
-#doc (Manual) "Basic Properties of Real Numbers" =>
+#doc (Manual) "The Real Numbers" =>
 
 :::source_document "addition-source"
 %%%
@@ -19,19 +19,116 @@ pdf := "source/addition-source.pdf"
 %%%
 :::
 
-:::group "addition_core-1"
-Core statements about addition on real numbers.
-:::
 
 :::author "project_author-1" (name := "Daniel Birmajer")
 :::
 
-```lean "namespace"
-namespace Section_1_2
+This a Blueprint chapter demo that presents the field properties of ℝ
+(commutativity, associativity, identities, inverses, distributivity, order)
+in informal math text, with Lean 4 proofs of derived results
+(cancellation laws, `mul_zero`, `neg_mul`, `sq_pos_of_ne_zero`,
+`zero_lt_one`) and exercises using `sorry`.
+
+The [Lean website](https://lean-lang.org)
+
+```tex
+\begin{enumerate}
+    \item \textbf{Basic properties and derived properties}
+    \item \textbf{Basic properties of the real numbers}
+    \item \textbf{Natural numbers}
+    \item \textbf{Definitions by induction}
+    \item \textbf{More definitions by induction and Newton's formula}
+    \item \textbf{Integers}
+    \item \textbf{Rational numbers}
+    \item \textbf{Completeness property}
+    \item \textbf{Consequences of the completeness property}
+    \item \textbf{Powers with rational exponent}
+    \item \textbf{Powers with real exponent}
+    \item \textbf{Modulus or absolute value of a real number}
+\end{enumerate}
 ```
+
+```tex
+% --- Page 7 ---
+\begin{flushright}
+    \textbf{1.1.}
+\end{flushright}
+```
+
+
+
+# Basic Properties and Derived Properties
+
+In the present chapter, we are going to show that the question makes sense:
+what are the properties of real numbers?
+If this question is asked of the reader, they will probably evoke the various
+volumes of Mathematics they have studied, think about those they have yet to
+study, and conclude that it is impossible to give an answer;
+there are so many known properties of real numbers, not to mention those that
+are not known, that the idea of listing them will seem unwise.
+However, a brief look at the situation may change their mind.
+
+Let us consider a few properties, for example:
+
+  * $`\star 1.` The sum of real numbers is commutative:
+    $`a + b = b + a` for any real numbers $`a` and $`b`.
+
+  * $`\star 2.` Minus times minus is plus.
+
+  * $`\star 3.` The square of the sum of two real numbers is equal to the
+  sum of their squares plus their double product:
+  $`(a + b)^2 = a^2 + 2a \cdot b + b^2`.
+
+
+The attitude towards each of these three properties is, without a doubt,
+different. The first will seem natural, or you will have been convinced of it
+by seeing some examples; the second you will remember as a "recipe"
+of which you were informed at the time; and, if memory serves,
+you will remember that the third has been _demonstrated_ to you in the
+following way:
+
+$$`
+\begin{align*}
+    (a + b)^2 &= (a + b) \cdot (a + b) = (a + b) \cdot a + (a + b) \cdot b = \\
+    &= a \cdot a + b \cdot a + a \cdot b + b \cdot b = \\
+    &= a^2 + 2a \cdot b + b^2
+\end{align*}
+`
+
+This last observation suggests the following reflections:
+
+```tex
+\begin{itemize}
+    \item[\textbf{$\star$ i)}] In a list of the properties of real numbers it would not be necessary to include property 3 since it can be deduced from other properties; in particular, it would seem that we only need to know that $a \cdot b = b \cdot a$ and to know how to multiply a sum of numbers by another real number. [1]
+
+    \item[\textbf{$\star$ ii)}] If in this way we eliminate from our list those properties that can be deduced from others more elementary, at some point we must arrive at properties that cannot be demonstrated, which must serve as a starting point. [1]
+
+    At first glance, properties 1 and 2 should appear on that list since they do not seem susceptible to a demonstration. [1]
+
+    \item[\textbf{$\star$ iii)}] Once a list of properties is obtained that we can no longer demonstrate but which serve as a starting point to demonstrate all the others, that list could be considered to contain all the properties of real numbers, at least potentially. The properties enumerated in said list we could call \textbf{basic} and all the remaining properties, demonstrable from the basic ones, we could call \textbf{derived}. [1]
+\end{itemize}
+```
+
+In the next paragraph we are going to present the list of basic properties of
+real numbers; it may surprise you how low the number of them is;
+_there are only 14_ and from them it is possible to derive all the study of
+real numbers, in particular the content of this book.
+
+# Basic Properties of Real Numbers
+
+## Basic Properties of Addition
+
+:::group "addition_core-1"
+Core statements about addition on real numbers.
+:::
+
 We will begin with the basic properties of _addition_, which are four:
 
-   * *Commutative property*
+```lean "open BasicProperties"
+namespace BasicProperties
+```
+
+* *Commutative property*
 
 :::theorem "add_comm" (parent := "addition_core-1")(lean := "add_comm")
 For any real numbers $`a` and $`b`, the following holds: $`a + b = b + a`
@@ -42,9 +139,9 @@ example (a b : ℝ) : a + b = b + a := by
   exact add_comm a b
 ```
 
-  * *Associative property*
+* *Associative property*
 :::theorem "add_assoc" (parent := "addition_core-1")(lean := "add_assoc")
-For any real numbers `a`, `b` and `c`, the following holds:
+For any real numbers $`a, b` and $`c`, the following holds:
 $$`(a + b) + c = a + (b + c)`
 :::
 
@@ -58,13 +155,18 @@ Let $X$ be a set with property $P$.
 --\end{axiom}
 ```
 
-* *Existence of the neutral element* There exists a real number called _zero_ that we denote as $`0` such that,
-for every real number $`a`:
+* *Existence of the neutral element*
+:::theorem "S3" (parent := "addition_core-1")(tags := "Existence of 0")
+There exists a real number called _zero_ that we denote as
+$`0` such that, for every real number $`a`:
 $$`a + 0 = 0 + a = a`
+:::
+
+
+The corresponding _theorems_ in Lean 4 are:
 
 :::theorem "add_zero" (parent := "addition_core-1")(lean := "add_zero")
-For all real number $`a`:
-$`a + 0  = a`.
+For all real number $`a`: $`\; a + 0  = a`.
 :::
 
 ```lean "add_zero"
@@ -73,22 +175,21 @@ example (a : Real) : a + 0 = a := by
 ```
 
 :::theorem "zero_add" (parent := "addition_core-1")(lean := "zero_add")
-For all real number $`a`:
-$`0 + a  = a`.
+For all real number $`a`: $`\; 0 + a  = a`.
 :::
 
 ```lean "zero_add"
-example (x : Real) : 0 + x  = x := by
-  exact zero_add x
+example (a : Real) : 0 + a  = a := by
+  exact zero_add a
 ```
 
-  * *Existence of the additive inverse*
-Given a real number $`a`, there exists a real number that we call the _opposite_ of $`a`, and we indicate as `-a`, such that:
+* *Existence of the additive inverse*
+Given a real number $`a`, there exists a real number that we call the
+_opposite_ of $`a`, and we indicate as $`-a`, such that:
 $$`a + (-a) = (-a) + a = 0`
 
 :::theorem "add_neg_cancel" (parent := "addition_core-1")(lean := "add_neg_cancel")
-Given a real number $`a`, there exists a real number that we call the _additive inverse_ of $`a`, and we indicate as `-a`, such that:
-$$`a + (-a) = 0`
+Given a real number $`a`, $`\; a + (-a) = 0`
 :::
 
 ```lean "add_neg_cancel"
@@ -97,8 +198,7 @@ example (a : ℝ) : a + (-a) = 0 := by
 ```
 
 :::theorem "neg_add_cancel" (parent := "addition_core-1")(lean := "neg_add_cancel")
-Given a real number $`a`, there exists a real number that we call the _additive inverse_ of $`a`, and we indicate as `-a`, such that:
-$$`(- a) + a  = 0`
+Given a real number $`a`, $`(- a) + a  = 0`
 :::
 
 ```lean "neg_add_cancel"
@@ -106,13 +206,18 @@ example (a : ℝ) : (-a) + a = 0 := by
   exact neg_add_cancel a
 ```
 
-The basic properties of the _product_ are also four and correspond exactly to those of addition:
+
+## Basic Properties of Multiplication
+
+The basic properties of the _product_ are also four and correspond exactly to
+those of addition:
 
 :::group "product_core"
 Core statements about multiplication on real numbers.
 :::
 
-   * *Commutative property*
+
+* *Commutative property*
 
 :::theorem "mul_comm" (parent := "product_core")(lean := "mul_comm")
 For any real numbers $`a` and $`b`, the following holds: $`a ·  b = b ·  a`
@@ -123,7 +228,7 @@ example (a b : ℝ) : a * b = b * a := by
   exact mul_comm a b
 ```
 
-  * *Associative property*
+* *Associative property*
 :::theorem "mul_assoc"  (parent := "product_core")(lean := "mul_assoc")
   For any real numbers $`a, b`, and $`c`, the following holds
 $$`a \cdot (b \cdot c) = (a \cdot b) \cdot c`
@@ -134,9 +239,13 @@ example (a b c : ℝ) : (a * b) * c = a * (b * c):= by
   exact mul_assoc a b c
 ```
   * *Property of existence of the neutral element*
+:::theorem "P3" (parent := "product_core")
 There exists a real number distinct from _zero_ that we call _one_ and denote
 as $`1` such that, for every real number:
 $$`a \cdot 1 = 1 \cdot 1 = a`
+:::
+
+The corresponding _theorems_ in Lean 4 are:
 
 :::theorem "one_ne_zero" (parent := "product_core")(lean := "one_ne_zero")
 $`1 ≠ 0`
@@ -147,18 +256,16 @@ example : (1 : ℝ) ≠ (0 : ℝ) := one_ne_zero
 ```
 
 :::theorem "mul_one" (parent := "product_core")(lean := "mul_one")
-For all real number $`a`:
-$`a · 1  = a`.
+For all real number $`a`: $`a · 1  = a`.
 :::
 
-```lean "add_zero"
+```lean "mul_one"
 example (a : Real) : a * 1 = a := by
   exact mul_one a
 ```
 
 :::theorem "one_mul" (parent := "product_core")(lean := "one_mul")
-For all real number $`a`:
-$`1 · a  = a`.
+For all real number $`a`: $`1 · a  = a`.
 :::
 
 ```lean "one_mul"
@@ -192,9 +299,12 @@ example (a : ℝ) (hₐ : a ≠ 0)  : a⁻¹ * a = 1 := by
   exact inv_mul_cancel₀ hₐ
 ```
 
+
+## Distributive property
+
 We now include a property that links addition with with the product:
 
-  *Distributive property*
+  *Distributive Property*
 :::theorem "mul_add" (parent := "order_core")(lean := "mul_add")
 For any real numbers $`a, b`, and $`c`, the following holds:
 $$`a \cdot (b + c) = a \cdot b + a \cdot c`
@@ -213,6 +323,8 @@ $$`(a + b) \cdot c = a \cdot c + b \cdot c`
 example (a b c : ℝ) : (a + b) * c = a * c + b * c := by
   exact add_mul a b c
 ```
+
+## Order Relation
 
 The final properties we indicate now refer to the order relation that exists
 between real numbers.
@@ -254,8 +366,11 @@ example {a : ℝ} (h : a ≠ 0) : a < 0 ∨ 0 < a := by
 ```
 
 :::definition "positive and negative" (parent := "order_core")
-Postive and negative numbers
+A real number $`a`$ is called *positive* if $`0 < a.`
+
+A real number $`a`$ is called *negative* if $`a < 0.`
 :::
+
   * *Transitive property*
 
 :::theorem "lt_trans" (parent := "order_core")(lean := "lt_trans")
@@ -410,7 +525,7 @@ so the entire chain establishes the desired result by transitivity.
 
 
   * Exercise: Prove the following theorem in Lean 4:
-:::theorem "add_left_cancel" (parent := "properties_core")(lean := "add_left_cancel")
+:::theorem "add_left_cancel" (parent := "properties_core")(tags := "Exercise")(lean := "add_left_cancel")
 If $`a, b`, and $`c` are real numbers such that:
 $`\; a + b = a + c\;`
 then:
@@ -735,7 +850,7 @@ This proof demonstrates two important aspects of the `rw` tactic.
 :::
 
   * Exercise: Prove the following theorem in Lean 4:
-:::theorem "neg_mul_neg"
+:::theorem "neg_mul_neg" (parent := "properties_core")(tags := "Exercise")(lean := "neg_mul_neg")
 $$`(−a) \cdot (-b) = a \cdot b`
 for any real numbers $`a` and $`b`.
 :::
@@ -1017,9 +1132,6 @@ theorem zero_lt_one  : (0 : ℝ)  < (1 : ℝ) := by
   _ = 1 * 1 := by exact sq 1
   _ = 1 := by exact one_mul 1
 ```
-```lean "end namespace"
-end Section_1_2
-```
 
 We will leave the rest of the elementary properties of real numbers as an
 exercise. Let us say from now on that $`a − b` means $`a + (−b)` and that,
@@ -1028,7 +1140,7 @@ for $`b ≠ 0`, $`a / b` means $`a ⋅ b^{−1}`.
 Likewise, we will stop indicating the product with a dot,
 so that $`a b` will signify $`a · b`.
 
-# Exercises
+## Exercises
 
 1. Use Lean 4 to prove in detail the following properties derived from
 addition and indicate at each step which basic or previously derived properties
@@ -1062,3 +1174,7 @@ the product, and order:
   * f. If $`a < 0` and $`0 < b`, then $`ab < 0`.
   * g. If $`0 < a`, `0 < b`, and $`a < `b, then `a² < b²`
   * i. If `a² + b² = 0`, then `a` and `b` are zero.
+
+```lean "end BasicProperties"
+end BasicProperties
+```

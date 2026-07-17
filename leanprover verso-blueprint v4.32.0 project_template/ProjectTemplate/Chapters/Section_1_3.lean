@@ -1,0 +1,556 @@
+import Mathlib.Data.Nat.Notation
+import Mathlib.Data.Real.Basic
+
+import Verso
+import VersoManual
+import VersoBlueprint
+
+open Verso.Genre
+open Verso.Genre.Manual
+open Informal
+
+
+#doc (Manual) "The Natural Numbers" =>
+
+```lean "open NaturalNumbers"
+namespace NaturalNumbers
+open Nat
+```
+We are now going to begin to distinguish certain subsets of real numbers.
+ The first of them is that of the natural numbers,
+ which we could define as those numbers we use for counting,
+ $`1, 2, 3, 4`, etc.
+
+
+If we continue with the point of view of the previous paragraph,
+of starting only from the basic properties of real numbers to derive new
+properties and to give new definitions, then two objections can be presented
+to our definition of natural numbers.
+
+:::lemma_ "p"
+The first of these consists in pointing out that in the basic properties
+of real numbers only the existence of two real numbers is stated,
+the $`0` and the $`1`
+(mentioned in {uses "S3"}[] and {uses "P3"}[] respectively).
+:::
+
+Therefore we can ask: What are $`2, 3` and $`4`?
+
+It is not that we suppose that the reader does not know what
+$`2, 3` and $`4` are, but rather that we persist in the attitude of
+considering the basic properties of real numbers as the only thing we know
+about them, as our only data; everything we say later about real numbers
+must be deduced from the basic properties.
+
+With this spirit, so far we are only sure that there are two real numbers,
+the $`0` and the $`1` (Observe that they are indeed two, property $`ℐrm{P3}`
+explicitly says that 1 is distinct from zero).
+
+The solution to this problem is simple; by definition it is:
+$$`2 = 1 + 1`
+
+and this new number is distinct from the ones already known.
+
+In effect, we already know that $`1 > 0`, then by $`\mathrm{O_3}`
+​it is 4`1 + 1 > 1 + 0`, or what is the same according to our definition
+ and $`\mathrm{S_3}: 2 > 1`.
+
+Then, by $`\mathrm{O_1}` , $`2` is distinct from $`1`.
+Now, since $`2 > 1` and $`1 > `0, then by $`O_2`
+​it is $`2 > 0` and then, by $`O_1`, 2 is distinct from 0.
+
+Defining $`3 = 2 + 1` we can repeat the previous reasoning and see that
+$`3` is a fourth real number distinct from $`0, 1` and $`2`.
+
+We see that in this way we can define as many natural numbers as we want.
+
+The second objection is more serious; our definition has remained as
+follows:
+the set of natural numbers is the set formed by the numbers
+$`1, 1 + 1, 1 + 1 + 1, 1 + 1 + 1 + 1`, etc.
+ Now then, what does "etc." mean?
+
+Well, it is an "understatement" (understood); without having said which are
+all the natural numbers we remain sure that the reader understood and can
+recognize a natural number when it appears.
+
+But if we want to develop a rigorous deductive path starting only from the
+basic properties, then "understatements" (the understood) do not fit,
+we must give another definition of the set of natural numbers.
+Let it be well understood: it is not that it is wrong to have understatements
+when working in Mathematics, it is only that we have proposed to develop the
+elements of Mathematical Analysis in a deductive and rigorous way and that attitude
+will guide us throughout the book.
+Nor should it be thought that we are playing a kind of game;
+the fact that Analysis (or any other branch of Mathematics) can be developed
+in a deductive way from a few properties is very important;
+we will return to this point later.
+
+For now let's return to natural numbers.
+
+If we could find some property that characterized the natural numbers, that is,
+a property that was satisfied by the natural numbers and only by them,
+then we could take said property as the definition of the natural numbers.
+
+There is a property that they evidently satisfy: if $`n` is a natural number,
+then $`n + 1` is also a natural number.
+
+But this property is not definitory, since the set of the numbers
+$`2, 3, 4, 5,` etc. also satisfies it; we then add the property that
+$`1` be a natural number. These two properties together also do not define
+the natural numbers but rather broad sets of real numbers to which,
+for brevity, we now give a name:
+
+
+:::definition "1.1"
+A subset $`A` of the real numbers is said to be inductive if it has the
+following properties:
+  1. The number $`1` belongs to $`A` (we will write this in the form
+  $`1 ∈ A`).
+  2. If any real number $`n` belongs to $`A`, then the real number $`n + 1`
+  also belongs to $`A`.
+:::
+
+⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄
+As we just said, the fact of being inductive does not characterize the set of
+natural numbers.
+In fact, the set of all real numbers is inductive (and does not coincide with
+the set of natural numbers, since at the very least it contains
+$`0` which is not natural).
+
+But there is a property related to inductivity that is going to give us
+the solution to our problem: let us suppose that $`A` is an inductive set.
+Then, by $`ℐr{1.}`, $`1` belongs to $`A`.
+Knowing that $`1 ∈ A` we can conclude, by $`2.`, that $`2 = 1 + 1 ∈ A`.
+
+Now knowing that $`2∈ A` we can conclude, also by $`2.`, that
+$`3 = 2 + 1 ∈ A`.
+A repeated application of this reasoning shows us that all natural
+numbers are in $`A`.
+In terms of sets, if $`N` is the set of natural numbers,
+then whatever the inductive set $`A` is, the result is
+$`N ⊆ A` ($`N` included in $`A`).
+
+In other words, if we want to define the natural numbers in a way that they
+result in what we all expect them to be ($`1, 2, 3, 4`, etc.),
+we have to make explicit their property of being included in any inductive set.
+
+All the previous discussion is only to be able to understand the motive for
+our next definition:
+
+
+:::definition "1.2"
+We will call the set of natural numbers, and we will indicate it with ℕ,
+the subset of real numbers characterized by the following properties:
+  * $`N_1.` ℕ is inductive.
+  * $`N_2.` If $`A` is any inductive subset of real numbers, then $`ℕ ⊆ A`.
+:::
+
+                                                                  ◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇
+
+Once the definition of the set of natural numbers is established,
+we leave aside all previous discussion; everything that, from now on,
+we prove about natural numbers must be deduced solely from the basic properties
+$`N_1` and $`N_2`.
+
+Before beginning said demonstrations, we want to mention a detail
+relative to *Definition 1.2.* The suspicious reader could formulate the following
+question: how do I know that $`N_1` and  $`N_2`
+​characterize the set of natural numbers,
+won't there be other sets that satisfy $`N_1`and $`N_2`?
+
+Furthermore, how do I even know that there exists a set that satisfies
+$`N_1` and $`N_2`
+
+The answer to those two questions is simple, but in order not to distract
+attention with a collateral issue, we prefer to send the aforementioned reader
+to Problem 4, which appears at the end of the present paragraph,
+where they can find the solution. Now we begin to prove properties of ℕ.
+
+The first property is so easy to demonstrate that it may be hard to understand why
+it is given a name (although we will soon see its enormous utility):
+
+
+:::theorem "Principle of Induction"
+If $`H` is an inductive subset of ℕ, then $`H = ℕ`
+.
+Demonstration: That $`H` is a subset of ℕ means $`H ⊆ N`.
+But being $`H` inductive, then $`N ⊆ H` by $`ℐrm{N_2}`.
+From the two inclusions $`H ⊆ N` and $`N ⊆ H` we conclude $`H = N`. $`□`
+:::
+
+There is a _popular_form of the principle of induction that we are going
+to indicate now.
+
+*COROLLARY 1.4.*
+:::corollary "1.4"
+Suppose that for each natural number n we have a statement $`P(n)` about it
+(for example, $`P(n):` $`n` is greater than $`3` or $`P(n):`  $`n`
+is equal to its square or any other) in such a way that the two
+following conditions are verified:
+* The statement $`P(1)` is true.
+* For every natural number n the following occurs: if we suppose that
+$`P(n)` is true we can then deduce that $`P(n+1)` is also true.
+
+In that case the statement $`P(n)` is true for every natural
+number $`n`.
+:::
+
+Proof: Consider the following set:
+
+$$`H = {n ∈ N : P(n) \; \text{is true}}`
+(read _$`H` equal to the set of the $`n` belonging to the naturals such that
+$`P(n)` is true_).
+
+In the first place, by its own construction, $`H` is a subset of ℕ;
+in effect, the elements of $`H` are those natural numbers $`n` for which
+$`P(n)` is true, that is, the elements of $`H` are all natural numbers.
+
+ But furthermore $`H` is inductive; in effect, $`1 ∈ H` because by
+ hypothesis $`P(1)` is true and, on the other hand,
+ if $`n ∈ H` then $`P(n)` is true; by hypothesis,
+ that implies that $`P(n + 1)` is true, or what is the same $`n + 1 ∈ H`.
+
+Being $`H` an inductive subset of ℕ, *Theorem 1.3.* tells us that $`H = ℕ`.
+But this last statement means exactly that $`P(n)` is true for all `n ∈ ℕ`.
+$`□`
+
+We will now use the principle of induction to prove elementary properties of
+natural numbers.
+
+*PROPOSITION 1.5.*
+If $`n` and $`m` are natural numbers, then $`m + n` and $`m ⋅ n` are also
+natural numbers.
+■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+
+*Demonstration:* We first prove that $`m + n` is a natural number.
+For this we consider the following statement:
+
+_$`P(n)`: For every natural number $`m`, $`m + n` is a natural number._
+
+Then what we have to prove is that $`P(n)` is true for any natural number
+$`n`; *Corollary 1.4.* tells us how to do it: we have to prove that
+$`P(1)` is true and that from the truth of $`P(n)` follows the truth of
+$`P(n+1)`.
+
+Let's observe that the proposition $`P(1)` is:
+ _$`P(1):` For every natural number $`m`, $`m + 1` is a natural number_
+
+But then $`P(1)` is trivially true: by $`N_1` of Definition 1.2,
+the set $`\mathbb{N}` of natural numbers is inductive,
+and being inductive means, in particular,
+that if $`m \in \mathbb{N}` then $`m + 1 \in \mathbb{N}`,
+and that is exactly what $`P(1)` says.
+
+We are now going to prove that from the truth of $`P(n)` follows the truth of
+$`P(n + 1)`. Observe well that we are not going to prove either the truth of
+$`P(n)` or that of $`P(n + 1)`, but rather we are going to prove that if $`P(n)`
+is true, then $`P(n + 1)` also is.
+
+Suppose $P(n)$ is true; that is, let's suppose that for every natural number $`m`,
+the sum $`m + n` is a natural number.
+
+We have to prove the truth of $`P(n + 1)`, that is, that for every natural number
+$`m`, the sum $`m + (n + 1)` is a natural number. But:
+$$`m + (n + 1) = (m + n) + 1`
+and, by inductive hypothesis, $`m + n` is a natural number
+(we are assuming $`P(n)` is true).
+But since $`m + n` is a natural number, as the set of natural numbers is
+inductive, it results that $`(m + n) + 1` is also a natural number whatever
+the natural $`m` may be. Therefore $`P(n + 1)` is true.
+
+In summary, we have proven the truth of $P(1)$ and we have deduced the truth of
+$`P(n + 1)` from the truth of $`P(n)`. By Corollary 1.4.,
+that means that $`P(n)` is true for every natural number $`n`;
+then the statement "whatever the natural number $`n` may be,
+$`m + n` is a natural number whatever the natural number $`m` may be"
+is true, or what is the same,
+"whatever the natural numbers $`m` and $`n` may be,
+the sum $`m + n` is also a natural number.""
+
+Having done in detail the demonstration of our first affirmation,
+we do more briefly the demonstration of the second.
+We consider the affirmation:
+$$`P(n) = \text{For every natural number } m, m \cdot n \text{ is a natural number}`
+
+The affirmation $`P(1)` is true since $`m \cdot 1 = m`,
+which by hypothesis is a natural number.
+Suppose then that the affirmation $`P(n)` is true for a certain natural number
+$`n` and let's see that it implies that the affirmation $`P(n + 1)` is true.
+For that, if $`m` is any natural number then, by *Property D:*
+$$`m \cdot (n + 1) = m \cdot n + m \cdot 1 = m \cdot n + m`
+
+In this sum, the first summand $`m \cdot n` is a natural number
+because we are supposing $`P(n)` is true,
+and the second summand $`m` is a natural number by hypothesis.
+Since we already know that the sum of natural numbers is a natural
+number (it is the first part of this Proposition),
+then $`m \cdot n + m` is a natural number whatever the natural number
+$`m` may be. But that is to say that $`P(n + 1)` is true.
+
+Once again we have proven the truth of $`P(1)` and that from the truth of
+$`P(n)` follows the truth of $`P(n + 1)`.
+Then, by *Corollary 1.4.*, $`P(n)` is true for every natural number $`n`,
+which is what we wanted to demonstrate.
+
+Before demonstrating more properties of the natural numbers,
+we are going to introduce a new concept: we say that $`a` is
+_greater than or equal_ to $`b`,
+and we write $`a \ge b`, if one of the two following possibilities occurs:
+
+  * $`\star i)` $`a` is greater than $`b`;
+  * $`\star ii)` $`a` is equal to $`b`.
+
+Then, for it to be true that $a \ge b$, it is enough that one of the two
+possibilities be true (the two together cannot be).
+Thus, for example, it is true that $`2 \ge 1`
+(because, although it is not $`2 = 1`, it is true that $`2 > 1`)
+and it is true that $`3 \ge 3` (because $`3 = 3` although it is not $`3 > 3`)
+but it is not true that $`1 \ge 3` (for it is neither...
+
+
+(The previous text ends with the definition $`a \ge b` if $`a > b` or $`a = b`.
+This relation has the following properties):
+
+1. If $`a \ge b` and $`b \ge a`, then $`a = b`.
+2. If $`a \ge b` and $`b \ge c`, then $`a \ge c`.
+3. If $`a \ge b`, then $`a + c \ge b + c` for any real number $`c`.
+4. If $`a \ge b` and $`c` is greater than zero, then $`a \cdot c \ge b \cdot c`
+
+We demonstrate only the first two and leave the remaining two as an exercise.
+
+*Demonstration of 1:* Let $`a \ge b` mean that either $`a > b` or $`a = b`.
+Since we want to prove $`a = b`, let's see that it cannot be $`a > b`.
+If it were so, then it could not be $`b > a` nor $`a = b` (by trichotomy, *O₁*)
+and then it would be false that $`b \ge a` \[1\].
+
+But this is one of our hypotheses; therefore it cannot be $`a > b` and then
+necessarily $`a = b` \[1\].
+
+*Demonstration of 2:* Since $`a \ge b`, then either $`a = b` or
+$`a > b` and since
+$`b \ge c`, then either $`b > c` or $`b = c`.
+
+This leaves us with four possibilities:
+
+  * *i)* $`a = b` and $`b > c`;
+  * *iii)* $`a > b` and $`b > c`;
+  * *ii)* $`a = b` and $`b = c`;
+  * *iv)* $`a > b` and $`b = c`.
+
+In case i), as $`a` is the same as $`b` and $`b` is greater than $`c`,
+then $`a` is greater than $`c`, $`a > c`.
+But if $`a > c`, then it is true that $`a \ge c` (1).
+In case ii), $`a` is $`= c` and therefore it is true that
+$`a \ge c` (see note (1)).
+
+In case iii) it results by $`O₂` that $`a > c` and therefore $`a \ge c`.
+Finally, in case iv) it results $`a > c` (since $`a` is greater than $`b` and
+$`b` is the same as $`c`) and therefore $`a \ge c`.
+In conclusion, in all cases it results $`a \ge c`.
+
+We return now to elementary properties of natural numbers.
+
+# Proposition 1.6.
+%%%
+tag := "proposition-1-6"
+%%%
+
+:::theorem "n_ge_one"
+If $`n` is a positive natural number, then $`n \ge 1`
+:::
+
+```lean "n_ge_one"
+theorem proposition_1_6 (n : ℕ) (h : n ≠ 0) :  (n ≥ 1) := by
+  induction n with
+  | zero => contradiction
+  | succ n ih =>
+  by_cases h' : n = 0
+  . rw [h']
+  . -- case n ≠ 0
+    have : 0 ≤ 1 := by exact (le_of_lt (zero_lt_one))
+    calc n + 1
+    _ ≥ 1 + 1 := add_le_add_left (ih h')  (1 : ℕ)
+    _ ≥ 0 + 1 := add_le_add_left this 1
+    _ = 1 := by exact (zero_add (1 : ℕ))
+```
+
+We want now to prove the fact, intuitively clear, that if a natural number is
+subtracted from a smaller natural number, the result is a natural number.
+As a preliminary step, we prove the following Proposition.
+
+:::theorem "PROPOSITION 1.7."
+If $`n` is a natural number then either $`n = 0` or $`n - 1` is a natural
+number.
+:::
+
+
+```lean "PROPOSITION 1.7."
+example (n : ℕ)  :
+  (n = 0) ∨ (∃ m : ℕ, m  = n - 1) := by
+  cases n
+  case zero => exact Or.inl rfl
+  case succ n =>
+      right
+      use n
+      exact add_succ_sub_one n 0
+```
+
+Now we are in a position to prove the announced result:
+
+# Proposition 1.8.
+%%%
+tag := "proposition-1-8"
+%%%
+:::theorem "proposition-1-8"
+If $`m` and $`n` are natural numbers and $`n < m`,
+then $`m - n` is also a natural number.
+:::
+
+```lean "proposition-1-8"
+example (n : ℕ) : n < n + 1 := by
+  exact Nat.lt_succ_self n
+
+theorem Nat.lt_succ_self (n : Nat) :
+  LT.lt n (succ n) := Nat.lt_add_one _
+
+example (n : ℕ) : n < n + 1 := by
+  calc n
+  _ = 0 + n  := by rw [zero_add n]
+  _ < 1 + n := by  exact (add_lt_add_left zero_lt_one n)
+  _ = n + 1 := by exact add_comm 1 n
+
+protected theorem sub_sub
+  (n m k : Nat) : n - m - k = n - (m + k) := by
+  induction k with
+  | zero => simp
+  | succ k ih => rw [Nat.add_succ, Nat.sub_succ,
+      Nat.add_succ, Nat.sub_succ, ih]
+
+
+theorem proposition_1_8 (n m : ℕ) (h : n < m)  :
+  (∃ k : ℕ, k = m - n) := by
+  induction n with
+  | zero => use m; rw [Nat.sub_zero m]
+  | succ n ih =>
+    have h' : ∃ k, k = m - n := by
+      exact (ih (lt_trans (lt_succ_self n) h))
+    obtain ⟨k, hk⟩ := h'
+    use (k - 1)
+    rw [hk, Nat.sub_sub]
+```
+
+Until now we have used induction in all our proofs of elementary properties of ℕ.
+That happens because ℕ is practically defined by the principle of induction,
+the only instrument to prove its first derived properties.
+
+But as soon as some of them are proven, other properties can be derived with
+those results without using, perhaps, the principle of induction in the proof.
+
+The following Proposition is an example of it:
+
+:::theorem "proposition-1-9"
+If $`n` and $`m` are natural numbers and $`n < m`, then $`m \ge n + 1`.
+:::
+
+{ref "proposition-1-6"}[Proposition 1.6.]
+{ref "proposition-1-8"}[Proposition 1.8.]
+
+```lean "proposition-1-9"
+example (n m : ℕ) (h : n < m) : n + 1 ≤ m := by
+ -- {ref "proposition-1-8"}[Proposition 1.8.]
+  have : (∃ k  : ℕ, k = m - n) := proposition_1_8 n m h
+  obtain ⟨k, hk⟩ := this
+  have : k ≠ 0 := by omega
+ -- {ref "proposition-1-6"}[Proposition 1.6.]
+  have : k ≥ 1 := by exact proposition_1_6 k this
+  have : m - n ≥ 1 := by omega
+  omega
+```
+
+This theorem is in Lean 4:
+```lean "proposition-1-9"
+example (n m : ℕ) (h : n < m) : n + 1 ≤ m := by
+  exact succ_le_of_lt h
+```
+
+
+We are now going to prove a very important property of ℕ.
+
+Let us first say that if $A$ is any set of real numbers,
+an element $`a` of $`A` is said to be the _minimum_ of $`A` if it is smaller
+than all the other elements of $`A`.
+
+Put in another form: if $`A` is a set of real numbers,
+a real number $`a` is said to be the minimum of $`A` if the two following
+conditions are met:
+
+  * $`\star i)` $`a` belongs to $`A`;
+  * $`\star ii)` if $`b \in A`, then $`a \le b`
+  (we put $`\le` instead of $`<` because $`b` could be $`a` itself $`^{(1)}`).
+
+Not every set $`A \subset` ℝ has a minimum (on this we will return later)
+but if we suppose $`A \subset \mathbb{N}`, the thing changes:
+
+:::theorem "1.10"
+(Principle of Well-Ordering of $`\mathbb{N}`)
+If $`A` is a subset of $`\mathbb{N}` and $`A` is not the empty set
+then $`A` has a minimum.
+:::
+
+:::proof "1.10"
+*Demonstration:* We are going to make this proof by induction
+(that is, using Corollary 1.4.). In the previous proofs, it was very easy to
+choose $`P(n)` since it was practically given by the statement of the
+corresponding Proposition.
+Here instead one has to manage to construct the $`P(n)` that leads us to a
+good end. It is convenient to consider the following:
+
+$$`P(n) = \text{Every set } A \subset \mathbb{N} \text{ that contains } n
+\text{ has a minimum}`
+:::
+
+```lean "1.10"
+def P (n : ℕ) : Prop :=
+  ∀ (A : Set ℕ), n ∈ A →
+    ∃ m, IsLeast A m
+```
+# EXERCISES
+
+1. Demonstrate that if $n$ and $m$ are natural numbers and $m > n$,
+then $m \ge n + 1$ using only the principle of induction.
+
+2. Demonstrate the "strong" induction principle:
+suppose that for each natural number $`n` we have a statement
+$`P(n)` about it such that the two following conditions are met:
+
+  *  $`\diamond i)` $`P(1)` is true;
+  *  $`\diamond ii)` If $`P(k)` is true for all $`k \le n`,
+  then $`P(n + 1)` is true.
+
+Then $`P(n)` is true for all $`n \in \mathbb{N}`
+(SUGGESTION: consider the statement
+$`Q(n) = ` "$`P(k)` is true for natural numbers $`k` less than or equal to $`n`")
+
+3. Let $`n_0` be any natural number and suppose that for each natural number
+$`n` we have a statement $`P(n)` about it such that the two following conditions
+are met:
+  * $`\bullet i)` $`P(n_0)` is true;
+  * $`\bullet ii)` if $`P(k)` is true for a certain natural $`k`,
+  then $`P(k + 1)` is also true.
+  Prove that $`P(n)` is true for all $`n \ge n_0`
+  (SUGGESTION: consider $`Q(n) = P(n - n_0 + 1)`)
+
+4. We recall that the intersection of a family of sets is defined as the set
+formed by the elements that belong to all the sets of the given family.
+We define now $`\mathbb{N}`, the set of natural numbers, as the intersection
+of all inductive subsets of ℝ.
+
+Then a real number is a natural number if and only if that number belongs to all the
+inductive subsets of ℝ. Prove:
+  * $`a)` With this definition, ℕ satisfies $`N_1)` and $`N_2)`
+
+
+```lean "end NaturalNumbers"
+end NaturalNumbers
+```
