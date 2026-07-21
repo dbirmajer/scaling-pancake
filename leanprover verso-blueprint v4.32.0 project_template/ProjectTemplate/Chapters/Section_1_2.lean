@@ -239,8 +239,8 @@ example (a b c : ℝ) : (a * b) * c = a * (b * c):= by
   exact mul_assoc a b c
 ```
   * *Property of existence of the neutral element*
-:::theorem "P3" (parent := "product_core")
-There exists a real number distinct from _zero_ that we call _one_ and denote
+:::theorem "P3" (parent := "product_core")(tags := "Existence of 1")
+There exists a real number distinct from $`0` that we call _one_ and denote
 as $`1` such that, for every real number:
 $$`a \cdot 1 = 1 \cdot 1 = a`
 :::
@@ -946,8 +946,8 @@ theorem neg_neg_iff_pos {a : ℝ} :
   The identity $`0 = a + (-a)`. comes from the theorem
   `add_neg_cancel` rewritten in the opposite direction.
 
-* Applying `add_lt_add_left h (-a)` to the hypothesis $`0<a`
-  adds $`-a`$ to both sides, producing $`0+(-a)<a+(-a).`
+* Applying `add_lt_add_left h (-a)` to the hypothesis $`0 < a`
+  adds $`-a`$ to both sides, producing $`0 + (-a) < a + (-a).`
 
   Since the `calc` proof is written from top to bottom, this inequality
   appears as $`a + (-a) > 0 + (-a),`
@@ -976,8 +976,8 @@ itself: $`a^2 = a \cdot a`.
 example (a : ℝ) : a ^ 2 = a * a := by
   exact sq a
 ```
-We will. now prove the following fact:
-:::theorem "sq_pos_of_ne_zero"
+We will now prove the following fact:
+:::theorem "sq_pos_of_ne_zero" (parent := "properties_core")(lean := "sq_pos_of_ne_zero")
 Let $`a` be a real number. if $`a ≠ 0`, then $`0 < a ^ 2`
 :::
 
@@ -1021,7 +1021,7 @@ theorem sq_pos_of_ne_zero {a : ℝ}:
 
 * The proof begins by establishing an auxiliary result with `have`:
 
-  $$`\forall a \in \mathbb R, \; 0 <a \Longrightarrow 0 < a^2.`
+  $$`\forall a \in \mathbb R, \; 0 < a \Longrightarrow 0 < a^2.`
 
   This lemma is named `hPos` and is used later in both cases of the proof.
   By proving it once, we avoid repeating the same argument.
@@ -1113,6 +1113,26 @@ theorem sq_pos_of_ne_zero {a : ℝ}:
     If `h₁ : x = y` and `h₂ : y < z`, then `h₁.trans_lt h₂` proves
     `x < z`.
 :::
+
+:::corollary "sq_nonneg" (parent := "properties_core")(lean := "sq_nonneg")
+If $`a ∈ ℝ`, then $`0 ≤ a ^ 2`
+:::
+
+```lean "sq_nonneg"
+example (a : ℝ) : 0 ≤ a ^ 2:= by
+  exact sq_nonneg a
+```
+```lean "sq_nonneg_proof"
+example (a : ℝ) : 0 ≤ a ^ 2:= by
+  by_cases h : a = 0
+  . subst a
+    calc (0 : ℝ)
+    _ = 0 * 0 := by rw [zero_mul]
+    _ = 0 ^ 2 := by rw [sq]
+    _ ≤ 0 ^ 2 := by exact le_of_eq rfl
+  . exact le_of_lt (sq_pos_of_ne_zero h)
+```
+
 
 To finish this section, we are going to prove the following fact: `0 < 1`.
 
