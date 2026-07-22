@@ -23,7 +23,7 @@ defaults:
 jobs:
   build:
     runs-on: ubuntu-latest
-    container: leanprover/lean4:v4.32.0
+    container: leanprover/lean4:v4.32.0-rc1
     steps:
       - name: Check out the repository
         uses: actions/checkout@v4
