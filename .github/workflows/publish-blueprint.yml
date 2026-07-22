@@ -23,10 +23,15 @@ defaults:
 jobs:
   build:
     runs-on: ubuntu-latest
-    container: leanprover/lean4:v4.32.0-rc1
     steps:
       - name: Check out the repository
         uses: actions/checkout@v4
+
+      - name: Set up Lean
+        uses: leanprover/lean-action@v1
+        with:
+          auto-config: false
+          lake-package-directory: leanprover verso-blueprint v4.32.0 project_template
 
       - name: Build the Blueprint website
         run: |
