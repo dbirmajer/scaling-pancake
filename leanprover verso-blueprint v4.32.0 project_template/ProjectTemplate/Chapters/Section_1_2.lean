@@ -49,7 +49,7 @@ $`0` such that, for every real number $`a`:
 $$`a + 0 = 0 + a = a`
 :::
 
-The corresponding _theorems_ in Lean 4 are:
+The corresponding _theorems_ in `Lean` are:
 
 :::theorem "add_zero" (parent := "addition_core-1")(lean := "add_zero")
 For all real number $`a`: $`\; a + 0  = a`.
@@ -69,11 +69,13 @@ example (a : Real) : 0 + a  = a := by
   exact zero_add a
 ```
 
-:::theorem "S4" (parent := "addition_core-1")(tags := "Existence of the additive inverse")
+:::theorem "S4" (parent := "addition_core-1")(tags := "Existence of the opposite")
 Given a real number $`a`, there exists a real number that we call the
 _opposite_ of $`a`, and we indicate as $`-a`, such that:
 $$`a + (-a) = (-a) + a = 0`
 :::
+
+The corresponding _theorems_ in `Lean` are:
 
 :::theorem "add_neg_cancel" (parent := "addition_core-1")(lean := "add_neg_cancel")
 Given a real number $`a`, $`\; a + (-a) = 0`
@@ -92,7 +94,6 @@ Given a real number $`a`, $`(- a) + a  = 0`
 example (a : ℝ) : (-a) + a = 0 := by
   exact neg_add_cancel a
 ```
-
 
 # Basic Properties of Multiplication
 
@@ -126,17 +127,18 @@ example (a b c : ℝ) : (a * b) * c = a * (b * c):= by
 :::theorem "P3" (parent := "product_core")(tags := "Existence of 1")
 There exists a real number distinct from $`0` that we call _one_ and denote
 as $`1` such that, for every real number:
-$$`a \cdot 1 = 1 \cdot 1 = a`
+$$`a \cdot 1 = 1 \cdot a = a`
 :::
 
-The corresponding _theorems_ in Lean 4 are:
+The corresponding _theorems_ in `Lean` are:
 
 :::theorem "one_ne_zero" (parent := "product_core")(lean := "one_ne_zero")
 $`1 ≠ 0`
 :::
 
 ```lean "one_ne_zero"
-example : (1 : ℝ) ≠ (0 : ℝ) := one_ne_zero
+example : (1 : ℝ) ≠ (0 : ℝ) := by
+  exact one_ne_zero
 ```
 
 :::theorem "mul_one" (parent := "product_core")(lean := "mul_one")
@@ -163,6 +165,8 @@ that we call the _multiplicative inverse of_ $`a`,
 and we denote as $`a^{-1}`, such that:
 $$`a \cdot a^{-1} = a^{-1} \cdot a = 1`
 :::
+
+The corresponding _theorems_ in `Lean` are:
 
 :::theorem "mul_inv_cancel" (parent := "product_core")(lean := "mul_inv_cancel₀")
 For all real number $`a`, with $`a \ne 0`:
