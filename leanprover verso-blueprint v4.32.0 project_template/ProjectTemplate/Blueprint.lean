@@ -6,10 +6,13 @@ import VersoBlueprint.Commands.Summary
 import ProjectTemplate.Chapters.Addition
 import ProjectTemplate.Chapters.Collatz
 import ProjectTemplate.Chapters.Multiplication
+
+import ProjectTemplate.Chapters.Section_1_1
 import ProjectTemplate.Chapters.Section_1_2
 import ProjectTemplate.Chapters.Section_1_3
 import ProjectTemplate.Chapters.Section_1_4
 import ProjectTemplate.Chapters.Section_1_5
+import ProjectTemplate.Chapters.Section_1_6
 
 open Verso.Genre
 open Verso.Genre.Manual
@@ -30,14 +33,13 @@ with Lean and Mathlib.
 The development is a work in progress. Some chapters and formal proofs remain
 incomplete and will continue to evolve.
 
+{include 0 ProjectTemplate.Chapters.Section_1_1}
 {include 0 ProjectTemplate.Chapters.Section_1_2}
 {include 0 ProjectTemplate.Chapters.Section_1_3}
 {include 0 ProjectTemplate.Chapters.Section_1_4}
 {include 0 ProjectTemplate.Chapters.Section_1_5}
+{include 0 ProjectTemplate.Chapters.Section_1_6}
 
-{include 0 ProjectTemplate.Chapters.Addition}
-{include 0 ProjectTemplate.Chapters.Multiplication}
-{include 0 ProjectTemplate.Chapters.Collatz}
 
 {blueprint_graph}
 {blueprint_summary}

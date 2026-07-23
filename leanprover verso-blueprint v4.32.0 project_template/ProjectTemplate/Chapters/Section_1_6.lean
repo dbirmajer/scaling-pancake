@@ -103,7 +103,7 @@ If $`a` and $`b` are natural numbers and $`a` divides $`b`,
 then $`a \le b`. Indeed, since $`b = m \cdot a` for some integer $`m`,
 and since $`a` and $`b` are positive, the same must happen for $`m`.
 But a positive integer is a natural number;
-then $`m \ge 1` by {ref "prop_1.6"}[Property 1.6]
+then $`m \ge 1` by *prop 1.6*
 and therefore:
 $$`b = m \cdot a \ge 1 \cdot a = a`
 

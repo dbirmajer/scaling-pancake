@@ -11,11 +11,6 @@ open Informal
 
 #doc (Manual) "Axioms of Real Numbers" =>
 
-:::author "project_author-1" (name := "Daniel Birmajer")
-:::
-
-The [Lean website](https://lean-lang.org)
-
 ```tex
 \begin{enumerate}
     \item \textbf{Basic properties and derived properties}
@@ -33,16 +28,6 @@ The [Lean website](https://lean-lang.org)
 \end{enumerate}
 ```
 
-```tex
-% --- Page 7 ---
-\begin{flushright}
-    \textbf{1.1.}
-\end{flushright}
-```
-
-
-
-# Basic Properties and Derived Properties
 
 What are the properties of real numbers?
 
@@ -77,33 +62,6 @@ $$`
 \end{align*}
 `
 
-This last observation suggests the following reflections:
-
-* $`\star\; i)` In a list of the properties of real numbers it would not be
-necessary to include property 3 since it can be deduced from other properties;
-in particular, it would seem that we only need to know that
-$`a \cdot b = b \cdot a` and to know how to multiply a sum of numbers by
-another real number.
-
-* $`\star ii)` If in this way we eliminate from our list those properties that
-can be deduced from others more elementary, at some point we must arrive at
-properties that cannot be demonstrated, which must serve as a starting point.
-
-  At first glance, properties 1 and 2 should appear on that list since they
-  do not seem susceptible to a demonstration.
-
-* $`\star\; iii)` Once a list of properties is obtained that we can no longer
-demonstrate but which serve as a starting point to demonstrate all the others,
-that list could be considered to contain all the properties of real numbers,
-at least potentially.
-The properties enumerated in said list we could call *axioms* and all the
-remaining properties, demonstrable from the basic ones,
-we could call *derived*.
-
-In the next paragraph we are going to present the list of basic properties of
-real numbers; it may surprise you how low the number of them is;
-_there are only 14_ and from them it is possible to derive all the study of
-real numbers, in particular the content of this book.
 
 # Basic Properties of Real Numbers
 

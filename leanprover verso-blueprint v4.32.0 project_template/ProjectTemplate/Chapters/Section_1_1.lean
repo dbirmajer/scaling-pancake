@@ -14,12 +14,6 @@ open Informal
 :::author "project_author-1" (name := "Daniel Birmajer")
 :::
 
-This a Blueprint chapter demo that presents the field properties of ℝ
-(commutativity, associativity, identities, inverses, distributivity, order)
-in informal math text, with Lean 4 proofs of derived results
-(cancellation laws, `mul_zero`, `neg_mul`, `sq_pos_of_ne_zero`,
-`zero_lt_one`) and exercises using `sorry`.
-
 The [Lean website](https://lean-lang.org)
 
 ```tex
@@ -38,18 +32,6 @@ The [Lean website](https://lean-lang.org)
     \item \textbf{Modulus or absolute value of a real number}
 \end{enumerate}
 ```
-
-```tex
-% --- Page 7 ---
-\begin{flushright}
-    \textbf{1.1.}
-\end{flushright}
-```
-
-
-
-# Basic Properties and Derived Properties
-
 What are the properties of real numbers?
 
 At first, the many known—and yet undiscovered—properties of the real numbers may
@@ -58,12 +40,12 @@ suggests otherwise.
 
 Let us consider a few properties, for example:
 
-  * $`\star\; 1.` The sum of real numbers is commutative:
+  * $`\bigstar\; 1.` The sum of real numbers is commutative:
     $`a + b = b + a` for any real numbers $`a` and $`b`.
 
-  * $`\star\; 2.` Minus times minus is plus.
+  * $`\bigstar\; 2.` Minus times minus is plus.
 
-  * $`\star\; 3.` The square of the sum of two real numbers is equal to the
+  * $`\bigstar\; 3.` The square of the sum of two real numbers is equal to the
   sum of their squares plus their double product:
   $`(a + b)^2 = a^2 + 2a \cdot b + b^2`.
 
@@ -85,20 +67,20 @@ $$`
 
 This last observation suggests the following reflections:
 
-* $`\star\; i)` In a list of the properties of real numbers it would not be
+* $`\bigstar\; \mathrm{i.}` In a list of the properties of real numbers it would not be
 necessary to include property 3 since it can be deduced from other properties;
 in particular, it would seem that we only need to know that
 $`a \cdot b = b \cdot a` and to know how to multiply a sum of numbers by
 another real number.
 
-* $`\star ii)` If in this way we eliminate from our list those properties that
+* $`\bigstar\; \mathrm{ii.}` If in this way we eliminate from our list those properties that
 can be deduced from others more elementary, at some point we must arrive at
 properties that cannot be demonstrated, which must serve as a starting point.
 
   At first glance, properties 1 and 2 should appear on that list since they
   do not seem susceptible to a demonstration.
 
-* $`\star\; iii)` Once a list of properties is obtained that we can no longer
+* $`\bigstar\; \mathrm{iii.}` Once a list of properties is obtained that we can no longer
 demonstrate but which serve as a starting point to demonstrate all the others,
 that list could be considered to contain all the properties of real numbers,
 at least potentially.
