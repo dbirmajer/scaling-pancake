@@ -1,8 +1,6 @@
 import Mathlib.Data.Nat.Notation
 import Mathlib.Data.Real.Basic
-import Mathlib.Data.Nat.Factorial.Basic
-import Mathlib.Data.Nat.Choose.Basic
-import Mathlib.Data.Nat.Choose.Sum
+import Mathlib.Tactic
 
 import Mathlib.Algebra.BigOperators.Intervals
 import Mathlib.Algebra.BigOperators.NatAntidiagonal
@@ -11,21 +9,27 @@ import Mathlib.Algebra.Order.BigOperators.Group.Finset
 import Mathlib.Tactic.Linarith
 import Mathlib.Tactic.Ring
 
-
-import Verso
 import VersoManual
-import VersoBlueprint
+import TextbookTemplate.Meta.Lean
+import TextbookTemplate.Papers
 
-open Verso.Genre
-open Verso.Genre.Manual
-open Informal
+
+
+-- This gets access to most of the manual genre (which is also useful for textbooks)
+open Verso.Genre Manual
+
+-- This gets access to Lean code that's in code blocks, elaborated in the same process and
+-- environment as Verso
+open Verso.Genre.Manual.InlineLean
+
+
+open TextbookTemplate
+
+set_option pp.rawOnError true
+
 
 #doc (Manual) "More Definitions by Induction and Newton's Formula" =>
 
-
-:::group "more_definitions"
-More definitions by Induction and Newton's formula
-:::
 
 Let us consider again any sequence $`a_0, ​a_1, …, a_n`.
 We have already defined the sum of the first $`n` elements of this
@@ -35,8 +39,8 @@ said sequence, a product that we will indicate in any of the following
 forms:
 
 $$`\prod_{k=1}^{n} a_k
-\quad \text{or} \quad
-a_1 a_2 \cdots a_n.
+\qquad \text{o bien} \qquad
+a_1a_2\cdots a_n.
 `
 As this must be done for every natural $`n`, the definition will naturally be
 by induction. We define first for $`n = 1`:
@@ -45,105 +49,106 @@ $$`\prod_{k=1}^{1} a_k = a_1.`
 and then, assuming that we already have it defined for a certain $`n`,
 we define:
 $$`
-\prod_{k=0}^{n+1} a_k = \left(\prod_{k=1}^{n} a_k\right)a_{n+1}.
+\prod_{k=0}^{n+1} a_k
+=
+\left(\prod_{k=1}^{n} a_k\right)a_{n+1}.
 `
 
 For example,
 
 $$`
-\begin{align*}
-
-\prod_{k=0}^{1} a_k &= \left(\prod_{k=0}^{1} a_k\right)a_1 = a_0 a_1,\
-
-
-\prod_{k=0}^{2} a_k &= \left(\prod_{k=0}^{1} a_k\right)a_2
+\prod_{k=0}^{1} a_k
 =
-(a_0a_1)a_2 =a_0a_1a_2,\\
-
-\prod_{k=0}^{3} a_k &= \left(\prod_{k=0}^{2} a_k\right)a_3
-= (a_0a_1a_2)a_3 = a_0 a_1 a_2 a_₃,
-\end{align*}
+\left(\prod_{k=0}^{1} a_k\right)a_1
+= a_0 a_1,
 `
-and so on.
 
-For example, if $`a_1, a_2, \ldots, a_n,\ldots` is the
-_constant sequence_, that is, if $`a_n = b` for every natural
+$$`
+\prod_{k=0}^{2} a_k
+=
+\left(\prod_{k=0}^{1} a_k\right)a_2
+=
+(a_0a_1)a_2 =a_0a_1a_2,
+`
+
+$$`\prod_{k=0}^{3} a_k
+=
+\left(\prod_{k=0}^{2} a_k\right)a_3
+=
+(a_0a_1a_2)a_3
+=
+a_0a_1a_2a_₃,
+`and so on.
+
+For example, if $`a_1, a_2, \ldots, a_n,\ldots`$ is the
+_constant sequence_, that is, if $`a_n=b` for every natural
 number $`n` (in which case the sequence is $`b, b, …, b, …`),
 then
-$$` \prod_{k=1}^{n} a_k = b^n.`
+$$`
+\prod_{k=1}^{n} a_k=b^n.
+`
 
 This recovers the original meaning of $`b^n`: the product of $`b`
 by itself $`n` times. What we have done is give a precise meaning
-to the expression _the product of $`n` numbers_, regardless of
+to the expression "the product of $`n` numbers,'' regardless of
 the natural number $`n`".
 
 
 We now introduce two definitions that will be useful shortly.
 
-:::definition "factorial"
-The _factorial_ of a natural number $`n`,
-which we denote by $`n!` is defined as the product of all
+The first is the _factorial_ of a natural number $`n`,
+which we denote by $`n!`. It is defined as the product of all
 natural numbers from $`1` to $`n`:
 
 $$`
-\begin{align*}
-0! &= 1;\\
-n! &= \prod_{k=1}^{n} k, \;   \text{ for } n ≥ 1.
-\end{align*}
+0! = 1;
+
+n! = \prod_{k=1}^{n} k, \quad   µ{for } n ≥ 1..
 `
 
 Or, if the reader prefers the more traditional notation,
 
 $$`
-\begin{align*}
-0! &= 1;\
-n! &= 1 \cdot 2 \cdot 3 \cdots n, \; \text{ for } n ≥ 1.
-\end{align*}
+0! = 1;
+
+n! = 1\cdot2\cdot3\cdots n, \quad µ{for } n ≥ 1.
 `
-:::
 
 For example,
 
-$$`
-\begin{align*}
-1! &= 1,\\
-2! &= 1 \cdot 2 = 2,\\
-3! &= 1 \cdot 2 \cdot 3 = 6,\\
-4! &= 1 \cdot 2 \cdot 3 \cdot 4 = 2,\
-5! &= 1 \cdot 2 \cdot 3 \cdot 4 \cdot 5 = 120,
-\end{align*}
-`
+$$`1! = 1`,
+$$`2! = 1\cdot2 = 2`,
+$$`3! = 1\cdot2\cdot3 = 6`,
+$$`4! = 1\cdot2\cdot3\cdot4 = 24`,
+$$`5! = 1\cdot2\cdot3\cdot4\cdot5 = 120`,
+
 and so on.
 
 It is very easy to prove the following property of factorials:
 
-:::lemma_ "factorial_succ" (tags := "Factorial of Succ n")(parent := "more_definitions")(lean := "Nat.factorial_succ")
-$$`(n+1)! = n!(n+1).`
-:::
+$$`(n+1)! = n!(n+1). \tag{$*$}`
 
 Indeed,
 
-```lean "factorial"
+```lean
+open Nat
 example : Nat.factorial 0 = 1 := by
-  exact Nat.factorial_zero
-
+  exact factorial_zero
 example (n : ℕ) :
   (n + 1).factorial = (n + 1) * n.factorial := by
-    exact Nat.factorial_succ n
+    exact factorial_succ n
 ```
 
 
 The second definition we wish to introduce is that of a
 _binomial coefficient_.
 
-:::definition "choose" (tags := "Binomial Coefficient")(parent := "more_definitions")(lean := "Nat.choose")
-Given a natural number $`n` and a natural number $`k \le n`,
+Given a natural number $`n` and a natural number $`k\le n`,
 we define the binomial coefficient "$`n` choose $`k`" by
 
 $$`
 \binom{n}{k} =\frac{n!}{k!(n-k)!}.
 `
-:::
 
 Why give a special name to this somewhat strange number?
 The reason is the following. Suppose we have $`n` elements,
@@ -214,28 +219,24 @@ $$`\frac{n(n - 1) \dots (n - k + 1)}{k!}`
 This number does not change if we multiply numerator and denominator by
 $`(n - k)!`. Let's do it:
 
-```lean "choose"
-example (n k : ℕ) : n.choose k =
-  Nat.descFactorial n k / Nat.factorial k := by
-    exact Nat.choose_eq_descFactorial_div_factorial n k
+```lean
+example (n k : ℕ) : choose n k =
+  descFactorial n k / factorial k := by
+    exact choose_eq_descFactorial_div_factorial n k
 
 example (n k : ℕ) :
-  Nat.choose n k =
+  choose n k =
      Nat.descFactorial n k / Nat.factorial k := by
-
   -- 1. Rewrite the descending factorial into its
   -- multiplicative form
-  rw [Nat.descFactorial_eq_factorial_mul_choose]
-
+  rw [descFactorial_eq_factorial_mul_choose]
   -- 2. Cancel out `Nat.factorial k` from the
   -- numerator and denominator
   rw [Nat.mul_div_cancel_left]
-
   -- 3. Ensure that k! is strictly greater than 0 so
   -- division by zero rules don't apply
-  exact Nat.factorial_pos k
+  exact factorial_pos k
 ```
-
 $$`
 \begin{align}
     &\frac{n(n - 1) \dots (n - k + 1)(n - k)!}{k!(n - k)!} \\
@@ -245,9 +246,9 @@ $$`
 `
 which is the promised result.
 
-If the reader is not one of those who give up easily, they will wonder why
-they want to know how many sets of $`k` elements they can form if they
-choose those $`k` elements from among $`n` pre-fixed ones.
+If the reader is not one of those who give up easily, they will wonder why they
+want to know how many sets of $`k` elements they can form if they choose
+those $`k` elements from among $`n` pre-fixed ones.
 Which leads us straight to the last topic of this section, which is
 *Newton's formula*.
 
@@ -294,9 +295,7 @@ $`F_1, F_2, \dots, F_n`.
 But it is exactly $`\binom{n}{k}` according to what we argued before.
 Then when doing all the possible products we will get:
 $$`\binom{n}{k} a^k b^{n-k}`
-
-And this for all possible values of $`k`.
-We are now in a position to conjecture the following formula:
+And this for all possible values of $k$. We are now in a position to conjecture the following formula:
 $$`
 (a+b)^n = \binom{n}{0} a^n b^0 + \binom{n}{1} a^{n-1} b^1 + \binom{n}{2} a^{n-2} b^2 + \dots + \binom{n}{n-1} a^1 b^{n-1} + \binom{n}{n} a^0 b^n
 `
@@ -305,179 +304,72 @@ $$`(a+b)^n = \sum_{k=0}^{n} \binom{n}{k} a^k b^{n-k}`
 which is the famous Newton\'s formula. We have already conjectured it;
 now let\'s prove it:
 
-:::theorem "add_pow" (tags := "Binomial theorem")(parent := "more_definitions")(lean := "add_pow")
+*Theorem 3.13 (Newton\'s formula)*
+
 If $`a` and $`b` are any real numbers, then for every natural number $`n`:
 
 $$`(a + b)^n = \sum_{k=0}^{n} \binom{n}{k} a^k b^{n-k}
 `
-:::
+```lean
+open Nat Finset
 
-```lean "open MoreDefinitions"
-namespace MoreDefinitions
-```
-```lean "add_pow"
 example (a b : ℝ) (n : ℕ) :
-    (a + b) ^ n = ∑ k ∈ Finset.range (n + 1),
-      a ^ k * b ^ (n - k) * ↑(n.choose k) := by
-    exact add_pow a b n
-```
-
-```lean "add_pow_proof"
-example (a b : ℝ) (n : ℕ) :
-    (a + b) ^ n = ∑ k ∈ Finset.range (n + 1),
-      a ^ k * b ^ (n - k) *  ↑(n.choose k) := by
+    (a + b) ^ n = ∑ k ∈ range (n + 1),
+      a ^ k * b ^ (n - k) * n.choose k := by
   let t : ℕ → ℕ → ℝ :=
-    fun n k ↦ a ^ k * b ^ (n - k) * ↑(n.choose k)
-  change (a + b) ^ n = ∑ k ∈ Finset.range (n + 1), t n k
+    fun n k ↦ a ^ k * b ^ (n - k) * n.choose k
+  change (a + b) ^ n = ∑ k ∈ range (n + 1), t n k
 
-  have h_first : ∀ n, t n 0 = b ^ n := by
-    intro n
+  have h_first : ∀ n, t n 0 = b ^ n := fun n ↦ by
     unfold t
-    rw [Nat.choose_zero_right,
-        pow_zero,
-        Nat.cast_one, mul_one,
-        one_mul, Nat.sub_zero
-        ]
+    rw [choose_zero_right, pow_zero, cast_one, mul_one,
+          one_mul, Nat.sub_zero]
 
   have h_last : ∀ n, t n n.succ = 0 := fun n ↦ by
-    simp only [t,
-              Nat.choose_succ_self,
-              Nat.cast_zero,
-              mul_zero]
+    simp only [t, choose_succ_self, cast_zero, mul_zero]
 
   have h_middle :
-      ∀ n i : ℕ,
-        i ∈ Finset.range (n + 1) → (t (n + 1) (i + 1)) =
+      ∀ n i : ℕ, i ∈ range (n + 1) → (t (n + 1) (i + 1)) =
         a * t n i + b * t n (i + 1) := by
     intro n i h_mem
-    have h_le : i ≤ n :=
-      Nat.le_of_lt_succ (Finset.mem_range.mp h_mem)
+    have h_le : i ≤ n := le_of_lt_succ (mem_range.mp h_mem)
     unfold t
-    rw [Nat.choose_succ_succ, Nat.cast_add, mul_add]
+    rw [choose_succ_succ, cast_add, mul_add]
     congr 1
-    · rw [pow_succ' a,  Nat.succ_sub_succ, mul_assoc,
+    · rw [pow_succ' a,  succ_sub_succ, mul_assoc,
         mul_assoc, mul_assoc]
     · rw [← mul_assoc b, ← mul_assoc b]
       have h_cases := Nat.eq_or_lt_of_le h_le
-      rcases h_cases with h_eq | h_lt
-      . rw [h_eq, Nat.choose_succ_self, Nat.cast_zero,
+      cases' h_cases with h_eq h_lt
+      . rw [h_eq, choose_succ_self, cast_zero,
           mul_zero, mul_zero]
       . rw [mul_comm b, mul_assoc, mul_assoc (a ^ (i + 1))]
         rw [mul_comm b, ←pow_succ b (n - (i +1))]
-        rw [Nat.sub_add_eq, Nat.succ_sub h_le]
+        rw [sub_add_eq, succ_sub h_le]
         rw [mul_assoc]
         congr 1; congr 1; congr 1
         omega
 
   induction n with
   | zero =>
-      rw [pow_zero,
-          Finset.sum_range_succ,
-          Finset.range_zero,
-        Finset.sum_empty, zero_add]
+      rw [pow_zero, sum_range_succ, range_zero,
+        sum_empty, zero_add]
       rw [h_first 0, pow_zero]
-
   | succ n ih =>
-      rw [Finset.sum_range_succ', h_first,
-        Finset.sum_congr rfl (h_middle n)]
-      rw [Finset.sum_add_distrib,
-          add_assoc,
-          pow_succ' (a + b),
-          ih]
-      rw [add_mul, Finset.mul_sum, Finset.mul_sum]
+      rw [sum_range_succ', h_first,
+        sum_congr rfl (h_middle n)]
+      rw [sum_add_distrib, add_assoc, pow_succ' (a + b), ih]
+      rw [add_mul, mul_sum, mul_sum]
       congr 1
-      rw [Finset.sum_range_succ', h_first, ← pow_succ' b,
-        Finset.sum_range_succ]
+      rw [sum_range_succ', h_first, ← pow_succ' b,
+        sum_range_succ]
       congr 1
       rw [h_last, mul_zero, add_zero]
 ```
-```lean "end MoreDefinitions"
-end MoreDefinitions
-```
-:::proof "add_pow"
-* The local definition
-    `let t : ℕ → ℕ → ℝ := fun n k ↦ a ^ k * b ^ (n - k) * ↑(n.choose k)`
-  introduces a shorter name for the $`k`-th term of the binomial sum:
+then Newton's formula, assumed true for $`n`,
+is true for $`n + 1`, which means it is true for every natural number. ///
 
-  $$`t(n, k) = a^k b^{n-k} \binom{n}{k}`.
-
-  The annotation : `ℕ → ℕ → ℝ` is important: although `n.choose k` is a natural
-  number, the product is in ℝ, so `Lean` coerces it to ℝ,
-  written explicitly as `↑(n.choose k)`.
-
-* The command change replaces the goal by a definitionally equal one:
-  `change (a + b) ^ n = ∑ k ∈ Finset.range (n + 1), t n k`
-  It does not prove anything new. It simply unfolds the definition of `t` in
-  reverse, making the goal easier to read and manipulate.
-
-* The statements `h_first` and `h_last` give the two boundary terms:
-$$` t(n,0) = b^n \qquad\text{and}\qquad t(n,n+1)=0.`
-
-In `h_first`, unfold `t` expands the definition of `t`.
-The subsequent `rw [...]` commands use facts such as $`a^0 = 1`,
-$`\binom{n}{0}  = 1`, and `n - 0 = n`.
-
-`Nat.cast_one` is needed because $`binom{n}{0} =1` is initially an
-equality in ℕ, while the coefficient is used in ℝ.
-
-In `h_last`, `simp only [...]` simplifies only with the listed lemmas.
-In particular,
-$$`\binom{n}{n+1}=0,`
-so the whole product is zero.
-
-Using `simp only` rather than `simp` makes clear exactly which simplifications
-`Lean` is allowed to use.
-
-* The central statement `h_middle` is Pascal’s rule expressed for the summand:
-$$`t(n + 1, i + 1) = a \, t(n, i) + b \, t(n, i + 1).`
-The assumption `i ∈ Finset.range (n + 1)` means `i < n+1`.
-
-* The command `Finset.mem_range.mp h_mem` extracts this inequality,
-and `Nat.le_of_lt_succ` converts it to `i ≤  n`.
-This bound is needed because the proof rearranges expressions involving
-truncated natural subtraction such as `n - (i+1)`.
-The rewrite `rw [Nat.choose_succ_succ]` applies Pascal’s identity
-$$`\binom{n+1}{i+1}=\binom ni+\binom n{i+1}.`
-
-Then `Nat.cast_add` moves that addition through the cast to ℝ,
-and `mul_add` distributes multiplication over the resulting sum.
-
-* The tactic `congr 1` tells Lean to prove equality of the corresponding
-arguments of an expression. Here it breaks a product equality into smaller,
-manageable equalities between its factors.
-
-* The command `rcases h_cases with h_eq | h_lt`
-splits the proof into the cases `i = n` and `i < n`.
-The endpoint case `i = n` makes a binomial coefficient vanish.
-In the strict case, the proof rewrites powers and subtraction expressions.
-Finally, `omega` solves the remaining arithmetic fact about natural numbers;
-it is designed for Presburger arithmetic, involving addition, order,
-and natural-number subtraction under appropriate bounds.
-
-The final induction `n` with proves the identity for every natural number `n`.
-In the base case, `Finset.range 1` is split into its first term and an empty
-remaining sum. The commands `Finset.sum_range_succ`, `Finset.range_zero`,
-and `Finset.sum_empty` perform these finite-sum simplifications.
-
-* In the successor case, `Finset.sum_range_succ'` separates the first term of a
-range sum:
-$$`\sum_{k=0}^{n+1} t(n+1,k) = t(n + 1, 0) + \sum_{i=0}^{n} t(n + 1, i + 1).
-`
-The rewrite `h_first` evaluates the first term, while
-`Finset.sum_congr rfl (h_middle n)`
-rewrites every term of the remaining sum using `h_middle`.
-Here `rfl` says that the indexing finite set is unchanged, and
-`Finset.sum_congr` reduces the task to proving equality term-by-term.
-
-* The command `Finset.sum_add_distrib` distributes a finite sum over addition.
-The induction hypothesis `ih` then replaces the sum involving `t(n, i)` with
-`(a + b) ^ n`.
-
-* Finally, `Finset.mul_sum` factors `a` and `b` through the sums,
-and the boundary identities `h_first` and `h_last` reconstruct the two
-required binomial sums.
-:::
-# Exercises
+# EXERCISES
 
 1. Prove that if $`n` is natural and $`k` is natural, $`k \le n`, then:
 $$`\binom{n}{k-1} + \binom{n}{k} = \binom{n+1}{k}`

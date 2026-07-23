@@ -9,25 +9,10 @@ open Verso.Genre
 open Verso.Genre.Manual
 open Informal
 
-#doc (Manual) "The Real Numbers" =>
-
-:::source_document "addition-source"
-%%%
-title := "Starter Addition Notes"
-kind := .pdf
-pdf := "source/addition-source.pdf"
-%%%
-:::
-
+#doc (Manual) "Axioms of Real Numbers" =>
 
 :::author "project_author-1" (name := "Daniel Birmajer")
 :::
-
-This a Blueprint chapter demo that presents the field properties of ℝ
-(commutativity, associativity, identities, inverses, distributivity, order)
-in informal math text, with Lean 4 proofs of derived results
-(cancellation laws, `mul_zero`, `neg_mul`, `sq_pos_of_ne_zero`,
-`zero_lt_one`) and exercises using `sorry`.
 
 The [Lean website](https://lean-lang.org)
 
@@ -59,23 +44,20 @@ The [Lean website](https://lean-lang.org)
 
 # Basic Properties and Derived Properties
 
-In the present chapter, we are going to show that the question makes sense:
-what are the properties of real numbers?
-If this question is asked of the reader, they will probably evoke the various
-volumes of Mathematics they have studied, think about those they have yet to
-study, and conclude that it is impossible to give an answer;
-there are so many known properties of real numbers, not to mention those that
-are not known, that the idea of listing them will seem unwise.
-However, a brief look at the situation may change their mind.
+What are the properties of real numbers?
+
+At first, the many known—and yet undiscovered—properties of the real numbers may
+make a complete account seem impossible.  A closer examination, however,
+suggests otherwise.
 
 Let us consider a few properties, for example:
 
-  * $`\star 1.` The sum of real numbers is commutative:
+  * $`\star\; 1.` The sum of real numbers is commutative:
     $`a + b = b + a` for any real numbers $`a` and $`b`.
 
-  * $`\star 2.` Minus times minus is plus.
+  * $`\star\; 2.` Minus times minus is plus.
 
-  * $`\star 3.` The square of the sum of two real numbers is equal to the
+  * $`\star\; 3.` The square of the sum of two real numbers is equal to the
   sum of their squares plus their double product:
   $`(a + b)^2 = a^2 + 2a \cdot b + b^2`.
 
@@ -97,17 +79,26 @@ $$`
 
 This last observation suggests the following reflections:
 
-```tex
-\begin{itemize}
-    \item[\textbf{$\star$ i)}] In a list of the properties of real numbers it would not be necessary to include property 3 since it can be deduced from other properties; in particular, it would seem that we only need to know that $a \cdot b = b \cdot a$ and to know how to multiply a sum of numbers by another real number. [1]
+* $`\star\; i)` In a list of the properties of real numbers it would not be
+necessary to include property 3 since it can be deduced from other properties;
+in particular, it would seem that we only need to know that
+$`a \cdot b = b \cdot a` and to know how to multiply a sum of numbers by
+another real number.
 
-    \item[\textbf{$\star$ ii)}] If in this way we eliminate from our list those properties that can be deduced from others more elementary, at some point we must arrive at properties that cannot be demonstrated, which must serve as a starting point. [1]
+* $`\star ii)` If in this way we eliminate from our list those properties that
+can be deduced from others more elementary, at some point we must arrive at
+properties that cannot be demonstrated, which must serve as a starting point.
 
-    At first glance, properties 1 and 2 should appear on that list since they do not seem susceptible to a demonstration. [1]
+  At first glance, properties 1 and 2 should appear on that list since they
+  do not seem susceptible to a demonstration.
 
-    \item[\textbf{$\star$ iii)}] Once a list of properties is obtained that we can no longer demonstrate but which serve as a starting point to demonstrate all the others, that list could be considered to contain all the properties of real numbers, at least potentially. The properties enumerated in said list we could call \textbf{basic} and all the remaining properties, demonstrable from the basic ones, we could call \textbf{derived}. [1]
-\end{itemize}
-```
+* $`\star\; iii)` Once a list of properties is obtained that we can no longer
+demonstrate but which serve as a starting point to demonstrate all the others,
+that list could be considered to contain all the properties of real numbers,
+at least potentially.
+The properties enumerated in said list we could call *axioms* and all the
+remaining properties, demonstrable from the basic ones,
+we could call *derived*.
 
 In the next paragraph we are going to present the list of basic properties of
 real numbers; it may surprise you how low the number of them is;
