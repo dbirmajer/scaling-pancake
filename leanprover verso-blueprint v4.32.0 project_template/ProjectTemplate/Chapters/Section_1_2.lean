@@ -9,63 +9,10 @@ open Verso.Genre
 open Verso.Genre.Manual
 open Informal
 
-#doc (Manual) "Axioms of Real Numbers" =>
-
-```tex
-\begin{enumerate}
-    \item \textbf{Basic properties and derived properties}
-    \item \textbf{Basic properties of the real numbers}
-    \item \textbf{Natural numbers}
-    \item \textbf{Definitions by induction}
-    \item \textbf{More definitions by induction and Newton's formula}
-    \item \textbf{Integers}
-    \item \textbf{Rational numbers}
-    \item \textbf{Completeness property}
-    \item \textbf{Consequences of the completeness property}
-    \item \textbf{Powers with rational exponent}
-    \item \textbf{Powers with real exponent}
-    \item \textbf{Modulus or absolute value of a real number}
-\end{enumerate}
-```
+#doc (Manual) "Basic Properties of Real Numbers" =>
 
 
-What are the properties of real numbers?
-
-At first, the many known—and yet undiscovered—properties of the real numbers may
-make a complete account seem impossible.  A closer examination, however,
-suggests otherwise.
-
-Let us consider a few properties, for example:
-
-  * $`\star\; 1.` The sum of real numbers is commutative:
-    $`a + b = b + a` for any real numbers $`a` and $`b`.
-
-  * $`\star\; 2.` Minus times minus is plus.
-
-  * $`\star\; 3.` The square of the sum of two real numbers is equal to the
-  sum of their squares plus their double product:
-  $`(a + b)^2 = a^2 + 2a \cdot b + b^2`.
-
-
-The attitude towards each of these three properties is, without a doubt,
-different. The first will seem natural, or you will have been convinced of it
-by seeing some examples; the second you will remember as a "recipe"
-of which you were informed at the time; and, if memory serves,
-you will remember that the third has been _demonstrated_ to you in the
-following way:
-
-$$`
-\begin{align*}
-    (a + b)^2 &= (a + b) \cdot (a + b) = (a + b) \cdot a + (a + b) \cdot b = \\
-    &= a \cdot a + b \cdot a + a \cdot b + b \cdot b = \\
-    &= a^2 + 2a \cdot b + b^2
-\end{align*}
-`
-
-
-# Basic Properties of Real Numbers
-
-## Basic Properties of Addition
+# Basic Properties of Addition
 
 :::group "addition_core-1"
 Core statements about addition on real numbers.
@@ -77,9 +24,7 @@ We will begin with the basic properties of _addition_, which are four:
 namespace BasicProperties
 ```
 
-* *Commutative property*
-
-:::theorem "add_comm" (parent := "addition_core-1")(lean := "add_comm")
+:::theorem "add_comm" (parent := "addition_core-1")(lean := "add_comm")(tags := "Commutative property")
 For any real numbers $`a` and $`b`, the following holds: $`a + b = b + a`
 :::
 
@@ -88,8 +33,7 @@ example (a b : ℝ) : a + b = b + a := by
   exact add_comm a b
 ```
 
-* *Associative property*
-:::theorem "add_assoc" (parent := "addition_core-1")(lean := "add_assoc")
+:::theorem "add_assoc" (parent := "addition_core-1")(lean := "add_assoc")(tags := "Associative property")
 For any real numbers $`a, b` and $`c`, the following holds:
 $$`(a + b) + c = a + (b + c)`
 :::
@@ -98,19 +42,12 @@ $$`(a + b) + c = a + (b + c)`
 example (a b c : ℝ) : (a + b) + c = a + (b + c) := by
   exact add_assoc a b c
 ```
-```tex
---\begin{axiom}{my_axiom_name} \label{ax:my_axiom}
-Let $X$ be a set with property $P$.
---\end{axiom}
-```
 
-* *Existence of the neutral element*
 :::theorem "S3" (parent := "addition_core-1")(tags := "Existence of 0")
 There exists a real number called _zero_ that we denote as
 $`0` such that, for every real number $`a`:
 $$`a + 0 = 0 + a = a`
 :::
-
 
 The corresponding _theorems_ in Lean 4 are:
 
@@ -132,10 +69,11 @@ example (a : Real) : 0 + a  = a := by
   exact zero_add a
 ```
 
-* *Existence of the additive inverse*
+:::theorem "S4" (parent := "addition_core-1")(tags := "Existence of the additive inverse")
 Given a real number $`a`, there exists a real number that we call the
 _opposite_ of $`a`, and we indicate as $`-a`, such that:
 $$`a + (-a) = (-a) + a = 0`
+:::
 
 :::theorem "add_neg_cancel" (parent := "addition_core-1")(lean := "add_neg_cancel")
 Given a real number $`a`, $`\; a + (-a) = 0`
@@ -156,7 +94,7 @@ example (a : ℝ) : (-a) + a = 0 := by
 ```
 
 
-## Basic Properties of Multiplication
+# Basic Properties of Multiplication
 
 The basic properties of the _product_ are also four and correspond exactly to
 those of addition:
@@ -166,9 +104,8 @@ Core statements about multiplication on real numbers.
 :::
 
 
-* *Commutative property*
 
-:::theorem "mul_comm" (parent := "product_core")(lean := "mul_comm")
+:::theorem "mul_comm" (parent := "product_core")(lean := "mul_comm")(tags := "Commutative property")
 For any real numbers $`a` and $`b`, the following holds: $`a ·  b = b ·  a`
 :::
 
@@ -177,8 +114,7 @@ example (a b : ℝ) : a * b = b * a := by
   exact mul_comm a b
 ```
 
-* *Associative property*
-:::theorem "mul_assoc"  (parent := "product_core")(lean := "mul_assoc")
+:::theorem "mul_assoc"  (parent := "product_core")(lean := "mul_assoc")(tags := "Associative property")
   For any real numbers $`a, b`, and $`c`, the following holds
 $$`a \cdot (b \cdot c) = (a \cdot b) \cdot c`
 :::
@@ -187,7 +123,6 @@ $$`a \cdot (b \cdot c) = (a \cdot b) \cdot c`
 example (a b c : ℝ) : (a * b) * c = a * (b * c):= by
   exact mul_assoc a b c
 ```
-  * *Property of existence of the neutral element*
 :::theorem "P3" (parent := "product_core")(tags := "Existence of 1")
 There exists a real number distinct from $`0` that we call _one_ and denote
 as $`1` such that, for every real number:
@@ -222,12 +157,12 @@ example (a : Real) : 1 * a  = a := by
   exact one_mul a
 ```
 
-  * *Existence of the multiplicative inverse*
+:::theorem "P4" (parent := "product_core")(lean := "one_mul")(tags := "Existence of the multiplicative inverse")
 Given a real number $`a`, _distinct from zero_, there exists a real number
 that we call the _multiplicative inverse of_ $`a`,
 and we denote as $`a^{-1}`, such that:
 $$`a \cdot a^{-1} = a^{-1} \cdot a = 1`
-
+:::
 
 :::theorem "mul_inv_cancel" (parent := "product_core")(lean := "mul_inv_cancel₀")
 For all real number $`a`, with $`a \ne 0`:
@@ -248,22 +183,22 @@ example (a : ℝ) (hₐ : a ≠ 0)  : a⁻¹ * a = 1 := by
   exact inv_mul_cancel₀ hₐ
 ```
 
-
-## Distributive property
+# Distributive property
 
 We now include a property that links addition with with the product:
 
-  *Distributive Property*
-:::theorem "mul_add" (parent := "order_core")(lean := "mul_add")
+:::theorem "mul_add" (parent := "order_core")(lean := "mul_add")(tags := "Distributive Property
+")
 For any real numbers $`a, b`, and $`c`, the following holds:
 $$`a \cdot (b + c) = a \cdot b + a \cdot c`
 :::
+
 ```lean "mul_add"
 example (a b c : ℝ) : a * (b + c) = a * b + a * c := by
   exact mul_add a b c
 ```
-
-:::theorem "add_mul" (parent := "product_core")(lean := "add_mul")
+:::theorem "add_mul" (parent := "product_core")(lean := "add_mul")(tags := "Distributive Property
+")
 For any real numbers $`a, b`, and $`c`, the following holds:
 $$`(a + b) \cdot c = a \cdot c + b \cdot c`
 :::
@@ -273,7 +208,7 @@ example (a b c : ℝ) : (a + b) * c = a * c + b * c := by
   exact add_mul a b c
 ```
 
-## Order Relation
+# Order Relation
 
 The final properties we indicate now refer to the order relation that exists
 between real numbers.
@@ -285,8 +220,7 @@ Core statements about the order on real numbers.
 The notation $`a < b` means $`a` _is less than_ $`b` and is exactly the same as
 $`b > a` ($`b` _is greater than_ $`a`).
 
-  * *Property of trichotomy*
-:::theorem "trichotomy" (parent := "order_core")(lean := "lt_trichotomy")
+:::theorem "trichotomy" (parent := "order_core")(lean := "lt_trichotomy")(tags := "Trichotomy")
 If $`a` and $`b` are two real numbers, _one, and only one_,
 of the following possibilities holds:
 
@@ -331,8 +265,8 @@ then it necessarily must be: $`a < c`
 example (a b c : ℝ) (ha : a < b) (hb : b < c ) : a < c := by
   exact lt_trans ha hb
 ```
-  *  *Monotonicity of addition*
-:::theorem "add_lt_add_left" (parent := "order_core")(lean := "add_lt_add_left")
+
+:::theorem "add_lt_add_left" (parent := "order_core")(lean := "add_lt_add_left")(tags := "Monotonicity of addition")
 If $`a` and $`b` are real numbers that satisfy $`a < b`, then for any real
 number $`c`, the following holds:
 $$`a + c < b + c`
@@ -343,8 +277,7 @@ example (a b c : ℝ) (hab : a < b) : a + c <  b + c :=
   add_lt_add_left hab c
 ```
 
-  * *Monotonicity of the product*
-:::theorem "mul_lt_mul_of_pos_right" (parent := "order_core")(lean := "mul_lt_mul_of_pos_right")
+:::theorem "mul_lt_mul_of_pos_right" (parent := "order_core")(lean := "mul_lt_mul_of_pos_right")(tags := "Monotonicity of the product")
 If $`a` and $`b` are real numbers that satisfy $`a < b`,
 then for any real number $`c > 0`, the following holds:
 $$`c \cdot a < b \cdot c`
