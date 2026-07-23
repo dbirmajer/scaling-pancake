@@ -255,19 +255,19 @@ example {a : ℝ} (h : a ≠ 0) : a < 0 ∨ 0 < a := by
 :::definition "positive and negative" (parent := "order_core")
 A real number $`a`$ is called *positive* if $`0 < a.`
 
-A real number $`a`$ is called *negative* if $`a < 0.`
+A real number $`a` is called *negative* if $`a < 0.`
 :::
 
-  * *Transitive property*
 
-:::theorem "lt_trans" (parent := "order_core")(lean := "lt_trans")
+:::theorem "lt_trans" (parent := "order_core")(lean := "lt_trans")(tags := "Transitive property")
 If $`a`, $`b`, and $`c` are real numbers that satisfy $`a < b` and $`b < c`,
 then it necessarily must be: $`a < c`
 :::
 
 ```lean "lt_trans"
-example (a b c : ℝ) (ha : a < b) (hb : b < c ) : a < c := by
-  exact lt_trans ha hb
+example {a b c : ℝ} : a < b → b < c → a < c := by
+  intro hab hbc
+  exact lt_trans hab hbc
 ```
 
 :::theorem "add_lt_add_left" (parent := "order_core")(lean := "add_lt_add_left")(tags := "Monotonicity of addition")
@@ -294,7 +294,9 @@ example
   (hc : 0 < c) : a * c <  b * c := by
     exact mul_lt_mul_of_pos_right hab hc
 ```
-                                                        ◇◇◇◇◇◇
+
+# Some Elementary Properties
+
 We are now going to deduce some elementary properties of real numbers using
 only the properties just listed.
 The attentive reader will have noticed that we promised a list of 14 properties
