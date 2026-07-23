@@ -2,7 +2,7 @@ import Lake
 open Lake DSL
 
 require VersoBlueprint from git "https://github.com/leanprover/verso-blueprint"@"v4.32.0"
-require mathlib from git "https://github.com/leanprover-community/mathlib4"@"v4.32.0-rc1"
+require mathlib from git "https://github.com/leanprover-community/mathlib4"@"v4.32.0"
 package ProjectTemplate where
   precompileModules := false
   leanOptions := #[⟨`experimental.module, true⟩]
