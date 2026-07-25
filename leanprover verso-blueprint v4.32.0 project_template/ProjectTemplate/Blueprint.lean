@@ -13,6 +13,7 @@ import ProjectTemplate.Chapters.Section_1_3
 import ProjectTemplate.Chapters.Section_1_4
 import ProjectTemplate.Chapters.Section_1_5
 import ProjectTemplate.Chapters.Section_1_6
+import ProjectTemplate.Chapters.Section_1_7
 
 open Verso.Genre
 open Verso.Genre.Manual
@@ -39,6 +40,7 @@ incomplete and will continue to evolve.
 {include 0 ProjectTemplate.Chapters.Section_1_4}
 {include 0 ProjectTemplate.Chapters.Section_1_5}
 {include 0 ProjectTemplate.Chapters.Section_1_6}
+{include 0 ProjectTemplate.Chapters.Section_1_7}
 
 
 {blueprint_graph}

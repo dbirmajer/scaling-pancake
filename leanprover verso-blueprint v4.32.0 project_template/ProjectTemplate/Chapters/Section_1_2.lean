@@ -765,7 +765,7 @@ example {a : ℝ} :
   exact neg_neg_iff_pos
 ```
 
-A Lean 4 proof:
+A `Lean` proof:
 
 ```lean "neg_neg_iff_pos_proof"
 theorem neg_neg_iff_pos {a : ℝ} :
@@ -787,11 +787,11 @@ theorem neg_neg_iff_pos {a : ℝ} :
 *Explanation of the Lean-specific ingredients.*
 
 * The statement to be proved is a *biconditional*
-  $$`(-a < 0) \iff (0 < a).`
+  $$`-a < 0 \iff 0 < a.`
   A biconditional consists of two implications:
-  $$`(-a < 0) \Longrightarrow (0 < a)`
+  $$`-a < 0 \Longrightarrow 0 < a`
   and
-  $$`(0 < a) \Longrightarrow (-a < 0).`
+  $$`0 < a \Longrightarrow -a < 0.`
 
 * The tactic `constructor` tells Lean to prove each implication
   separately.
