@@ -1,66 +1,69 @@
 import Mathlib.Data.Nat.Notation
 import Mathlib.Data.Real.Basic
-import Mathlib.Data.Nat.Factorial.Basic
-
 import Mathlib.Tactic
 
---import Mathlib.Tactic.Ring
---import Mathlib.Tactic.LinearCombination
+--import Mathlib.Algebra.BigOperators.Intervals
+--import Mathlib.Algebra.BigOperators.NatAntidiagonal
+--import Mathlib.Algebra.BigOperators.Ring.Finset
+--import Mathlib.Algebra.Order.BigOperators.Group.Finset
+--import Mathlib.Tactic.Linarith
+import Mathlib.Tactic.Ring
+import Mathlib.Tactic.LinearCombination
+
+
 import Mathlib.Data.Rat.Init
 
-
-import Verso
 import VersoManual
-import VersoBlueprint
+import TextbookTemplate.Meta.Lean
+import TextbookTemplate.Papers
 
-open Verso.Genre
-open Verso.Genre.Manual
-open Informal
+-- This gets access to most of the manual genre (which is also useful for textbooks)
+open Verso.Genre Manual
+
+-- This gets access to Lean code that's in code blocks, elaborated in the same process and
+-- environment as Verso
+open Verso.Genre.Manual.InlineLean
+
+open TextbookTemplate
+
+set_option pp.rawOnError true
 
 
 #doc (Manual) "The Rational Numbers" =>
 
-```lean "open Rationals"
-namespace Rationals
+```lean
+namespace Section_1_7
 ```
+*Definition 1.17.*
 
-:::definition "def_1.17"
 A real number $`a` is said to be a rational number if there exist integers
-$`p` and $`q ≠ 0` such that:
+$`p` and $`q` such that:
 $$`a = \frac{p}{q}`
-(that is, $`a = p \cdot q^{-1}`.
-:::
+(that is, $`a = p \cdot q^{-1}`; naturally, $`q \neq 0`.
 
 The set of rational numbers will be denoted by ℚ.
 
-```lean "def_1.17"
+```lean
+-- 1. Define what it means for a number to be rational
+-- from foundational principles
 def IsRational (x : ℝ) : Prop :=
   ∃ (p q : ℤ), q ≠ 0 ∧ x = (p : ℤ) / (q : ℤ)
 ```
 
-In another form, a real number is rational when it can be written as a
-quotient of integers.
+In another form, a real number is rational when it can be written as a quotient of
+integers.
 
                                     ◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇
-
 The following Proposition proves an elementary property of operations between
 rational numbers, showing at the same time how those operations are performed.
 
 
-:::lemma_ "prop_1.18"
+*Proposition 1.18.*
 Let $`a` and $`b` be rational numbers. Then:
 $$` a + b, \ a \cdot b, \ a - b \text{ and } a/b`
 (in the last case if $`b \neq 0`) are also rational numbers.
-:::
 
-```lean "prop_1.18"
-example (a b : ℚ) : ∃ r : ℚ, a + b = r := by
-  use (a + b)
-```
-
-A `Lean` proof:
-
-```lean "prop_1.18"
+```lean
 -- 2. Explicitly prove the sum of two rationals is rational
 -- without `a + b` automation
 theorem sum_of_rationals_is_rational
@@ -108,10 +111,14 @@ theorem sum_of_rationals_is_rational
     --ring
 ```
 
+In lean 4, this theorem is simply:
+```lean
+example (a b : ℚ) : ∃ r : ℚ, a + b = r := by
+  use (a + b)
+```
 
-:::proof "prop_1.18"
-Since $`a` and $`b` are rational, then there exist integers
-$`p, q, s` and $`t` such that:
+*Demonstration:* Since $`a` and $`b` are rational,
+then there exist integers $`p, q, s` and $`t` such that:
 $$`a = \frac{p}{q}, \quad b = \frac{s}{t}.`
 Then:
 
@@ -154,33 +161,28 @@ then $`ab \in \mathbb{Q}`.
     &= pt \cdot q^{-1} s^{-1} = \frac{pt}{qs} \in \mathbb{Q}
   \end{align*}
 `
-:::
-
 Naturally, every integer $`m` is a rational number since $`m = \frac{m}{1}`.
 Then we have the inclusions:
 $$`\mathbb{N} \subset \mathbb{Z} \subset \mathbb{Q} \subset \mathbb{R}`
 
-The previous Proposition has a very simple consequence to demonstrate and it
-is that between two rational numbers there is always another rational number.
+The previous Proposition has a very simple consequence to demonstrate and it is that between two rational numbers there is always another rational number.
 More precisely:
 
-:::lemma_ "prop_1.19"
+*PROPOSITION 1.19.*
+
 If $`a` and $`b` are rational numbers such that $`a < b`,
 then $`\frac{a+b}{2}` is also rational and furthermore:
 $$`a < \frac{a+b}{2} < b`
-:::
 
-:::proof "prop_1.19"
-That $`\frac{a+b}{2}` is rational is immediate from the previous Proposition.
-On the other hand, since $`a < b` is:
+
+*Demonstration:* That $`\frac{a+b}{2}` is rational is immediate from the previous Proposition. On the other hand, since $`a < b` is:
 $$`2a = a + a < a + b`
 then:
 $$`2a < a + b, \quad \text{that is } a < \frac{a+b}{2}`
 Analogously:
 $$`a + b < b + b = 2b`
 then:
-$$`a + b < 2b, \; \text{ that is } \frac{a+b}{2} < b`
-:::
+$$`a + b < 2b, \quad \text{that is } \frac{a+b}{2} < b`
 
 It is easy to convince oneself, from this Proposition,
 that between two rational numbers there are infinite rational numbers.
@@ -189,15 +191,9 @@ between $`a` and $`\frac{a+b}{2}` there is another which is
 $`\frac{1}{2} \left( a + \frac{a+b}{2} \right)`, etc.
 Reiterating this procedure, we realize the truth of the affirmation made.
 
-We are not asked here for a demonstration of this fact from basic properties,
-since the concept of "infinite" used has been intuitive.
-It is perhaps surprising the precision that can be given to that concept,
-something we will do in the next chapter.
+We are not asked here for a demonstration of this fact from basic properties, since the concept of "infinite" used has been intuitive. It is perhaps surprising the precision that can be given to that concept, something we will do in the next chapter.
 
-```lean "end Rationals"
-end Rationals
-```
-# Exercises
+# EXERCISES
 
 1.
   * a) Prove that a rational number $`a = \frac{p}{q}` ($`p, q \in \mathbb{Z}`)
@@ -215,7 +211,7 @@ then $`a^m \in \mathbb{Q}` for every $`m \in \mathbb{Z}`.
 3.
   * $`\star a)` Prove that every rational number can be written as the quotient of
   an integer by a natural number
-  * $`\star\; b)` Let $`a = \frac{p}{q}` and $`b = \frac{s}{t}` written according to a)
+  * $`\star$ b)` Let $`a = \frac{p}{q}` and $`b = \frac{s}{t}` written according to a)
     (that is $`p, s \in \mathbb{Z}, \ q, t \in \mathbb{N}`).
     Prove that $`a < b` if and only if $`pt < qs`.
   *  $`\star c)` Give an example of rational numbers $`a = \frac{p}{q}`
@@ -226,5 +222,5 @@ then $`a^m \in \mathbb{Q}` for every $`m \in \mathbb{Z}`.
   * $`\bullet a)` Calculate:
   $$`\frac{2}{7} + \frac{3}{5}, \quad \frac{-1}{4} \cdot \left( \frac{-5}{3} \right),
    \quad \frac{2/5}{3/4} .`
-  * $`\bullet\; b)` Prove that
+  * $`\bullet$ b)` Prove that
   $`\frac{pt}{qt} = \frac{p}{q}` for any $`p, q, t \in \mathbb{Z}.`
