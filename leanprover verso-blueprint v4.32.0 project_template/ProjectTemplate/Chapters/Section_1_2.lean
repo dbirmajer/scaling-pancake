@@ -289,10 +289,10 @@ $$`c \cdot a < b \cdot c`
 
 ```lean "mul_lt_mul_of_pos_right"
 example
-  (a b c : ℝ)
-  (hab : a < b)
-  (hc : 0 < c) : a * c <  b * c := by
-    exact mul_lt_mul_of_pos_right hab hc
+  {a b c : ℝ}
+  (hbc : b < c)
+  (ha : 0 < a) : b * a <  c * a := by
+    exact mul_lt_mul_of_pos_right hbc ha
 ```
 
 # Some Elementary Properties
@@ -454,8 +454,10 @@ lemma add_right_eq_self {a b : ℝ}
 We are now in a position to prove :
 
 :::theorem "mul_zero" (parent := "properties_core")(lean := "mul_zero")
-$$`a \cdot 0 =0` whatever the real number $`a` may be.
+For every real number $`a`, $\;`a \cdot 0 =0`.
 :::
+
+Here is an example of using this theorem in Lean 4:
 
 ```lean "mul_zero"
 example (a : ℝ) : a * 0 = 0 :=
@@ -749,7 +751,7 @@ for any real numbers $`a` and $`b`.
 ```
 
 ```lean "neg_mul_neg_exercise"
-theorem neg_mul_neg_eq (a b : ℝ) : (-a) * (-b) = a * b := by
+theorem neg_mul_neg (a b : ℝ) : (-a) * (-b) = a * b := by
   sorry
 ```
 
@@ -854,6 +856,72 @@ This proof illustrates two of Lean's most common logical tactics.
   be referred to by name in the remainder of the proof.
 :::
 
+:::theorem "mul_ne_zero" (parent := "properties_core")(lean := "mul_ne_zero")
+For all $`a, b ∈ ℝ`, $`a · b = 0 ↔ a = 0 ∨ b = 0`
+:::
+
+Here is an example of using this theorem in Lean 4
+
+```lean "mul_ne_zero"
+example {a b : ℝ}
+  (ha : a ≠ 0) (hb : b ≠ 0 ): a * b ≠ 0 := by
+  exact mul_ne_zero ha hb
+```
+
+A `Lean` proof:
+
+```lean "mul_ne_zero"
+theorem mul_ne_zero {a b : ℝ}
+  (ha : a ≠ 0) (hb : b ≠ 0 ): a * b ≠ 0 := by
+  have ha' : 0 < a ∨ a < 0 := by
+    exact (lt_or_gt_of_ne ha).symm
+  have hb' : 0 < b ∨ b < 0 := by
+    exact (lt_or_gt_of_ne hb).symm
+  rcases ha' with aPos | aNeg
+  . rcases hb' with bPos | bNeg
+    .
+      have : 0 < a * b :=
+        calc
+         0 = 0 * b := by rw [zero_mul]
+         _ < a * b := by
+          exact mul_lt_mul_of_pos_right aPos bPos
+      exact this.ne.symm
+    . have : a * b < 0 :=
+        calc
+        a * b = b * a := by rw [mul_comm]
+        _ < 0 * a := by
+          exact mul_lt_mul_of_pos_right bNeg aPos
+        _ = 0 := by rw [zero_mul]
+      exact this.ne
+  . rcases hb' with bPos | bNeg
+    . have : a * b < 0 :=
+        calc
+        a * b < 0 * b := by
+          exact mul_lt_mul_of_pos_right aNeg bPos
+        _ = 0 := by rw [zero_mul]
+      exact this.ne
+    . have : -(-a) < 0 := by
+        calc
+        - (- a) = a := by rw [neg_neg]
+        _ < 0 := by exact aNeg
+      have ha : 0 < (- a) := by
+        exact neg_neg_iff_pos.mp this
+      have : -(-b) < 0 := by
+        calc
+        - (- b) = b := by rw [neg_neg]
+        _ < 0 := by exact bNeg
+      have hb : 0 < (- b) := by
+        exact neg_neg_iff_pos.mp this
+      have : 0 * (- b)  < (- a) * (- b) := by
+        exact mul_lt_mul_of_pos_right ha hb
+      have : 0 < a * b :=
+        calc
+        0 = 0 * (- b) := by rw [zero_mul]
+        _ < (- a) * (- b) := by exact this
+        _ = a * b := by rw [neg_mul_neg]
+
+      exact this.ne.symm
+```
 
 :::definition "sq" (parent := "properties_core")(lean := "sq")
 If $a$ is a real number, then the square of $a$ is the product of $`a` with

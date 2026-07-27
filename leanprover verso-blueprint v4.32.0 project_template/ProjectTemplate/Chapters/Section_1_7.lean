@@ -65,46 +65,8 @@ Let $`a` and $`b` be rational numbers. Then $` a + b`
  is a rational number.
 :::
 
-:::proof "prop_1.18 sum"
-* The command `rcases hx with ⟨p1, ⟨q1, q1_nz⟩, hx_eq⟩` takes apart both
-the existential proof `hx` and the `NonzeroInt` subtype witness at once.
-It produces:
-
-$$`p_1 : ℤ, q_1 :\ ℤ, q_1 ≠ 0, \text{ and }  x=\frac{p_1}{q_1}.`
-The nested pattern `⟨q1, q1_nz⟩` extracts the integer stored in the subtype and its proof that the integer is nonzero.
-
-* The command `let` introduces a local definition. Thus `q1` is a readable
-name for the integer inside `q1_st`, while `q1_nz` names its proof of
-nonzeroness.
-
-* The expression `⟨q1 * q2, mul_ne_zero q1_nz q2_nz⟩`
-constructs a `NonzeroInt`.
-Its value is $`q_1q_2`, and `mul_ne_zero q1_nz q2_nz` proves that this
-product is nonzero.
-
-* The command use supplies witnesses for the two existential quantifiers in Rational (x + y). The witnesses are the numerator
-$$`p_1q_2+p_2q_1` and the denominator $`q_1q_2`.
-
-* The command `rw [hx_eq, hy_eq]` replaces $`x` and $`y` by their
-rational-fraction expressions.
-
-* The command change replaces the current goal with a definitionally
-equal but clearer version. In particular, it unfolds the subtype
-denominator and makes every integer-to-real coercion explicit.
-
-* The command `exact_mod_cast q1_nz` converts the integer fact
-$`q_1\ne 0` into the real-number fact
-`(q_1:\mathbb{R})\ne 0`.
-
-* The tactic `field_simp [hq1, hq2]` clears the nonzero denominators
-$`q_1` and $`q_2`.
-It reduces the fraction identity to an equality involving addition
-and multiplication only.
-
-* Finally, `push_cast` rewrites casts of integer sums and products into
-sums and products of real casts, and ring proves the resulting
-polynomial identity.
-:::
+Here is a Lean formalization of this statement using Lean’s built-in
+rational-number type ℚ.
 
 ```lean "prop_1.18"
 example (a b : ℚ) : ∃ r : ℚ, a + b = r := by
@@ -150,6 +112,49 @@ theorem sum_of_rationals_is_rational
   ring
 ```
 
+:::proof "prop_1.18 sum"
+Explanation of the Lean-specific ingredients.
+
+* The command `rcases hx with ⟨p1, ⟨q1, q1_nz⟩, hx_eq⟩` takes apart both
+the existential proof `hx` and the `NonzeroInt` subtype witness at once.
+It produces:
+
+$$`p_1 : ℤ, q_1 :\ ℤ, q_1 ≠ 0, \text{ and }  x=\frac{p_1}{q_1}.`
+The nested pattern `⟨q1, q1_nz⟩` extracts the integer stored in the subtype and its proof that the integer is nonzero.
+
+* The command `let` introduces a local definition. Thus `q1` is a readable
+name for the integer inside `q1_st`, while `q1_nz` names its proof of
+nonzeroness.
+
+* The expression `⟨q1 * q2, mul_ne_zero q1_nz q2_nz⟩`
+constructs a `NonzeroInt`.
+Its value is $`q_1q_2`, and `mul_ne_zero q1_nz q2_nz` proves that this
+product is nonzero.
+
+* The command use supplies witnesses for the two existential quantifiers in Rational (x + y). The witnesses are the numerator
+$$`p_1q_2+p_2q_1` and the denominator $`q_1q_2`.
+
+* The command `rw [hx_eq, hy_eq]` replaces $`x` and $`y` by their
+rational-fraction expressions.
+
+* The command change replaces the current goal with a definitionally
+equal but clearer version. In particular, it unfolds the subtype
+denominator and makes every integer-to-real coercion explicit.
+
+* The command `exact_mod_cast q1_nz` converts the integer fact
+$`q_1\ne 0` into the real-number fact
+`(q_1:\mathbb{R})\ne 0`.
+
+* The tactic `field_simp [hq1, hq2]` clears the nonzero denominators
+$`q_1` and $`q_2`.
+It reduces the fraction identity to an equality involving addition
+and multiplication only.
+
+* Finally, `push_cast` rewrites casts of integer sums and products into
+sums and products of real casts, and ring proves the resulting
+polynomial identity.
+:::
+
 
 
 
@@ -175,7 +180,6 @@ then $`ab \in \mathbb{Q}`.
     &= pt \cdot q^{-1} s^{-1} = \frac{pt}{qs} \in \mathbb{Q}
   \end{align*}
 `
-:::
 
 Naturally, every integer $`m` is a rational number since $`m = \frac{m}{1}`.
 Then we have the inclusions:
