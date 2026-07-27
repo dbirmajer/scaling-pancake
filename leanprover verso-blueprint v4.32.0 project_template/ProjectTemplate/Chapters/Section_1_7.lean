@@ -38,6 +38,13 @@ def IsRational (x : ℝ) : Prop :=
   ∃ (p q : ℤ), q ≠ 0 ∧ x = (p : ℤ) / (q : ℤ)
 ```
 
+```lean "def_1.17 alt"
+abbrev NonzeroInt := {q : ℤ // q ≠ 0}
+
+def Rational (x : ℝ) : Prop :=
+  ∃ (p : ℤ) (q : NonzeroInt),
+    x = (p : ℝ) / (q.1 : ℝ)
+```
 In another form, a real number is rational when it can be written as a
 quotient of integers.
 
@@ -53,84 +60,98 @@ $$` a + b, \ a \cdot b, \ a - b \text{ and } a/b`
 (in the last case if $`b \neq 0`) are also rational numbers.
 :::
 
+:::lemma_ "prop_1.18 sum"
+Let $`a` and $`b` be rational numbers. Then $` a + b`
+ is a rational number.
+:::
+
+:::proof "prop_1.18 sum"
+* The command `rcases hx with ⟨p1, ⟨q1, q1_nz⟩, hx_eq⟩` takes apart both
+the existential proof `hx` and the `NonzeroInt` subtype witness at once.
+It produces:
+
+$$`p_1 : ℤ, q_1 :\ ℤ, q_1 ≠ 0, \text{ and }  x=\frac{p_1}{q_1}.`
+The nested pattern `⟨q1, q1_nz⟩` extracts the integer stored in the subtype and its proof that the integer is nonzero.
+
+* The command `let` introduces a local definition. Thus `q1` is a readable
+name for the integer inside `q1_st`, while `q1_nz` names its proof of
+nonzeroness.
+
+* The expression `⟨q1 * q2, mul_ne_zero q1_nz q2_nz⟩`
+constructs a `NonzeroInt`.
+Its value is $`q_1q_2`, and `mul_ne_zero q1_nz q2_nz` proves that this
+product is nonzero.
+
+* The command use supplies witnesses for the two existential quantifiers in Rational (x + y). The witnesses are the numerator
+$$`p_1q_2+p_2q_1` and the denominator $`q_1q_2`.
+
+* The command `rw [hx_eq, hy_eq]` replaces $`x` and $`y` by their
+rational-fraction expressions.
+
+* The command change replaces the current goal with a definitionally
+equal but clearer version. In particular, it unfolds the subtype
+denominator and makes every integer-to-real coercion explicit.
+
+* The command `exact_mod_cast q1_nz` converts the integer fact
+$`q_1\ne 0` into the real-number fact
+`(q_1:\mathbb{R})\ne 0`.
+
+* The tactic `field_simp [hq1, hq2]` clears the nonzero denominators
+$`q_1` and $`q_2`.
+It reduces the fraction identity to an equality involving addition
+and multiplication only.
+
+* Finally, `push_cast` rewrites casts of integer sums and products into
+sums and products of real casts, and ring proves the resulting
+polynomial identity.
+:::
+
 ```lean "prop_1.18"
 example (a b : ℚ) : ∃ r : ℚ, a + b = r := by
   use (a + b)
 ```
 
-A `Lean` proof:
-
-```lean "prop_1.18"
--- 2. Explicitly prove the sum of two rationals is rational
--- without `a + b` automation
+```lean "prop_1.18 sum"
 theorem sum_of_rationals_is_rational
   (x y : ℝ)
-  (hx : IsRational x)
-  (hy : IsRational y) : IsRational (x + y) := by
+  (hx : Rational x)
+  (hy : Rational y) : Rational (x + y) := by
 
   -- Step 1: Extract the numerator, denominator,
   -- and properties for x
-  rcases hx with ⟨p1, q1, hq1_nz, hx_eq⟩
+  rcases hx with ⟨p1, ⟨q1, q1_nz⟩, hx_eq⟩
 
   -- Step 2: Extract the numerator, denominator,
   -- and properties for y
-  rcases hy with ⟨p2, q2, hq2_nz, hy_eq⟩
+  rcases hy with ⟨p2, ⟨q2, q2_nz⟩, hy_eq⟩
 
   -- Step 3: Provide the explicitly computed numerator
   -- and denominator witnesses for (x + y)
   -- The common denominator fraction template is:
+  let q_prod : NonzeroInt :=
+    ⟨q1 * q2, mul_ne_zero  q1_nz q2_nz⟩
   -- (p1*q2 + p2*q1) / (q1*q2)
-  use (p1 * q2 + p2 * q1), (q1 * q2)
+  use (p1 * q2 + p2 * q1), q_prod
+  rw [hx_eq, hy_eq]
 
-  -- Step 4: Split the existential goal into its two s
-  -- sub-conditions using `constructor`
-  constructor
-  · -- Subgoal A: Prove that the new denominator
-    -- (q1 * q2) is not zero
-    exact mul_ne_zero hq1_nz hq2_nz
-  · -- Subgoal B: Prove that x + y is equal to the newly
-    --constructed fraction
-    -- First, substitute the fractional forms of x and y
-    -- into the left-hand side
-    rw [hx_eq, hy_eq]
+  change
+  (p1 : ℝ) / (q1 : ℝ) + (p2 : ℝ) / (q2 : ℝ) =
+    ((p1 * q2 + p2 * q1 : ℤ) : ℝ) /
+      ((q1 * q2 : ℤ) : ℝ)
 
-    -- Cast the integer operations cleanly into the
-    -- Rational domain
-    push_cast
+  have hq1 : (q1 : ℝ) ≠ 0 := by
+    exact_mod_cast q1_nz
 
-    -- Clear the denominators by cross-multiplying to let
-    -- Lean verify the algebraic identity
-    -- (This avoids using general non-linear field tactics)
+  have hq2 : (q2 : ℝ) ≠ 0 := by
+    exact_mod_cast q2_nz
 
-    -- Combine the fractions manually to force
-    -- structural equality
-    field_simp [hq1_nz, hq2_nz]
-    --ring
+  field_simp [hq1, hq2]
+  push_cast
+  ring
 ```
 
 
-:::proof "prop_1.18"
-Since $`a` and $`b` are rational, then there exist integers
-$`p, q, s` and $`t` such that:
-$$`a = \frac{p}{q}, \quad b = \frac{s}{t}.`
-Then:
 
-1.
-  $$`
-  \begin{align*}
-     a + b =& \frac{p}{q} + \frac{s}{t} =
-    p \cdot q^{-1} + s \cdot t^{-1} =\\
-    &= p t t^{-1} q^{-1} + s q q^{-1} t^{-1} =\\
-    &= p \cdot t q^{-1} t^{-1} + s q q^{-1} t^{-1} =\\
-    &= p t (qt)^{-1} + s q (qt)^{-1} =\\
-    &= (pt + sq) (qt)^{-1} = \\
-    &= \frac{pt + sq}{qt}
-\end{align*}
-`
-
-and since both the numerator and the denominator are integers
-(Proposition 1.15), then $`a + b` is a quotient of integers,
-that is $`a + b` is rational.
 
 2.
   $$`

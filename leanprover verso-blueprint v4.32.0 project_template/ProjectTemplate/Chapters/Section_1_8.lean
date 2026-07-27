@@ -82,10 +82,11 @@ Once the helpful role of the representation of ℝ on a line is understood,
 let's move on to the topic of this paragraph.
 We begin by giving some definitions:
 
-*Definition 1.20.*
+:::definition "1.20" (tags := "Upper Bound")
 Let $`A` be any set of real numbers, that is $`A \subseteq \mathbb{R}`
-A real number $`c` is said to be an *upper bound* of $`A` if it satisfies the following property: For every $`a \in A$ it holds $a \le c`
-
+A real number $`c` is said to be an *upper bound* of $`A` if it satisfies the
+following property: For every $`a \in A` it holds $`a \le c`
+:::
 That is, a real number is an upper bound of a set when it is greater than or equal to _all_ the elements of the set.
 
 In terms of the representation of real numbers on a line just discussed,
@@ -99,9 +100,9 @@ such that $`a < b` and we define:
 
 $$`
     \begin{align*}
-        (a, b) &= \{x \in ℝ : a < x < b\} \\
+        (a, b) &= \{x \in ℝ : a < x < b\}
         & \textbf{(Open interval } (a, b)) \\
-        [a, b] &= \{x \in ℝ : a \le x \le b\} \\
+        [a, b] &= \{x \in ℝ : a \le x \le b\}
         & \textbf{(Closed interval } [a, b])
     \end{align*}
 `
@@ -182,26 +183,6 @@ certain number $`c`. Now we make that number $c$ travel to the left until
 it "stumbles" upon $`A`;
 right where it stumbles will be the supremum (the line has no "holes"):
 
-$$`
-    \begin{picture}(200,40)
-        \line(1,0){200}
-        % Set A
-        \put(40,20){\makebox(0,0){(}}
-        \put(80,20){\makebox(0,0){)}}
-        \put(60,10){\makebox(0,0){$\underbrace{\hspace{40pt}}_A$}}
-
-        % Sup A
-        \put(80,20){\circle*{2}}
-        \put(80,25){\makebox(0,0){$\sup A$}}
-
-        % Moving point c
-        \put(150,20){\circle*{2}}
-        \put(150,25){\makebox(0,0){c}}
-        \put(145,20){\vector(-1,0){60}}
-        \multiput(82,20)(5,0){13}{\circle*{1}}
-    \end{picture}
-`
-
 This is not a proof, of course; nor are we going to give any other.
 We will take this fact as a basic property of ℝ and it will be the
 $`14^{th}` that we were missing:
@@ -245,7 +226,7 @@ Then a real number $`c` is the supremum of $`A` if and only if it
 satisfies the two following conditions:
 
     * *$`S_1'`* $`c` is an upper bound of $`A`.
-    * *$`S_2'`* if $\epsilon$ is any real number arbitrary greater than zero,
+    * *$`S_2'`* if ε is any real number arbitrary greater than zero,
     then there exists $`a \in A` such that $`c - ε < a`.
 :::
 
