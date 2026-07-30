@@ -19,38 +19,12 @@ Core statements about addition on real numbers.
 ```lean "open NaturalNumbers"
 namespace NaturalNumbers
 ```
-:::paragraph
 We are now going to begin to distinguish certain subsets of real numbers.
  The first of them is that of the natural numbers,
  which we could define as those numbers we use for counting,
- $`1, 2, 3, 4`, etc.
-:::
-
-:::paragraph
-If we continue with the point of view of the previous paragraph,
-of starting only from the basic properties of real numbers to derive new
-properties and to give new definitions, then two objections can be presented
-to our definition of natural numbers.
-:::
-
-:::blueprint_side_by_side +boxed
-{blueprint_node "paragraph-1" (displayLabel := "Conjecture") -header +compact}
-:::
-
-:::lemma_ "paragraph-1"
-The first of these consists in pointing out that in the basic properties
-of real numbers only the existence of two real numbers is stated,
-the number $`0` and the number $`1`
-(mentioned in {uses "S3"}[] and {uses "P3"}[] respectively).
-:::
+ $`0, 1, 2, 3, 4`, etc.
 
 Therefore we can ask: What are $`2, 3` and $`4`?
-
-It is not that we suppose that the reader does not know what
-$`2, 3` and $`4` are, but rather that we persist in the attitude of
-considering the basic properties of real numbers as the only thing we know
-about them, as our only data; everything we say later about real numbers
-must be deduced from the basic properties.
 
 With this spirit, so far we are only sure that there are two real numbers,
 the $`0` and the $`1` (Observe that they are indeed two, property $`ℐrm{P3}`
@@ -80,23 +54,6 @@ the set of natural numbers is the set formed by the numbers
 $`1, 1 + 1, 1 + 1 + 1, 1 + 1 + 1 + 1`, etc.
  Now then, what does "etc." mean?
 
-Well, it is an "understatement" (understood); without having said which are
-all the natural numbers we remain sure that the reader understood and can
-recognize a natural number when it appears.
-
-But if we want to develop a rigorous deductive path starting only from the
-basic properties, then "understatements" (the understood) do not fit,
-we must give another definition of the set of natural numbers.
-
-Let it be well understood: it is not that it is wrong to have understatements
-when working in Mathematics, it is only that we have proposed to develop the
-elements of Mathematical Analysis in a deductive and rigorous way and that attitude
-will guide us throughout the book.
-
-Nor should it be thought that we are playing a kind of game;
-the fact that Analysis (or any other branch of Mathematics) can be developed
-in a deductive way from a few properties is very important;
-we will return to this point later.
 
 For now let's return to natural numbers.
 
@@ -115,30 +72,40 @@ for brevity, we now give a name:
 
 
 :::definition "def_1.1"
+Observe that in the basic properties
+of real numbers only the existence of two real numbers is stated,
+the number $`0` and the number $`1`
+(mentioned in {uses "S3"}[] and {uses "P3"}[] respectively).
+
 A subset $`A` of the real numbers is said to be inductive if it has the
 following properties:
-  1. The number $`1` belongs to $`A` (we will write this in the form
-  $`1 ∈ A`).
-  2. If any real number $`n` belongs to $`A`, then the real number
+
+  * $`\textrm{I1.}` The number $`0` belongs to $`A` (we will write this in the form
+  $`0 ∈ A`).
+  * $`\textrm{I2.}` If any real number $`n` belongs to $`A`, then the real number
   $`n + 1` also belongs to $`A`.
 :::
 
+```lean "def_1.1"
+def Inductive (A : Set ℝ) : Prop :=
+  (0 : ℝ) ∈ A ∧ (∀ (x : ℝ),  x ∈ A → (x + 1) ∈ A)
+```
 ⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄
 As we just said, the fact of being inductive does not characterize the set of
-natural numbers.
-In fact, the set of all real numbers is inductive (and does not coincide with
-the set of natural numbers, since at the very least it contains
-$`0` which is not natural).
+natural numbers. In fact, the set of all real numbers is inductive
+(and does not coincide with the set of natural numbers, since at the very
+least it contains $`-1` which is not natural).
 
 But there is a property related to inductivity that is going to give us
 the solution to our problem: let us suppose that $`A` is an inductive set.
-Then, by $`ℐr{1.}`, $`1` belongs to $`A`.
-Knowing that $`1 ∈ A` we can conclude, by $`2.`, that $`2 = 1 + 1 ∈ A`.
+Then, by $`\textrm{I1.}`, $`0` belongs to $`A`.
+Knowing that $`0 ∈ A` we can conclude, by $`textrm{I1.}`, that $`1 = 0 + 1 ∈ A`.
 
-Now knowing that $`2∈ A` we can conclude, also by $`2.`, that
-$`3 = 2 + 1 ∈ A`.
+Now knowing that $`1 ∈ A` we can conclude, also by $`texrrm{I2.}`, that
+$`2 = 1 + 1 ∈ A`.
 A repeated application of this reasoning shows us that all natural
 numbers are in $`A`.
+
 In terms of sets, if $`N` is the set of natural numbers,
 then whatever the inductive set $`A` is, the result is
 $`N ⊆ A` ($`N` included in $`A`).
@@ -158,8 +125,40 @@ the subset of real numbers characterized by the following properties:
   * $`N_2.` If $`A` is any inductive subset of real numbers, then $`ℕ ⊆ A`.
 :::
 
-                                                                  ◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇
+```lean "def_1.2"
+def Natural (x : ℝ) : Prop :=
+  ∀ A : Set ℝ, Inductive A → x ∈ A
 
+def myNat : Set ℝ := {x | Natural x}
+```
+:::lemma_ "0 is Natural"
+$`0 ∈ myNat`
+:::
+```lean "0 is Natural"
+theorem zero_is_nat : (0 : ℝ) ∈ myNat := by
+  change Natural (0 : ℝ)
+  intro A hA
+  exact hA.1
+```
+
+```lean "induction"
+theorem induction {P : ℝ → Prop}
+    (h0 : P 0)
+    (hs : ∀ x : ℝ, P x → P (x + 1)) :
+      myNat ⊆ {x | P x} := by
+    intro x hx
+    change Natural x at hx
+    change P x
+    exact hx {z | P z} ⟨h0, by
+    intro z hz
+    exact hs z hz⟩
+```
+                                                                  ◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇
+```lean "induction_pple"
+theorem induction' {P : ℝ → Prop}
+  (h0 : P 0) (ih : ∀ (n : ℝ), Natural n → P n → P (n + 1))
+    : ∀ x, (Natural x ↔ P x) := by sorry
+```
 Once the definition of the set of natural numbers is established,
 we leave aside all previous discussion; everything that, from now on,
 we prove about natural numbers must be deduced solely from the basic properties
@@ -187,6 +186,7 @@ utility):
 :::theorem "thm_1.13" (tags := "Principle of Induction")
 If $`H` is an inductive subset of ℕ, then $`H = ℕ`.
 :::
+
 
 :::proof "thm_1.13"
 Demonstration: That $`H` is a subset of ℕ means $`H ⊆ N`.

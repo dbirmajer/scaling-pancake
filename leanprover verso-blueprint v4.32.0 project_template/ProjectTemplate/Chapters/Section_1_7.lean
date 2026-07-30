@@ -121,7 +121,7 @@ Its value is $`q_1q_2`, and `mul_ne_zero q1_nz q2_nz` proves that this
 product is nonzero. (See {uses "mul_ne_zero"}[])
 
 * The command use supplies witnesses for the two existential quantifiers in Rational (x + y). The witnesses are the numerator
-$$`p_1q_2+p_2q_1` and the denominator $`q_1q_2`.
+$`p_1q_2+p_2q_1` and the denominator $`q_1q_2`.
 
 * The command `rw [hx_eq, hy_eq]` replaces $`x` and $`y` by their
 rational-fraction expressions.
@@ -207,22 +207,12 @@ More precisely:
 :::lemma_ "prop_1.19"
 If $`x` and $`y` are rational numbers such that $`x < y`,
 then $`\frac{x+y}{2}` is also rational and furthermore:
-$$`a < \frac{x+y}{2} < b`
+$$`x < \frac{x+y}{2} < y`
 :::
 
 :::proof "prop_1.19"
-That $`\frac{a+b}{2}` is rational is immediate from the previous Proposition.
-On the other hand, since $`a < b` is:
-$$`2a = a + a < a + b`
-then:
-$$`2a < a + b, \quad \text{that is } a < \frac{a+b}{2}`
-Analogously:
-$$`a + b < b + b = 2b`
-then:
-$$`a + b < 2b, \; \text{ that is } \frac{a+b}{2} < b`
-
-We divide the proof in two components, firts we prove that $`\frac{a+b}{2}`
-is a rational number, the we prove the inequality $`a < \frac{a+b}{2} < b`.
+We divide the proof in two components, firts we prove that $`\frac{x + y}{2}`
+is a rational number, the we prove the inequality $`x < \frac{x + y}{2} < y`.
 :::
 
 ```lean "prop_1.19 part1"

@@ -494,7 +494,7 @@ taking $`B = \{x \in \mathbb{R} : x \text{ is an upper bound of } A \})`.
     * $`\star\; b)` Prove that $`\inf A = \sup A` if and only if
     $`A` is a set of a single element.
 
-# 1.9. Consequences of the Completeness Property
+# Consequences of the Completeness Property
 
 In this paragraph we are going to see how the acceptance of the Completeness
 Property has a series of implications.
@@ -702,18 +702,19 @@ example (ε : ℝ) (hε : ε > 0) :
   exact exists_nat_one_div_lt hε
 ```
 
-:::lemma_ "prop_1.29"
-We have proven before {uses "prop_1.19"}[](Proposition 1.19) that between two rational numbers
-there is always another rational number and we have said in passing that
-between two real numbers there is always another real number
-(in both cases $`\frac{a+b}{2}`).
-
 The following Proposition proves that between two real numbers there is
 always a rational number:
 
-
+:::lemma_ "prop_1.29"
 Let $`a` and $`b` be real numbers such that $`a < b`$.
-There exists then a rational number $`t` such that $`a < t < b`.
+There exists then a _rational number_ $`t` such that $`a < t < b`.
+:::
+
+:::proof "prop_1.29"
+We have proven before ({uses "prop_1.19"}[]) that between two rational numbers
+there is always another rational number and we have said in passing that
+between two real numbers there is always another real number
+(in both cases $`\frac{a+b}{2}`).
 :::
 
 ```lean "prop_1.29"
