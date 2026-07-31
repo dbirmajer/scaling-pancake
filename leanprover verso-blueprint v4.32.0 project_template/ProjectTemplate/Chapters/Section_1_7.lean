@@ -35,9 +35,11 @@ The set of rational numbers will be denoted by ℚ.
 ```lean "def_1.17 alt"
 abbrev NonzeroInt := {q : ℤ // q ≠ 0}
 
-def Rational (x : ℝ) : Prop :=
-  ∃ (p : ℤ) (q : NonzeroInt),
-    x = (p : ℝ) / (q.val : ℝ)
+def NonZ := { q : ℤ | q ≠ 0}
+
+def isRational (x : ℝ) : Prop :=
+  ∃ (p : ℤ) (q : NonZ),
+    x = (p : ℝ) / (q : ℝ)
 ```
 In another form, a real number is rational when it can be written as a
 quotient of integers.
@@ -65,8 +67,8 @@ example (x y : ℚ) : ∃ r : ℚ, x + y = r := by
 ```lean "prop_1.18 sum"
 theorem sum_of_rationals_is_rational
   {x y : ℝ}
-  (hx : Rational x)
-  (hy : Rational y) : Rational (x + y) := by
+  (hx : isRational x)
+  (hy : isRational y) : isRational (x + y) := by
 
   -- Step 1: Extract the numerator, denominator,
   -- and properties for x
@@ -165,8 +167,8 @@ Below ( (See {uses "prop_1.18 prod_proof"}[]) we give a `Lean` proof.
 ```lean "prop_1.18 prod_proof"
 theorem prod_of_rationals_is_rational
   {x y : ℝ}
-  (hx : Rational x)
-  (hy : Rational y) : Rational (x * y) := by
+  (hx : isRational x)
+  (hy : isRational y) : isRational (x * y) := by
 
   -- Step 1: Extract the numerator, denominator,
   -- and properties for x
