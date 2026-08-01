@@ -76,12 +76,12 @@ Observe that in the basic properties
 of real numbers only the existence of two real numbers is stated,
 the number $`0` and the number $`1`
 (mentioned in {uses "S3"}[] and {uses "P3"}[] respectively).
+From them we will contruct the Natural numbers
 
 A subset $`A` of the real numbers is said to be inductive if it has the
 following properties:
 
-  * $`\textrm{I1.}` The number $`0` belongs to $`A` (we will write this in the form
-  $`0 ∈ A`).
+  * $`\textrm{I1.}` The number $`0` belongs to $`A` ($`0 ∈ A`).
   * $`\textrm{I2.}` If any real number $`x` belongs to $`A`, then the real number
   $`x + 1` also belongs to $`A`.
 :::
@@ -91,38 +91,13 @@ def Inductive (A : Set ℝ) : Prop :=
   (1 : ℝ) ∈ A ∧ (∀ (x : ℝ),  x ∈ A → (x + 1) ∈ A)
 ```
 ⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄
-As we just said, the fact of being inductive does not characterize the set of
-natural numbers. In fact, the set of all real numbers is inductive
-(and does not coincide with the set of natural numbers, since at the very
-least it contains $`-1` which is not natural).
-
-But there is a property related to inductivity that is going to give us
-the solution to our problem: let us suppose that $`A` is an inductive set.
-Then, by $`\textrm{I1.}`, $`0` belongs to $`A`.
-Knowing that $`0 ∈ A` we can conclude, by $`textrm{I1.}`, that $`1 = 0 + 1 ∈ A`.
-
-Now knowing that $`1 ∈ A` we can conclude, also by $`\textrm{I2.}`, that
-$`2 = 1 + 1 ∈ A`.
-A repeated application of this reasoning shows us that all natural
-numbers are in $`A`.
-
-In terms of sets, if ℕ is the set of natural numbers,
-then whatever the inductive set $`A` is, the result is
-$`ℕ ⊆ A` ($`N` included in $`A`).
-
-In other words, if we want to define the natural numbers in a way that they
-result in what we all expect them to be ($`1, 2, 3, 4`, etc.),
-we have to make explicit their property of being included in any inductive set.
-
-All the previous discussion is only to be able to understand the motive for
-our next definition:
-
 
 :::definition "1.2"
 We will call the set of natural numbers, and we will indicate it with ℕ,
 the subset of real numbers characterized by the following properties:
-  * $`N_1.` ℕ is inductive.
-  * $`N_2.` If $`A` is any inductive subset of real numbers, then $`ℕ ⊆ A`.
+  * $`\textrm{N_1.}` ℕ is inductive.
+  * $`\textrm{N_2.}` If $`A` is any inductive subset of real numbers,
+  then $`ℕ ⊆ A`.
 :::
 
 ```lean "def_1.2"
@@ -162,31 +137,31 @@ theorem succ_is_natural :
 ```
 ◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇
 
-Once the definition of the set of natural numbers is established,
-we leave aside all previous discussion; everything that, from now on,
-we prove about natural numbers must be deduced solely from the basic properties
-$`N_1` and $`N_2`.
-
-
 The first property is so easy to demonstrate that it may be hard to
 understand why it is given a name (although we will soon see its enormous
 utility):
 
 
 :::theorem "thm_1.13" (tags := "Principle of Induction")
+If $`H ⊆ ℝ` is inductive, then $`ℕ ⊆ H`.
 If $`H` is an inductive subset of ℕ, then $`H = ℕ`.
 :::
 
 
 :::proof "thm_1.13"
-Demonstration: That $`H` is a subset of ℕ means $`H ⊆ ℕ`.
+By definition, ℕ is a subset of any inductive subset of ℝ.
+
+That $`H` is a subset of ℕ means $`H ⊆ ℕ`.
 But being $`H` inductive, then $`N ⊆ H` by $`ℐrm{N_2}`.
 From the two inclusions $`H ⊆ N` and $`N ⊆ H` we conclude $`H = N`. $`□`
 :::
 
 ```lean "thm_1.13_proof"
-example
-  (H : Set ℝ)
+theorem induction_1 (h : Inductive H) : Natural ⊆ H := by
+  intro n hn
+  exact hn h
+
+example {H}
   (hH : H ⊆ Natural)
   (hI : Inductive H) : H = Natural := by
     -- After ext x, the goal becomes: x ∈ H ↔ x ∈ Natural
@@ -198,36 +173,13 @@ example
     . -- x ∈ Natural → x ∈ H
       intro h
       exact h hI
-```
-```lean "explanation"
--- `n ∈ Natural` is a proposition: it says that a real
--- number `n`  belongs to the set `Natural`.
--- `n : ℝ`
--- `hn : n ∈ Natural`
---Here `n` is an ordinary real number,
---and `hn` is separate evidence that it is natural.
 
--- By contrast, `n : Natural` means that `n` is an
--- element of the subtype determined by the set `Natural`:
--- n : {x : ℝ // x ∈ Natural}
--- So it packages both pieces together:
--- `n.val`        -- the underlying real number
--- `n.property`        -- a proof that n.1 ∈ Natural
-
-example (n : ℝ) (hn : n ∈ Natural) : Natural :=
-  by exact ⟨n, hn⟩
-
--- If `n : Natural`, then Lean treats `(n : ℝ)`
--- as the underlying real number stored in the subtype. So:
--- `(n : ℝ) ∈ Natural` and `n.val ∈ Natural` mean
--- the same thing.
-
-example (n : Natural) : n.val ∈ Natural := by
-  exact n.property
-
-example (n : Natural) : (n : ℝ) ∈ Natural := by
-  exact n.property
-
+example {H}
+  (hH : H ⊆ Natural)
+  (hI : Inductive H) : H = Natural := by
+    apply Set.Subset.antisymm
+    . exact hH
+    . exact induction_1 hI
 ```
 
 There is a popular form of the _principle of induction_ that we are going
@@ -264,47 +216,22 @@ Being $`H` an inductive subset of ℕ, *Theorem 1.3.* tells us that $`H = ℕ`.
 But this last statement means exactly that $`P(n)` is true for all `n ∈ ℕ`.
 :::
 
-```lean "induction pple"
-theorem induction {P : ℝ → Prop}
-    (h1 : P 1)
-    (hs : ∀ x : ℝ, P x → P (x + 1)) :
-      Natural ⊆ {x | P x} := by sorry
---     intro x hx
---     change isNatural x at hx
---     change P x
---     exact hx {z | P z} ⟨h1, by
---     intro z hz
---     exact hs z hz⟩
---
+```lean "Principle of Induction"
+#print Natural
+
+example {P : ℝ → Prop}
+  (h1 : P 1)
+  (hs : ∀ x : ℝ, P x → P (x + 1)) :
+    Natural ⊆ {x | P x} := by
+      let S := {x : ℝ | P x}
+      have : Inductive S := by
+        unfold Inductive
+        constructor
+        . exact h1
+        . exact hs
+      change Natural ⊆ S
+      exact induction_1 this
 ```
-
-```lean "induction pple"
-def oneNatural : Natural :=
-  ⟨1, one_is_natural⟩
-
-def succNatural (n : Natural) : Natural :=
-  ⟨n.val + 1, succ_is_natural n.property⟩
-
-theorem induction_principle
-    (P : Natural → Prop)
-    (h_base : P oneNatural)
-    (h_step : ∀ n : Natural, P n → P (succNatural n)) :
-    ∀ n : Natural, P n := by
-  sorry
-```
-
-```lean "induction_pple"
-theorem induction' {P : ℝ → Prop}
-  (h1 : P 1) (ih : ∀ n : ℝ, n ∈ Natural → P n → P (n + 1))
-    : ∀ n : ℝ, n ∈ Natural → P n := by sorry
-```
-
-```lean "induction_pple"
-theorem induction_pple {P : ℝ → Prop}
-  (h1 : P 1) (ih : ∀ n ∈ Natural,  P n → P (n + 1))
-    : ∀ n ∈ Natural, P n := by sorry
-```
-
 
 We will now use the principle of induction to prove elementary properties of
 natural numbers.

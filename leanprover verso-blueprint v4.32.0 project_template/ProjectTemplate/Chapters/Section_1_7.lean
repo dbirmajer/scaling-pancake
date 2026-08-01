@@ -219,16 +219,16 @@ is a rational number, the we prove the inequality $`x < \frac{x + y}{2} < y`.
 
 ```lean "prop_1.19 part1"
 example (x y : ℝ)
-  (hx : Rational x)
-  (hy : Rational y) : Rational ((x + y) / 2) := by
-  have h2 : Rational (1 / 2) := by
-    unfold Rational
+  (hx : isRational x)
+  (hy : isRational y) : isRational ((x + y) / 2) := by
+  have h2 : isRational (1 / 2) := by
+    unfold isRational
     use (1 : ℤ)
     use (⟨2, by norm_num⟩ : NonzeroInt)
     ring
-  have hxy : Rational (x + y) := by
+  have hxy : isRational (x + y) := by
     exact sum_of_rationals_is_rational hx hy
-  have : Rational ((1 / 2)  * (x + y)) := by
+  have : isRational ((1 / 2)  * (x + y)) := by
     exact prod_of_rationals_is_rational h2 hxy
   have :  (x + y) / 2 = (1 / 2)  * (x + y) := by ring
   rw [this]
