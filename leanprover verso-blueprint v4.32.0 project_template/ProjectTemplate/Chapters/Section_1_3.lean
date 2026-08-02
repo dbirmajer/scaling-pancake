@@ -31,17 +31,15 @@ With this spirit, so far we are only sure that there are two real numbers,
 the $`0` and the $`1` (Observe that they are indeed two, property $`ℐrm{P3}`
 explicitly says that 1 is distinct from zero).
 
-The solution to this problem is simple; by definition it is:
-$$`2 = 1 + 1`
-
+The solution to this problem is simple; by definition $`2 = 1 + 1`
 and this new number is distinct from the ones already known.
 
-In effect, we already know that $`1 > 0`, then by $`\mathrm{O_3}`
+In effect, we already know that $`1 > 0`, then by $`\;\mathrm{O_3}`
 ​it is $`1 + 1 > 1 + 0`$, or what is the same according to our definition
  and $`\mathrm{S_3}: 2 > 1`.
 
 Then, by $`\mathrm{O_1}` , $`2` is distinct from $`1`.
-Now, since $`2 > 1` and $`1 > 0`, then by $`O_2`
+Now, since $`2 > 1` and $`1 > 0`, then by  $`\;\mathrm{O_2}`
 ​it is $`2 > 0` and then, by $`O_1`, 2 is distinct from 0.
 
 Defining $`3 = 2 + 1` we can repeat the previous reasoning and see that
@@ -54,7 +52,6 @@ follows:
 the set of natural numbers is the set formed by the numbers
 $`1, 1 + 1, 1 + 1 + 1, 1 + 1 + 1 + 1`, etc.
  Now then, what does "etc." mean?
-
 
 For now let's return to natural numbers.
 
@@ -89,7 +86,7 @@ following properties:
 
 ```lean "def_1.1"
 def Inductive (A : Set ℝ) : Prop :=
-  (1 : ℝ) ∈ A ∧ (∀ {x : ℝ},  x ∈ A → (x + 1) ∈ A)
+  (1 : ℝ) ∈ A ∧ (∀ {x : ℝ}, x ∈ A → (x + 1) ∈ A)
 ```
 ⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄
 
@@ -103,38 +100,50 @@ the subset of real numbers characterized by the following properties:
 
 ```lean "def_1.2"
 def isNatural (x : ℝ) : Prop :=
-  ∀ {A : Set ℝ}, Inductive A → x ∈ A
+  ∀ {A}, Inductive A → x ∈ A
 
 def Natural : Set ℝ := {x | isNatural x}
 
--- Lean abreviation for:
+--   For x : ℝ, x ∈ Natural is equivalent to isNatural x
 example {x : ℝ} :
   x ∈ Natural ↔ isNatural x := by
   rfl
+
+example {x : ℝ} :
+  x ∈ Natural ↔ isNatural x := by
+  constructor
+  . intro hx
+    exact hx
+  . intro hx
+    exact hx
+
+-- By contrast, `n : Natural` means that `n` is an
+-- element of the subtype determined by the set `Natural`:
+-- n : {x : ℝ // x ∈ Natural}
+-- So it packages both pieces together:
+-- `n : ℝ`        -- the underlying real number
+-- `n.property`        -- a proof that (n : ℝ) ∈ Natural
+
+example {x} (hx : x ∈ Natural) : Natural :=
+  by exact ⟨x, hx⟩
+
+example (n : Natural) : (n : ℝ) ∈ Natural := by
+  exact n.property
 ```
 :::lemma_ "0 is Natural"
 $`1 ∈ Natural`
 :::
 ```lean "0 is Natural"
 theorem one_is_natural : (1 : ℝ) ∈ Natural := by
-  change isNatural (1 : ℝ)
-  intro A ⟨h1, _⟩
-  exact h1
+  intro A hA
+  exact hA.left
 ```
 
 ```lean "succ is Natural"
 theorem succ_is_natural :
   ∀ {n : ℝ}, n ∈ Natural → (n + 1) ∈ Natural := by
-    intro n hn
-    have hn' : isNatural n :=
-      by exact hn
-    change isNatural (n + 1 : ℝ)
-    unfold isNatural
-    intro A hA
-    have : n ∈ A := by
-      exact hn' hA
-    exact hA.right this
---
+    intro n hn A hA
+    exact hA.right (hn hA)
 ```
 ◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇
 
@@ -142,12 +151,10 @@ The first property is so easy to demonstrate that it may be hard to
 understand why it is given a name (although we will soon see its enormous
 utility):
 
-
 :::theorem "thm_1.13" (tags := "Principle of Induction")
 If $`H ⊆ ℝ` is inductive, then $`ℕ ⊆ H`.
 If $`H` is an inductive subset of ℕ, then $`H = ℕ`.
 :::
-
 
 :::proof "thm_1.13"
 By definition, ℕ is a subset of any inductive subset of ℝ.
@@ -158,29 +165,21 @@ From the two inclusions $`H ⊆ N` and $`N ⊆ H` we conclude $`H = N`. $`□`
 :::
 
 ```lean "thm_1.13_proof"
-theorem induction_1 (h : Inductive H) : Natural ⊆ H := by
+-- The set of natural numbers is a subset of every
+-- inductive set.
+theorem natural_subset_of_inductive
+  (h : Inductive H) : Natural ⊆ H := by
   intro n hn
   exact hn h
 
-example {H}
-  (hH : H ⊆ Natural)
-  (hI : Inductive H) : H = Natural := by
-    -- After ext x, the goal becomes: x ∈ H ↔ x ∈ Natural
-    ext x
-    constructor
-    . -- x ∈ H → x ∈ Natural
-      intro h
-      exact hH h
-    . -- x ∈ Natural → x ∈ H
-      intro h
-      exact h hI
-
-example {H}
+-- iIf an inductive set `H` is contained in `Natural`,
+-- then it equals `Natural`.
+theorem eq_natural_of_subset_of_inductive {H}
   (hH : H ⊆ Natural)
   (hI : Inductive H) : H = Natural := by
     apply Set.Subset.antisymm
     . exact hH
-    . exact induction_1 hI
+    . exact natural_subset_of_inductive  hI
 ```
 
 There is a popular form of the _principle of induction_ that we are going
@@ -220,7 +219,7 @@ But this last statement means exactly that $`P(n)` is true for all `n ∈ ℕ`.
 ```lean "Principle of Induction"
 #print Natural
 
-example {P : ℝ → Prop}
+theorem pple_of_induction {P : ℝ → Prop}
   (h1 : P 1)
   (hs : ∀ {x : ℝ}, P x → P (x + 1)) :
     Natural ⊆ {x | P x} := by
@@ -231,7 +230,7 @@ example {P : ℝ → Prop}
         . exact h1
         . exact hs
       change Natural ⊆ S
-      exact induction_1 this
+      exact natural_subset_of_inductive this
 ```
 
 We will now use the principle of induction to prove elementary properties of
@@ -257,7 +256,7 @@ theorem sum_of_naturals (n : Natural) :
       change isNatural ((n : ℝ) +  1)
       intro A hA
       have : (n : ℝ) ∈ A := by exact n.property hA
-      exact hA.2 this
+      exact hA.right this
     . -- ∀ {x : ℝ}, x ∈ H → (x + 1) ∈ H
       intro x hx
       change ((n : ℝ) + (x + (1 : ℝ))) ∈ Natural
@@ -282,6 +281,36 @@ If $`n` and $`m` are natural numbers, then $`m + n` and $`m ⋅ n` are also
 natural numbers.
 :::
 ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+
+```lean "prop_1.5 prod"
+theorem mul_of_naturals (n : Natural) :
+  ∀ m : Natural, (n : ℝ) * (m : ℝ) ∈ Natural := by
+  let H := {x : ℝ | n * x ∈ Natural}
+  have IH : Inductive H := by
+    unfold Inductive
+    constructor
+    . -- 1 ∈ H
+      intro A hA
+      rw [mul_one]
+      exact n.property hA
+    . -- ∀ {x : ℝ}, x ∈ H → (x + 1) ∈ H
+      intro x hx
+      change ((n : ℝ) * (x + (1 : ℝ))) ∈ Natural
+      rw [mul_add, mul_one]
+      let nx : Natural  := ⟨(n : ℝ) * x, hx⟩
+      change (nx : ℝ) + (n : ℝ) ∈ Natural
+      exact (sum_of_naturals nx n)
+  intro m
+  exact m.property IH
+
+example :
+  ∀ n m : Natural, (n : ℝ ) + (m : ℝ) ∈ Natural := by
+  intro n m
+  exact sum_of_naturals n m
+
+def mulNatural (n m : Natural) : Natural :=
+  ⟨(n : ℝ) * (m : ℝ), mul_of_naturals n m⟩
+```
 
 :::proof "prop_1.5 prod"
 Having done in detail the demonstration of our first affirmation,
@@ -378,94 +407,13 @@ In conclusion, in all cases it results $`a \ge c`.
 
 We return now to elementary properties of natural numbers.
 
-:::theorem "zero_lt" (parent := "natural-numbers")(lean := "Nat.zero_le")
-If $`n` is a natural number, then $`0 ≤ n`
+:::theorem "one_le_natural" (parent := "natural-numbers")(lean := "Nat.zero_le")
+If $`n` is a natural number, then $`1 ≤ n`
 :::
 
-```lean "zero_le"
-example (n : ℕ) : 0 ≤ n := by
-  exact Nat.zero_le n
-```
-
-```lean "zero_le_proof"
-theorem zero_le (n : ℕ) : 0 ≤ n := by
-  induction n with
-  | zero => exact le_of_eq rfl
-  | succ n ih =>
-      calc 0
-      ≤ n := by exact ih
-      _ = n + 0 := by rw [add_zero]
-      _ <= n + 1 := by exact
-        add_le_add_right (le_of_lt zero_lt_one) n
-```
-:::corollary "Nat.cast_nonneg"(parent := "natural-numbers")(lean := "Nat.cast_nonneg")
-This theorem in necessary in Lean 4 beacuse of the Type theory.
-Write a Chat GPT explanation
-If n ∈ ℕ, then $`0 ≤ (n : ℝ)`
-:::
-
-```lean "cast.nonneg"
-example (n : ℕ) : 0 ≤ (n : ℝ) := by
-  exact Nat.cast_nonneg n
-```
-:::theorem "th_1.6" (parent := "natural-numbers")(lean := "Nat.succ_le_of_lt")
-If $`n` is a natural number other than $`0`, then $`n \ge 1`
-:::
-
-:::proof "th_1.6"
-The Lean proof is a follows: First we prove that for all natural numbers,
-$`n ≠ 0 → 0 < n`. We then use this lemma to prove the theorem.
-:::
-
-:::lemma_ "lm_1.6"
-$`∀ n : ℕ, n≠ 0 → 0 < n`
-:::
-
-```lean "lm_1.6"
-example {n : ℕ} : n ≠ 0 → 0 < n := by
-  intro h
-  exact pos_of_ne_zero h
-```
-
-```lean "lm_1.6_proof"
-lemma pos_of_ne_zero {n : ℕ}: n ≠ 0 → 0 < n := by
-  induction n with
-  | zero =>
-      intro h
-      contradiction
-  | succ n ih =>
-      by_cases h' : n = 0
-      . intro _
-        subst h'
-        rw [zero_add]
-        exact zero_lt_one
-      . intro _
-        calc 0
-          < n := by exact ih h'
-          _ = n + 0 := by rw [add_zero n]
-          _ <  n + 1 := by exact
-            add_lt_add_right (zero_lt_one) n
-```
-
-```lean "th_1.6"
-example {n : ℕ} (h : 0 < n) : 1 ≤ n := by
-  exact Nat.succ_le_of_lt h
-```
-
-```lean "th_1.6_proof"
-example (h : 0 < n) : (1 ≤ n) := by
-  induction n with
-  | zero => contradiction
-  | succ n ih =>
-  by_cases h' : n = 0
-  . rw [h']
-  . -- case n ≠ 0
-    have : 0 ≤ 1 := by exact (le_of_lt (zero_lt_one))
-    calc n + 1
-    _ ≥ 1 + 1 := by exact
-        add_le_add_left (ih (pos_of_ne_zero h')) 1
-    _ ≥ 0 + 1 := add_le_add_left this 1
-    _ = 1 := by exact (zero_add (1 : ℕ))
+```lean "one_le_natural"
+theorem one_le_natural : ∀ n : Natural, 1 ≤ (n :ℝ) := by
+  sorry
 ```
 
 We want now to prove the fact, intuitively clear, that if a natural number is
@@ -473,20 +421,15 @@ subtracted from a smaller natural number, the result is a natural number.
 As a preliminary step, we prove the following Proposition.
 
 :::theorem "th_1.7."
-If $`n` is a natural number then either $`n = 0` or $`n - 1` is a natural
+If $`n` is a natural number then either $`n = 1` or $`n - 1` is a natural
 number.
 :::
 
 
 ```lean "thm_1.7_proof"
-example (n : ℕ)  :
-  (n = 0) ∨ (∃ m : ℕ, m  = n - 1) := by
-  cases n
-  case zero => exact Or.inl rfl
-  case succ n =>
-      right
-      use n
-      exact Nat.add_succ_sub_one n 0
+example (n : Natural)  :
+  ((n : ℝ) = 1) ∨ ((n : ℝ) - 1 ∈ Natural) := by
+  sorry
 ```
 
 Now we are in a position to prove the announced result:
