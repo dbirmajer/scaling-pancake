@@ -1,5 +1,6 @@
 import Mathlib.Data.Nat.Notation
 import Mathlib.Data.Real.Basic
+import Mathlib.Tactic.Ring
 
 import Verso
 import VersoManual
@@ -88,15 +89,15 @@ following properties:
 
 ```lean "def_1.1"
 def Inductive (A : Set ℝ) : Prop :=
-  (1 : ℝ) ∈ A ∧ (∀ (x : ℝ),  x ∈ A → (x + 1) ∈ A)
+  (1 : ℝ) ∈ A ∧ (∀ {x : ℝ},  x ∈ A → (x + 1) ∈ A)
 ```
 ⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄
 
 :::definition "1.2"
 We will call the set of natural numbers, and we will indicate it with ℕ,
 the subset of real numbers characterized by the following properties:
-  * $`\textrm{N_1.}` ℕ is inductive.
-  * $`\textrm{N_2.}` If $`A` is any inductive subset of real numbers,
+  * $`\mathrm{N_1.}` ℕ is inductive.
+  * $`\mathrm{N_2.}` If $`A` is any inductive subset of real numbers,
   then $`ℕ ⊆ A`.
 :::
 
@@ -121,7 +122,7 @@ theorem one_is_natural : (1 : ℝ) ∈ Natural := by
   exact h1
 ```
 
-```lean "succ in Natural"
+```lean "succ is Natural"
 theorem succ_is_natural :
   ∀ {n : ℝ}, n ∈ Natural → (n + 1) ∈ Natural := by
     intro n hn
@@ -132,7 +133,7 @@ theorem succ_is_natural :
     intro A hA
     have : n ∈ A := by
       exact hn' hA
-    exact (hA.right n) this
+    exact hA.right this
 --
 ```
 ◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇
@@ -221,7 +222,7 @@ But this last statement means exactly that $`P(n)` is true for all `n ∈ ℕ`.
 
 example {P : ℝ → Prop}
   (h1 : P 1)
-  (hs : ∀ x : ℝ, P x → P (x + 1)) :
+  (hs : ∀ {x : ℝ}, P x → P (x + 1)) :
     Natural ⊆ {x | P x} := by
       let S := {x : ℝ | P x}
       have : Inductive S := by
@@ -236,59 +237,53 @@ example {P : ℝ → Prop}
 We will now use the principle of induction to prove elementary properties of
 natural numbers.
 
-:::proposition "prop_1.5"
+:::proposition "prop_1.5 sum"
 If $`n` and $`m` are natural numbers, then $`m + n` and $`m ⋅ n` are also
 natural numbers.
 :::
 ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
 
-:::proof "prop_1.5"
-We first prove that $`m + n` is a natural number.
-For this we consider the following statement:
+```lean "prop_1.5 sum"
+-- theorem sum_of_naturals (hn : n ∈ Natural) :
+--   ∀ m, m ∈ Natural → n + m ∈ Natural := by sorry
 
-_$`P(n)`: For every natural number $`m`, $`m + n` is a natural number._
+theorem sum_of_naturals (n : Natural) :
+  ∀ m : Natural, (n : ℝ) + (m : ℝ) ∈ Natural := by
+  let H := {x : ℝ | n + x ∈ Natural}
+  have IH : Inductive H := by
+    unfold Inductive
+    constructor
+    . -- 1 ∈ H
+      change isNatural ((n : ℝ) +  1)
+      intro A hA
+      have : (n : ℝ) ∈ A := by exact n.property hA
+      exact hA.2 this
+    . -- ∀ {x : ℝ}, x ∈ H → (x + 1) ∈ H
+      intro x hx
+      change ((n : ℝ) + (x + (1 : ℝ))) ∈ Natural
+      change (n : ℝ) + x ∈ Natural at hx
+      rw [← add_assoc]
+      exact succ_is_natural hx
+  intro m
+  have : (m : ℝ) ∈ H := by exact m.property IH
+  simpa [H]
 
-Then what we have to prove is that $`P(n)` is true for any natural number
-$`n`; {uses "cor_1.4"}[] tells us how to do it: we have to prove that
-$`P(1)` is true and that from the truth of $`P(n)` follows the truth of
-$`P(n+1)`.
+example :
+  ∀ n m : Natural, (n : ℝ ) + (m : ℝ) ∈ Natural := by
+  intro n m
+  exact sum_of_naturals n m
 
-Let's observe that the proposition $`P(1)` is:
- _$`P(1):` For every natural number $`m`, $`m + 1` is a natural number_
+def addNatural (n m : Natural) : Natural :=
+  ⟨(n : ℝ) + (m : ℝ), sum_of_naturals n m⟩
+```
 
-But then $`P(1)` is trivially true: by $`N_1` of Definition 1.2,
-the set $`\mathbb{N}` of natural numbers is inductive,
-and being inductive means, in particular,
-that if $`m \in \mathbb{N}` then $`m + 1 \in \mathbb{N}`,
-and that is exactly what $`P(1)` says.
+:::proposition "prop_1.5 prod"
+If $`n` and $`m` are natural numbers, then $`m + n` and $`m ⋅ n` are also
+natural numbers.
+:::
+■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
 
-We are now going to prove that from the truth of $`P(n)` follows the truth of
-$`P(n + 1)`. Observe well that we are not going to prove either the truth of
-$`P(n)` or that of $`P(n + 1)`, but rather we are going to prove that if
-$`P(n)` is true, then $`P(n + 1)` also is.
-
-Suppose $P(n)$ is true; that is, let's suppose that for every natural number
-$`m`, the sum $`m + n` is a natural number.
-
-We have to prove the truth of $`P(n + 1)`, that is, that for every natural
-number $`m`, the sum $`m + (n + 1)` is a natural number. But:
-$$`m + (n + 1) = (m + n) + 1`
-and, by inductive hypothesis, $`m + n` is a natural number
-(we are assuming $`P(n)` is true).
-
-But since $`m + n` is a natural number, as the set of natural numbers is
-inductive, it results that $`(m + n) + 1` is also a natural number whatever
-the natural $`m` may be. Therefore $`P(n + 1)` is true.
-
-In summary, we have proven the truth of $P(1)$ and we have deduced the truth
-of $`P(n + 1)` from the truth of $`P(n)`. By Corollary 1.4.,
-that means that $`P(n)` is true for every natural number $`n`;
-then the statement "whatever the natural number $`n` may be,
-$`m + n` is a natural number whatever the natural number $`m` may be"
-is true, or what is the same,
-"whatever the natural numbers $`m` and $`n` may be,
-the sum $`m + n` is also a natural number.""
-
+:::proof "prop_1.5 prod"
 Having done in detail the demonstration of our first affirmation,
 we do more briefly the demonstration of the second.
 We consider the affirmation:
