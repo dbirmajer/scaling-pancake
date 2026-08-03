@@ -17,6 +17,8 @@ open Informal
 Core statements about addition on real numbers.
 :::
 
+# The Natural Numbers
+
 ```lean "open NaturalNumbers"
 namespace NaturalNumbers
 ```
@@ -182,56 +184,6 @@ theorem eq_natural_of_subset_of_inductive {H}
     . exact natural_subset_of_inductive  hI
 ```
 
-There is a popular form of the _principle of induction_ that we are going
-to indicate now.
-
-:::corollary "cor_1.4"(tags := "Induction Principle")
-Suppose that for each natural number $`n` we have a statement $`P(n)` about it
-in such a way that the two following conditions are verified:
-* The statement $`P(1)` is true.
-* For every natural number $`n` the following occurs: if we suppose that
-$`P(n)` is true we can then deduce that $`P(n+1)` is also true.
-
-In that case the statement $`P(n)` is true for every natural
-number $`n`.
-:::
-
-:::proof "cor_1.4"
-Proof: Consider the following set:
-
-$$`H = {n ∈ N : P(n) \; \text{is true}}`
-(read _$`H` equal to the set of the $`n` belonging to the naturals such
-that $`P(n)` is true_).
-
-In the first place, by its own construction, $`H` is a subset of ℕ;
-in effect, the elements of $`H` are those natural numbers $`n` for which
-$`P(n)` is true, that is, the elements of $`H` are all natural numbers.
-
- But furthermore $`H` is inductive; in effect, $`1 ∈ H` because by
- hypothesis $`P(1)` is true and, on the other hand,
- if $`n ∈ H` then $`P(n)` is true; by hypothesis,
- that implies that $`P(n + 1)` is true, or what is the same $`n + 1 ∈ H`.
-
-Being $`H` an inductive subset of ℕ, *Theorem 1.3.* tells us that $`H = ℕ`.
-But this last statement means exactly that $`P(n)` is true for all `n ∈ ℕ`.
-:::
-
-```lean "Principle of Induction"
-#print Natural
-
-theorem pple_of_induction {P : ℝ → Prop}
-  (h1 : P 1)
-  (hs : ∀ {x : ℝ}, P x → P (x + 1)) :
-    Natural ⊆ {x | P x} := by
-      let S := {x : ℝ | P x}
-      have : Inductive S := by
-        unfold Inductive
-        constructor
-        . exact h1
-        . exact hs
-      change Natural ⊆ S
-      exact natural_subset_of_inductive this
-```
 
 We will now use the principle of induction to prove elementary properties of
 natural numbers.
@@ -282,6 +234,14 @@ natural numbers.
 :::
 ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
 
+:::proof "prop_1.5 prod"
+Given $`n ∈ Natural` We consider the set:
+$$`H(x) = { x ∈ ℝ :  n · x ∈ Natural}`
+and prove that $`H` is inductive. Then, by the principle of induction
+{uses "thm_1.13"}[] we conclude that $`Natural ⊆ H`.
+Below we give a `Lean` proof.
+:::
+
 ```lean "prop_1.5 prod"
 theorem mul_of_naturals (n : Natural) :
   ∀ m : Natural, (n : ℝ) * (m : ℝ) ∈ Natural := by
@@ -312,98 +272,101 @@ def mulNatural (n m : Natural) : Natural :=
   ⟨(n : ℝ) * (m : ℝ), mul_of_naturals n m⟩
 ```
 
-:::proof "prop_1.5 prod"
-Having done in detail the demonstration of our first affirmation,
-we do more briefly the demonstration of the second.
-We consider the affirmation:
-$$`P(n) = \text{For every natural number } m, m \cdot n
-\text{ is a natural number}`
 
-The affirmation $`P(1)` is true since $`m \cdot 1 = m`,
-which by hypothesis is a natural number.
-Suppose then that the affirmation $`P(n)` is true for a certain natural
-number $`n` and let's see that it implies that the affirmation
-$`P(n + 1)` is true.
-For that, if $`m` is any natural number then, by *Property D:*
-$$`m \cdot (n + 1) = m \cdot n + m \cdot 1 = m \cdot n + m`
 
-In this sum, the first summand $`m \cdot n` is a natural number
-because we are supposing $`P(n)` is true,
-and the second summand $`m` is a natural number by hypothesis.
-Since we already know that the sum of natural numbers is a natural
-number (it is the first part of this Proposition),
-then $`m \cdot n + m` is a natural number whatever the natural number
-$`m` may be. But that is to say that $`P(n + 1)` is true.
-
-Once again we have proven the truth of $`P(1)` and that from the truth of
-$`P(n)` follows the truth of $`P(n + 1)`.
-Then, by *Corollary 1.4.*, $`P(n)` is true for every natural number $`n`,
-which is what we wanted to demonstrate.
-:::
-
+# More Properties of the Natural Numbers
 
 Before demonstrating more properties of the natural numbers,
 we are going to introduce a new concept:
 
 :::definition "ge"
 Given real numbers $`a` and  $`b`, we say that $`a` is
-_greater than or equal_ to $`b`,
-and we write $`a \ge b`, if one of the two following possibilities occurs:
+_less or equal_ than  $`b`,
+and we write $`a \le b`, if one of the two following possibilities occurs:
 
-  * $`\star i)` $`a` is greater than $`b`;
+  * $`\star i)` $`a` is less than $`b`;
   * $`\star ii)` $`a` is equal to $`b`.
 :::
 
-Then, for it to be true that $`a \ge b`, it is enough that one of the two
-possibilities be true (the two together cannot be).
+```lean "ge"
+example : ∀ {a b : ℝ},
+  a ≤ b ↔ a < b ∨ a  = b := by
+    exact Std.le_iff_lt_or_eq
 
-Thus, for example, it is true that $`2 \ge 1`
-(because, although it is not $`2 = 1`, it is true that $`2 > 1`)
-and it is true that $`3 \ge 3` (because $`3 = 3` although it is not $`3 > 3`)
-but it is not true that $`1 \ge 3` (for it is neither...
+example {a b : ℝ} (hab : a < b) : a ≤ b := by
+  exact le_of_lt hab
+
+example {a b : ℝ} (hab : a = b) : a ≤ b := by
+  exact le_of_eq hab
+```
+Then, for it to be true that $`a \le b`, it is enough that one of the two
+possibilities be true (the two together cannot be).
 
 This relation has the following properties):
 
-:::lemma_ "ge-properties"
-1. If $`a \ge b` and $`b \ge a`, then $`a = b`.
-2. If $`a \ge b` and $`b \ge c`, then $`a \ge c`.
-3. If $`a \ge b`, then $`a + c \ge b + c` for any real number $`c`.
-4. If $`a \ge b` and $`c` is greater than zero,
-then $`a \cdot c \ge b \cdot c`
+:::lemma_ "le_antisymm"(parent := "natural_numbers")(lean := "le_antisymm")(tags := "(≤) Antisymmetric property")
+For any real numbers $`a` and $`b`, the following holds: $`a ·  b = b ·  a`
+If $`a \le b` and $`b \le a`, then $`a = b`.
 :::
-We demonstrate only the first two and leave the remaining two as an exercise.
 
-:::proof "ge-properties"
-*Demonstration of 1:* Let $`a \ge b` mean that either $`a > b` or $`a = b`.
-Since we want to prove $`a = b`, let's see that it cannot be $`a > b`.
-If it were so, then it could not be $`b > a` nor $`a = b`
-(by trichotomy, *O₁*) and then it would be false that $`b \ge a`.
+```lean "le_antisymm"
+example {a b : ℝ}
+  (hab : a ≤ b)(hba : b ≤ a) : a = b := by
+    exact le_antisymm hab hba
+```
 
-But this is one of our hypotheses; therefore it cannot be $`a > b` and then
-necessarily $`a = b`.
+```lean "le_antisymm_proof"
+example {a b : ℝ}
+  (hab : a ≤ b)(hba : b ≤ a) : a = b := by
+    have hab': a < b ∨ a = b := by
+      exact Std.le_iff_lt_or_eq.mp hab
+    have hba' : b < a ∨ b = a := by
+      exact Std.le_iff_lt_or_eq.mp hba
+    rcases hab' with a_lt_b | a_eq_b
+    . rcases hba' with b_lt_a | b_eq_a
+      . false_or_by_contra
+        -- explicar este thm in trichotomy
+        exact (lt_asymm a_lt_b b_lt_a)
+      . false_or_by_contra
+        subst a
+        -- explicar este thm in trichotomy
+        exact (lt_irrefl b) a_lt_b
+    . rcases hba' with b_lt_a | b_eq_a
+      . false_or_by_contra
+        subst a
+        exact (lt_irrefl b) b_lt_a
+      . subst a
+        exact b_eq_a
+```
 
-*Demonstration of 2:* Since $`a \ge b`, then either $`a = b` or
-$`a > b` and since
-$`b \ge c`, then either $`b > c` or $`b = c`.
-
-This leaves us with four possibilities:
-
-  * *i)* $`a = b` and $`b > c`;
-  * *iii)* $`a > b` and $`b > c`;
-  * *ii)* $`a = b` and $`b = c`;
-  * *iv)* $`a > b` and $`b = c`.
-
-In case i), as $`a` is the same as $`b` and $`b` is greater than $`c`,
-then $`a` is greater than $`c`, $`a > c`.
-But if $`a > c`, then it is true that $`a \ge c` (1).
-In case ii), $`a` is $`= c` and therefore it is true that
-$`a \ge c` (see note (1)).
-
-In case iii) it results by $`O₂` that $`a > c` and therefore $`a \ge c`.
-Finally, in case iv) it results $`a > c` (since $`a` is greater than $`b` and
-$`b` is the same as $`c`) and therefore $`a \ge c`.
-In conclusion, in all cases it results $`a \ge c`.
+:::lemma_ "le_trans"(parent := "natural_numbers")(lean := "le_trans")(tags := "(≤) Transitive property")
+If $`a \le b` and $`b \le c`, then $`a \le c`.
 :::
+```lean "le_trans"
+example {a b : ℝ}(hab : a ≤ b)(hbc : b ≤ c) : a ≤ c := by
+  exact le_trans hab hbc
+```
+```lean "le_trans_proof"
+-- terminar
+example {a b : ℝ}(hab : a ≤ b)(hbc : b ≤ c) : a ≤ c := by
+  sorry
+```
+
+  * *Exercise:* Prove the following assertions in Lean:
+:::lemma_"le_properties"
+  1. If $`a \le b`, then $`a + c \le b + c` for any real number $`c`.
+  2. If $`a \le b` and $`c` is greater than zero,
+then $`a \cdot c \le b \cdot c`
+:::
+
+```lean "le_trans"
+example {a b c : ℝ}(hab : a ≤ b) : a + c ≤ b + c := by
+   exact add_le_add_left hab c
+
+example {a b c : ℝ}
+  (hab : a ≤ b)(hc : 0 < c) : a * c ≤ b * c := by
+   exact mul_le_mul_of_nonneg_right hab (le_of_lt hc)
+```
 
 We return now to elementary properties of natural numbers.
 
@@ -411,8 +374,16 @@ We return now to elementary properties of natural numbers.
 If $`n` is a natural number, then $`1 ≤ n`
 :::
 
+:::proof "one_le_natural"
+Let's consider $`H = {x : ℝ | 1 ≤ x}`. We will prove that $`H` is an
+inductive set, and conclude that `Natural ⊆ H`.
+:::
+
 ```lean "one_le_natural"
-theorem one_le_natural : ∀ n : Natural, 1 ≤ (n :ℝ) := by
+-- terminar
+theorem one_le_natural : ∀ n : Natural, 1 ≤ (n : ℝ) := by
+  let H := {x : ℝ | 1 ≤ x}
+  have IH : Inductive H := by sorry
   sorry
 ```
 
@@ -506,6 +477,8 @@ example (n m : ℕ) (h : n < m) : n + 1 ≤ m := by
   exact Nat.succ_le_of_lt h
 ```
 
+# The Well Ordering Principle
+
 We are now going to prove a very important property of ℕ.
 
 Let us first say that if $A$ is any set of real numbers,
@@ -577,8 +550,8 @@ lemma well_ordering' : ∀ n : ℕ, P n := by
       --  of A.
       case right =>
         intro n _
-        exact zero_le n
-
+  --      exact zero_le n
+        sorry
   ---------------------------------------------------------
     -- Inductive step
   ---------------------------------------------------------
