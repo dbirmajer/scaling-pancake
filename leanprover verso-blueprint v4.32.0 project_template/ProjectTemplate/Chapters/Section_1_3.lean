@@ -70,14 +70,16 @@ def Natural : Set ℝ := {x | isNatural x}
 example {x : ℝ} :
   x ∈ Natural ↔ isNatural x := by
   rfl
+```
 
--- By contrast, `n : Natural` means that `n` is an
--- element of the subtype determined by the set `Natural`:
--- n : {x : ℝ // x ∈ Natural}
--- So it packages both pieces together:
--- `n : ℝ`        -- the underlying real number
--- `n.property`   -- a proof that (n : ℝ) ∈ Natural
+By contrast, `n : Natural` means that `n` is an
+element of the _subtype_ determined by the set `Natural`:
+`n : {x : ℝ // x ∈ Natural}`
+So it packages both pieces together:
+* `n : ℝ`  the underlying real number
+* `n.property`  a proof that `(n : ℝ) ∈ Natural`
 
+```lean "def_1.2_subtype"
 example {x} (hx : x ∈ Natural) : Natural :=
   by exact ⟨x, hx⟩
 
@@ -96,12 +98,27 @@ We prove that `1 ∈ Natural` and the inductive step,
 ```lean "inductive_natural_proof"
 theorem inductive_natural : Inductive Natural := by
   constructor
-  .-- (1 : ℝ) ∈ Natural
+  . show 1 ∈ Natural
     intro A hA
     exact hA.left
-  .-- n ∈ Natural → (n + 1) ∈ Natural := by
+  . show ∀ n : ℝ, n ∈ Natural → (n + 1) ∈ Natural
     intro n hn A hA
     exact hA.right (hn hA)
+
+
+--@[simp]
+theorem one_mem_natural : (1 : ℝ) ∈ Natural := by
+  exact inductive_natural.left inductive_natural
+
+-- lemma succ_is_natural
+--   (hn : n ∈ Natural) : n + 1 ∈ Natural := by
+--     exact inductive_natural.right hn
+
+--@[simp]
+lemma succ_mem_natural
+  (hn : n ∈ Natural) : n + 1 ∈ Natural := by
+    exact inductive_natural.right hn
+
 ```
 ◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇
 
@@ -193,11 +210,11 @@ theorem mul_of_naturals (n : Natural) :
   have IH : Inductive H := by
     unfold Inductive
     constructor
-    . -- 1 ∈ H
+    . show 1 ∈ H
       intro A hA
       rw [mul_one]
       exact n.property hA
-    . -- ∀ {x : ℝ}, x ∈ H → (x + 1) ∈ H
+    . show ∀ {x : ℝ}, x ∈ H → (x + 1) ∈ H
       intro x hx
       change ((n : ℝ) * (x + (1 : ℝ))) ∈ Natural
       rw [mul_add, mul_one]
@@ -226,8 +243,8 @@ Given real numbers $`a` and  $`b`, we say that $`a` is
 _less or equal_ than  $`b`,
 and we write $`a \le b`, if one of the two following possibilities occurs:
 
-  * $`\star i)` $`a` is less than $`b`;
-  * $`\star ii)` $`a` is equal to $`b`.
+  * $`a` is less than $`b`;
+  * $`a` is equal to $`b`.
 :::
 
 ```lean "ge"
@@ -334,7 +351,21 @@ inductive set, and conclude that `Natural ⊆ H`.
 :::
 
 ```lean "one_le_natural"
-theorem one_le_natural : ∀ n : Natural, 1 ≤ (n : ℝ) := by
+-- theorem one_le_natural : ∀ n : Natural, 1 ≤ (n : ℝ) := by
+--   let H := {x : ℝ | 1 ≤ x}
+--   have IH : Inductive H := by
+--     constructor
+--     . simp [H]
+--     . simp [H]
+--       intro x hx
+--       have : (0 : ℝ)  ≤ 1 := by
+--    exact le_of_lt zero_lt_one
+--       exact le_trans this hx
+--   intro n
+--   exact n.property IH
+
+theorem one_le_natural {n}
+  (hn : n ∈ Natural): 1 ≤ (n : ℝ) := by
   let H := {x : ℝ | 1 ≤ x}
   have IH : Inductive H := by
     constructor
@@ -343,8 +374,7 @@ theorem one_le_natural : ∀ n : Natural, 1 ≤ (n : ℝ) := by
       intro x hx
       have : (0 : ℝ)  ≤ 1 := by exact le_of_lt zero_lt_one
       exact le_trans this hx
-  intro n
-  exact n.property IH
+  exact hn IH
 ```
 
 We want now to prove the fact, intuitively clear, that if a natural number is
@@ -361,8 +391,6 @@ example (n : Natural) (hn : 1  < (n : ℝ)) :
   (n : ℝ) - 1 ∈ Natural := by
   let H : Set ℝ :=
     {n ∈ Natural | n = 1 ∨ (1 < n ∧ n - 1 ∈ Natural)}
-  have one_is_natural : 1 ∈ Natural := by exact
-    inductive_natural.left
   have hH : H ⊆ Natural := by
     intro n hn
     exact hn.left
@@ -372,15 +400,14 @@ example (n : Natural) (hn : 1  < (n : ℝ)) :
       change 1 ∈
         Natural ∧ (1 = 1 ∨ (1 < 1 ∧ 1 - 1 ∈ Natural))
       constructor
-      . exact one_is_natural
+      . exact inductive_natural.left
       . exact Or.inl rfl
     . show ∀ {x : ℝ}, x ∈ H → x + 1 ∈ H
       intro x hx
       have x_is_natural : x ∈ Natural := by exact hH hx
-      have succ_x_is_natural : x + 1 ∈ Natural := by
-            exact inductive_natural.right x_is_natural
       have one_le_x : 1 ≤ x := by
-        exact (one_le_natural ⟨x, x_is_natural⟩)
+        exact (one_le_natural x_is_natural)
+
       have e1 : 1 < x + 1 := by
             calc
             1 =  1 + 0 := by rw [add_zero]
@@ -390,7 +417,7 @@ example (n : Natural) (hn : 1  < (n : ℝ)) :
           ∧ (x + 1 = 1 ∨
               (1 < x + 1 ∧ x + 1 - 1 ∈ Natural))
       constructor
-      . exact succ_x_is_natural
+      . exact succ_mem_natural x_is_natural
       . have e1 : 1 < x + 1 := by
           calc
             1 =  1 + 0 := by rw [add_zero]
@@ -412,6 +439,7 @@ example (n : Natural) (hn : 1  < (n : ℝ)) :
     exact hn_gt_one.right
 ```
 
+
 Now we are in a position to prove the announced result:
 
 :::theorem "prop_1.8"
@@ -420,13 +448,62 @@ then $`m - n` is also a natural number.
 :::
 
 ```lean "prop_1.8_proof"
-
+theorem natural_lt_succ_iff :
+    ∀ k ∈ Natural,
+      k < x + 1 ↔ k < x ∨ k = x := by
+  sorry
 
 theorem proposition_1_8
   (n m : Natural) (hnm : (n : ℝ) < (m : ℝ))  :
   ((m : ℝ)  - (n : ℝ) ∈ Natural) := by
-
-    sorry
+  let H : Set ℝ :=
+    {m ∈ Natural |
+      ∀ n ∈ Natural, n < m → m - n ∈ Natural}
+  have IH : Inductive H := by
+    constructor
+    . show 1 ∈ H
+      change 1 ∈ Natural ∧
+        (∀ n ∈ Natural, n < 1 → 1 - n ∈ Natural)
+      constructor
+      . exact one_mem_natural
+      intro n n_is_natural hn
+      false_or_by_contra
+      exact not_le_of_gt hn
+        (one_le_natural n_is_natural)
+    . show ∀ {x : ℝ}, x ∈ H → x + 1 ∈ H
+      intro x hx
+      have x_is_natural : x ∈ Natural := by exact hx.left
+      have h_iff :
+        ∀ k ∈ Natural,
+          k < x + 1 ↔ k < x ∨ k = x := by sorry
+      change x + 1 ∈ Natural ∧
+        (∀ n ∈ Natural, n < x + 1 → x + 1 - n ∈ Natural)
+      constructor
+      . show x + 1 ∈ Natural
+        exact succ_mem_natural x_is_natural
+      . show ∀ n ∈ Natural, n < x + 1 → x + 1 - n ∈ Natural
+        intro n hn hnx
+        have ncases : n < x ∨ n = x := by
+          exact (h_iff n hn).mp hnx
+        rcases ncases with n_lt_x | n_eq_x
+        . show x + 1 - n ∈ Natural
+          have x_n_is_natural : x - n ∈ Natural := by
+            exact hx.right n hn n_lt_x
+          have : x + 1 - n = x - n + 1 := by ring
+          rw [this]
+          exact (succ_mem_natural x_n_is_natural :
+            x - n + 1 ∈ Natural)
+        . show x + 1 - n ∈ Natural
+          subst n
+          have : x + 1 - x = 1 := by ring
+          rw [this]
+          -- entender xq tengo que explicitar el type
+          --exact (one_mem_natural : 1 ∈ Natural)
+          exact (one_mem_natural : 1 ∈ Natural)
+  have : (m : ℝ) ∈ H := by
+    exact m.property IH
+  exact (this.right n n.property hnm
+    : (m : ℝ) - (n : ℝ) ∈ Natural)
 ```
 
 Until now we have used induction in all our proofs of elementary properties
@@ -439,8 +516,8 @@ those results without using, perhaps, the principle of induction in the proof.
 The following Proposition is an example of it:
 
 :::theorem "prop_1.9"
-If $`n` and $`m` are natural numbers and $`n < m`, then $`m - n ∈ ℕ`,
-and $`m \ge n + 1`.
+If $`n` and $`m` are natural numbers and $`n < m`,
+then $`m - n ∈ Natural`, and $`n + 1 ≤ m`.
 :::
 
 :::proof "prop_1.9"
@@ -469,26 +546,26 @@ example (n m : ℕ) (h : n < m) : n + 1 ≤ m := by
 
 # The Well Ordering Principle
 
-We are now going to prove a very important property of ℕ.
+We are now going to prove a very important property of `Natural`.
 
-Let us first say that if $A$ is any set of real numbers,
+:::definition "minimum"(tags := "Minimum of a set")
+Let us first say that if $`A` is any set of real numbers,
 an element $`a` of $`A` is said to be the _minimum_ of $`A` if it is
 smaller than all the other elements of $`A`.
+:::
 
 Put in another form: if $`A` is a set of real numbers,
 a real number $`a` is said to be the minimum of $`A` if the two
 following conditions are met:
 
-  * $`\star i)` $`a` belongs to $`A`;
-  * $`\star ii)` if $`b \in A`, then $`a \le b`
-  (we put $`\le` instead of $`<` because $`b` could be $`a` itself $`^{(1)}`).
+  * $`a` belongs to $`A`;
+  * If $`b \in A`, then $`a \le b`
 
 Not every set $`A \subset` ℝ has a minimum (on this we will return later)
-but if we suppose $`A \subset \mathbb{N}`, the thing changes:
+but if we suppose $`A \subset Natural`, the thing changes:
 
-:::theorem "thm_1.10"
-(Principle of Well-Ordering of $`\mathbb{N}`)
-If $`A` is a subset of $`\mathbb{N}` and $`A` is not the empty set
+:::theorem "thm_1.10"(tags := "Principle of Well-Ordering of Natural")
+If $`A ⊆ Natural` and $`A` is not the empty set
 then $`A` has a minimum.
 :::
 

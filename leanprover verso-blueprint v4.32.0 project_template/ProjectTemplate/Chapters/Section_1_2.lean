@@ -860,7 +860,7 @@ This proof illustrates two of Lean's most common logical tactics.
 For all $`a, b ∈ ℝ`, $`a · b = 0 ↔ a = 0 ∨ b = 0`
 :::
 
-Here is an example of using this theorem in Lean 4
+Here is an example of using this theorem in `Lean`
 
 ```lean "mul_ne_zero"
 example {a b : ℝ}
@@ -970,7 +970,6 @@ theorem sq_pos_of_ne_zero {a : ℝ}:
   . -- 0 < a
     exact hPos a aPos
 ```
-
 
 :::proof "sq_pos_of_ne_zero"
 *Explanation of the Lean-specific ingredients.*
