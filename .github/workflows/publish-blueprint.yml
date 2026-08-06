@@ -44,7 +44,7 @@ jobs:
           path: leanprover verso-blueprint v4.32.0 project_template/_out/site/html-multi
 
   deploy:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     needs: build
     runs-on: ubuntu-latest
     environment:
