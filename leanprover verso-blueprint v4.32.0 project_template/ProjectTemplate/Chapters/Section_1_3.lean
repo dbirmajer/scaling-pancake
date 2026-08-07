@@ -434,7 +434,6 @@ theorem pred_mem_Natural
 Let `n, m ∈ Natural`. If  `n < m`, then `n + 1 ≤ m`.
 :::
 
-
 ```lean "add_one_le_of_natural_lt"
 theorem add_one_le_of_natural_lt
   (n_mem_Natural : n ∈ Natural)
@@ -556,7 +555,7 @@ theorem proposition_1_8
           rw [this]
           -- entender xq tengo que explicitar el type
           --exact (one_mem_natural : 1 ∈ Natural)
-          exact (one_mem_natural : 1 ∈ Natural)
+          exact (one_mem_Natural : 1 ∈ Natural)
   have : (m : ℝ) ∈ H := by
     exact m.property IH
   exact (this.right n n.property hnm
