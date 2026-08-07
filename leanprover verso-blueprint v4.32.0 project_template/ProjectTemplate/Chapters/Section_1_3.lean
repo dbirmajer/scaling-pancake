@@ -107,7 +107,7 @@ theorem inductive_natural : Inductive Natural := by
 
 
 --@[simp]
-theorem one_mem_natural : (1 : ℝ) ∈ Natural := by
+theorem one_mem_Natural : 1 ∈ Natural := by
   exact inductive_natural.left --inductive_natural
     -- intro A hA
     -- exact hA.left
@@ -348,13 +348,13 @@ If $`n` is a natural number, then $`1 ≤ n`
 :::
 
 :::proof "one_le_natural"
-Let's consider $`H = {x : ℝ | 1 ≤ x}`. We will prove that $`H` is an
-inductive set, and conclude that `Natural ⊆ H`.
+Let's consider $`H = \lbrace x : ℝ | 1 ≤ x\rbrace`. We will prove that $`H`
+is an inductive set, and conclude that `Natural ⊆ H`.
 :::
 
 ```lean "one_le_natural"
-theorem one_le_natural {n}
-  (hn : n ∈ Natural): 1 ≤ (n : ℝ) := by
+theorem one_le_natural {n : ℝ}
+  (hn : n ∈ Natural): 1 ≤ n := by
   let H := {x : ℝ | 1 ≤ x}
   have IH : Inductive H := by
     constructor
@@ -376,8 +376,9 @@ number.
 :::
 
 ```lean "thm_1.7_proof"
-example (n : Natural) (hn : 1  < (n : ℝ)) :
-  (n : ℝ) - 1 ∈ Natural := by
+theorem pred_mem_Natural
+  (n_mem_Natural : n ∈ Natural) (one_lt_n : 1 < n) :
+    n - 1 ∈ Natural := by
   let H : Set ℝ :=
     {n ∈ Natural | n = 1 ∨ (1 < n ∧ n - 1 ∈ Natural)}
   have hH : H ⊆ Natural := by
@@ -418,14 +419,14 @@ example (n : Natural) (hn : 1  < (n : ℝ)) :
         exact Or.inr ⟨e1, e2⟩
   have H_eq_Natural : H = Natural := by
     exact eq_natural_of_subset_of_inductive hH IH
-  have hn : (n : ℝ) ∈ H := by
-    have : Natural ⊆ H := by rw [H_eq_Natural] --rev
-    exact this n.property
-  rcases hn with ⟨hnNatural, hn_eq_one | hn_gt_one⟩
+  have n_mem_H : n  ∈ H := by
+    have : Natural ⊆ H := by rw [H_eq_Natural]
+    exact this n_mem_Natural
+  rcases n_mem_H.right with  one_eq_n | one_lt_n
   . false_or_by_contra
-    exact ne_of_lt hn hn_eq_one.symm
+    exact ne_of_lt one_lt_n one_eq_n.symm
   . show (n : ℝ) - 1 ∈ Natural
-    exact hn_gt_one.right
+    exact one_lt_n.right
 ```
 
 
@@ -437,10 +438,90 @@ then $`m - n` is also a natural number.
 :::
 
 ```lean "prop_1.8_proof"
-theorem natural_lt_succ_iff :
+example
+  (n_mem_Natural : n ∈ Natural)
+  (m_mem_Natural : m ∈ Natural)
+  (n_lt_m : n < m) : n + 1 ≤ m := by
+  let H := {k ∈ Natural | ∀ q ∈ Natural, k < q → k + 1 ≤ q}
+  have IH : Inductive H := by
+    constructor
+    . show 1 ∈ H
+      change 1 ∈ Natural ∧ ∀ q ∈ Natural, 1 < q → 1 + 1 ≤ q
+      constructor
+      . exact one_mem_Natural
+      . rw [one_add_one_eq_two]
+        intro q q_mem_Natural one_lt_q
+        have pred_q_mem_Natural : q - 1 ∈ Natural := by
+          exact pred_mem_Natural q_mem_Natural one_lt_q
+        have one_le_pred_q : 1 ≤ q - 1 := by
+          exact one_le_natural (pred_q_mem_Natural)
+        calc
+        2 = 1 + 1 := by rw [one_add_one_eq_two]
+        _ ≤  (q - 1) + 1 := by
+          exact add_le_add_left one_le_pred_q 1
+        _ = q := by ring
+
+    . show ∀ {x : ℝ}, x ∈ H → x + 1 ∈ H
+      intro k k_mem_H
+      change k + 1 ∈ Natural ∧
+        ∀ q ∈ Natural, (k + 1 < q → k + 1 + 1 ≤ q)
+      have k_mem_Natural : k ∈ Natural := by
+        exact k_mem_H.left
+      constructor
+      . exact succ_mem_natural k_mem_Natural
+      . intro q q_mem_Natural succ_k_lt_q
+
+        have one_lt_q : 1 < q := by
+          calc (1 : ℝ)
+          _  = 0 + 1 := by rw [zero_add]
+          _ < 1 + 1 := by
+            exact add_lt_add_left zero_lt_one 1
+          _ ≤ k + 1 := by
+            exact add_le_add_left
+              (one_le_natural k_mem_Natural) 1
+          _ < q := by exact succ_k_lt_q
+
+        have pred_q_mem_Natural : q - 1 ∈ Natural := by
+          exact pred_mem_Natural q_mem_Natural one_lt_q
+
+        have k_lt_pred_q : k < q - 1 := by
+          calc
+          k = k + 1 - 1 := by ring
+          _ < q - 1 := by
+            exact add_lt_add_left succ_k_lt_q (-1)
+
+        have : k + 1 ≤ q - 1 := by
+          exact k_mem_H.right (q - 1)
+            pred_q_mem_Natural  k_lt_pred_q
+
+        calc k + 1 + 1
+        _ ≤ q - 1 + 1 := by
+          exact add_le_add_left this 1
+        _ = q := by ring
+
+  have n_mem_H : n ∈ H := by
+    exact n_mem_Natural IH
+
+  exact n_mem_H.right m m_mem_Natural n_lt_m
+
+
+
+theorem natural_lt_succ_iff {n} (hn : n ∈ Natural) :
     ∀ k ∈ Natural,
-      k < x + 1 ↔ k < x ∨ k = x := by
-  sorry
+      k < n + 1 ↔ k ≤ n := by
+  intro k hk
+  constructor
+  . show k < n + 1 → k ≤ n
+    sorry
+  . show k ≤ n → k < n + 1
+    intro hk
+    . calc
+      k ≤ n := by exact hk
+      _ = 0 + n := by rw [zero_add]
+      _ < 1 + n := by exact
+        add_lt_add_left  zero_lt_one n
+      _ = n + 1 := by exact add_comm 1 n
+
 
 theorem proposition_1_8
   (n m : Natural) (hnm : (n : ℝ) < (m : ℝ))  :
@@ -454,7 +535,7 @@ theorem proposition_1_8
       change 1 ∈ Natural ∧
         (∀ n ∈ Natural, n < 1 → 1 - n ∈ Natural)
       constructor
-      . exact one_mem_natural
+      . exact one_mem_Natural
       intro n n_is_natural hn
       false_or_by_contra
       exact not_le_of_gt hn
