@@ -108,7 +108,9 @@ theorem inductive_natural : Inductive Natural := by
 
 --@[simp]
 theorem one_mem_natural : (1 : ℝ) ∈ Natural := by
-  exact inductive_natural.left inductive_natural
+  exact inductive_natural.left --inductive_natural
+    -- intro A hA
+    -- exact hA.left
 
 -- lemma succ_is_natural
 --   (hn : n ∈ Natural) : n + 1 ∈ Natural := by
@@ -341,7 +343,7 @@ example {a b c : ℝ}
 
 We return now to elementary properties of natural numbers.
 
-:::theorem "one_le_natural" (parent := "natural-numbers")(lean := "Nat.zero_le")
+:::theorem "one_le_natural" (parent := "natural-numbers")
 If $`n` is a natural number, then $`1 ≤ n`
 :::
 
@@ -351,19 +353,6 @@ inductive set, and conclude that `Natural ⊆ H`.
 :::
 
 ```lean "one_le_natural"
--- theorem one_le_natural : ∀ n : Natural, 1 ≤ (n : ℝ) := by
---   let H := {x : ℝ | 1 ≤ x}
---   have IH : Inductive H := by
---     constructor
---     . simp [H]
---     . simp [H]
---       intro x hx
---       have : (0 : ℝ)  ≤ 1 := by
---    exact le_of_lt zero_lt_one
---       exact le_trans this hx
---   intro n
---   exact n.property IH
-
 theorem one_le_natural {n}
   (hn : n ∈ Natural): 1 ≤ (n : ℝ) := by
   let H := {x : ℝ | 1 ≤ x}
