@@ -430,15 +430,13 @@ theorem pred_mem_Natural
 ```
 
 
-Now we are in a position to prove the announced result:
-
-:::theorem "prop_1.8"
-If $`m` and $`n` are natural numbers and $`n < m`,
-then $`m - n` is also a natural number.
+:::lemma_ "add_one_le_of_natural_lt"
+Let `n, m ∈ Natural`. If  `n < m`, then `n + 1 ≤ m`.
 :::
 
-```lean "prop_1.8_proof"
-example
+
+```lean "add_one_le_of_natural_lt"
+theorem add_one_le_of_natural_lt
   (n_mem_Natural : n ∈ Natural)
   (m_mem_Natural : m ∈ Natural)
   (n_lt_m : n < m) : n + 1 ≤ m := by
@@ -503,26 +501,15 @@ example
     exact n_mem_Natural IH
 
   exact n_mem_H.right m m_mem_Natural n_lt_m
+```
+Now we are in a position to prove the announced result:
 
+:::theorem "prop_1.8"
+If $`m` and $`n` are natural numbers and $`n < m`,
+then $`m - n` is also a natural number.
+:::
 
-
-theorem natural_lt_succ_iff {n} (hn : n ∈ Natural) :
-    ∀ k ∈ Natural,
-      k < n + 1 ↔ k ≤ n := by
-  intro k hk
-  constructor
-  . show k < n + 1 → k ≤ n
-    sorry
-  . show k ≤ n → k < n + 1
-    intro hk
-    . calc
-      k ≤ n := by exact hk
-      _ = 0 + n := by rw [zero_add]
-      _ < 1 + n := by exact
-        add_lt_add_left  zero_lt_one n
-      _ = n + 1 := by exact add_comm 1 n
-
-
+```lean "prop_1.8_proof"
 theorem proposition_1_8
   (n m : Natural) (hnm : (n : ℝ) < (m : ℝ))  :
   ((m : ℝ)  - (n : ℝ) ∈ Natural) := by
