@@ -481,4 +481,209 @@ theorem natural_lt_succ_iff {n} (hn : n ∈ Natural) :
         add_lt_add_left  zero_lt_one n
       _ = n + 1 := by exact add_comm 1 n
 
+def P (n : ℕ) : Prop :=
+  ∀ A : Set ℕ, n ∈ A →
+    ∃ m, IsLeast A m
+
+lemma well_ordering : ∀ n : ℕ, P n  := by
+  -- Introduce the arbitrary natural number n.
+  intro n
+  change ∀ A : Set ℕ,
+    n ∈ A →
+    ∃ m : ℕ, IsLeast A m
+
+  -- Prove the statement by induction on n.
+  induction n with
+
+  ---------------------------------------------------------
+  -- Base case: n = 0
+  ---------------------------------------------------------
+  | zero =>
+      -- Expand the definition of P.
+      unfold P
+
+      -- Let A be a subset of ℕ containing 0.
+      intro A zero_in_A
+
+      -- We claim that 0 is the least element of A.
+      use 0
+      constructor
+
+      -- Show that 0 belongs to A.
+      case left =>
+        exact zero_in_A
+
+      -- Show that 0 is less than or equal to every element
+      --  of A.
+      case right =>
+        intro n _
+  --      exact zero_le n
+        sorry
+  ---------------------------------------------------------
+    -- Inductive step
+  ---------------------------------------------------------
+  | succ n ih =>
+
+      -- Expand the definition of P.
+      unfold P
+
+      -- Let A be a subset of ℕ.
+      intro A
+
+      -- Split into two cases depending on whether n
+      -- belongs to A.
+      by_cases nA : n ∈ A
+
+      -----------------------------------------------------
+      -- Case 1: n ∈ A
+      -----------------------------------------------------
+      . -- By the induction hypothesis, every subset
+        -- containing n has a least element.
+        have : ∃ m, IsLeast A m := by
+          exact ih A nA
+
+        -- Obtain the least element m of A.
+        obtain ⟨m, hm⟩ := this
+
+        -- Introduce the assumption that n+1 belongs to A.
+        -- (It is unused in this branch.)
+        intro _
+
+        -- The same least element works.
+        use m
+
+      ------------------------------------------------------
+      -- Case 2: n ∉ A
+      ------------------------------------------------------
+      . -- Adjoin n to A.
+        let A' := A ∪ {n}
+
+        -- Every element of A also belongs to A'.
+        have a_in_A' : ∀ a ∈ A, a ∈ A' := by
+          intro a pa
+          exact Set.subset_union_left pa
+
+        -- n belongs to A' by construction.
+        have n_in_A' : n ∈ A' := by
+          exact Or.inr rfl
+
+        -- Apply the induction hypothesis to A'.
+        have : ∃ m, IsLeast A' m := by
+          exact ih A' n_in_A'
+
+        -- Let m be the least element of A'.
+        obtain ⟨m, hm⟩ := this
+
+        -- m belongs to A'.
+        have m_in_A': m ∈ A' := by
+          exact hm.left
+
+        -- Now assume that n + 1 belongs to A.
+        intro succ_n_in_A
+
+        -- Every element of A is at least m.
+        have m_le_a : ∀ a ∈ A, m ≤ a := by
+          intro a pa
+          have : a ∈ A' := by
+            exact a_in_A' a pa
+          exact hm.right this
+
+        -- Since A' = A ∪ {n}, m is either in A or equals n.
+        have : (m ∈ A) ∨ (m ∈ ({n} : Set ℕ)) := by
+          exact Or.symm (by simpa [A'] using m_in_A')
+
+        -- Rewrite membership in the singleton as equality.
+        have : (m ∈ A) ∨ (m = n) := by
+          rcases this with hA | hN
+          · exact Or.inl hA
+          · have : m = n := by
+              simpa using hN
+            exact Or.inr this
+
+        -- Consider the two possibilities.
+        rcases this with hA | n_eq_m
+
+        ---------------------------------------------------
+        -- Subcase 2a: m ∈ A
+        ---------------------------------------------------
+        . -- m is already the least element of A.
+          have m_le_a : ∀ a ∈ A, m ≤ a := by
+            intro a pa
+            have : a ∈ A' := by
+              exact a_in_A' a pa
+            exact hm.right this
+
+          use m
+          exact ⟨hA, m_le_a⟩
+
+        ---------------------------------------------------
+        -- Subcase 2b: m = n
+        ---------------------------------------------------
+        . -- Since n was assumed not to belong to A,
+          -- m cannot belong to A.
+          have m_not_in_A : m ∉ A := by
+            rw [n_eq_m]
+            exact nA
+
+          -- Therefore every element of A is strictly
+          --larger than m.
+          have : ∀ a ∈ A, m < a := by
+            intro a a_in_A
+
+            have : m ≤ a := by
+              exact hm.right (a_in_A' a a_in_A)
+
+            -- m and a cannot be equal,
+            -- since m ∉ A but a ∈ A.
+            have : m ≠ a := by
+              rintro rfl
+              exact m_not_in_A a_in_A
+
+            exact lt_of_le_of_ne (m_le_a a a_in_A) this
+
+          -- Hence every element of A is at least m+1.
+          have : ∀ a ∈ A, m + 1 ≤ a := by
+            intro a a_in_A
+            exact Nat.succ_le_of_lt (this a a_in_A)
+
+          -- Replace m by n using m = n.
+          have : ∀ a ∈ A, n + 1 ≤ a := by
+            rw [← n_eq_m]
+            exact this
+
+          -- Conclude that n+1 is the least element of A.
+          use (n + 1)
+Until now we have used induction in all our proofs of elementary properties
+of ℕ. That happens because ℕ is practically defined by the principle of
+induction, the only instrument to prove its first derived properties.
+
+But as soon as some of them are proven, other properties can be derived with
+those results without using, perhaps, the principle of induction in the proof.
+
+The following Proposition is an example of it:
+
+:::theorem "prop_1.9"
+If $`n` and $`m` are natural numbers and $`n < m`,
+then $`m - n ∈ Natural`, and $`n + 1 ≤ m`.
+:::
+
+:::proof "prop_1.9"
+{uses "prop_1.6"}[]
+{uses "prop_1.8"}[]
+:::
+
+example
+  (n m : Natural)
+  (h : (n : ℝ) < (m : ℝ)) : (n + 1 : ℝ) ≤ (m : ℝ) := by
+  sorry
+  -- have : (∃ k  : ℕ, k = m - n) := proposition_1_8 n m h
+  -- obtain ⟨k, hk⟩ := this
+  -- have : 0 < k := by omega
+  -- have : 1 ≤ k  := by exact (Nat.succ_le_of_lt this)
+  -- have : m - n ≥ 1 := by omega
+  -- omega
+
+example (n m : ℕ) (h : n < m) : n + 1 ≤ m := by
+  exact Nat.succ_le_of_lt h
+
 end Section_1_3_LO

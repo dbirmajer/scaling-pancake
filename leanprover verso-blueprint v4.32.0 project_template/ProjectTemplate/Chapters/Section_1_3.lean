@@ -117,7 +117,7 @@ theorem one_mem_Natural : 1 ∈ Natural := by
 --     exact inductive_natural.right hn
 
 --@[simp]
-lemma succ_mem_natural
+lemma succ_mem_Natural
   (hn : n ∈ Natural) : n + 1 ∈ Natural := by
     exact inductive_natural.right hn
 
@@ -263,10 +263,10 @@ example {a b : ℝ} (hab : a = b) : a ≤ b := by
 Then, for it to be true that $`a \le b`, it is enough that one of the two
 possibilities be true (the two together cannot be).
 
-This relation has the following properties):
+This relation has the following properties:
 
 :::lemma_ "le_antisymm"(parent := "natural_numbers")(lean := "le_antisymm")(tags := "(≤) Antisymmetric property")
-For any real numbers $`a` and $`b`, the following holds: $`a ·  b = b ·  a`
+For any real numbers $`a` and $`b`, the following holds:
 If $`a \le b` and $`b \le a`, then $`a = b`.
 :::
 
@@ -275,9 +275,12 @@ example {a b : ℝ}
   (hab : a ≤ b)(hba : b ≤ a) : a = b := by
     exact le_antisymm hab hba
 ```
+:::proof "le_antisymm"
+Below we give a `Lean` proof:
+:::
 
 ```lean "le_antisymm_proof"
-example {a b : ℝ}
+theorem le_antisymm {a b : ℝ}
   (hab : a ≤ b)(hba : b ≤ a) : a = b := by
     have hab': a < b ∨ a = b := by
       exact Std.le_iff_lt_or_eq.mp hab
@@ -327,9 +330,9 @@ example {a b : ℝ}(hab : a ≤ b)(hbc : b ≤ c) : a ≤ c := by
 
   * *Exercise:* Prove the following assertions in Lean:
 :::lemma_"le_properties"
-  1. If $`a \le b`, then $`a + c \le b + c` for any real number $`c`.
-  2. If $`a \le b` and $`c` is greater than zero,
-then $`a \cdot c \le b \cdot c`
+  1. If $`a \le b`, then $`a + c \le b + c\;` for any real number $`c`.
+  2. If $`a \le b\;` and $`0 < c\;`,
+then $`a \cdot c \le b \cdot c`.
 :::
 
 ```lean "le_trans"
@@ -407,7 +410,7 @@ theorem pred_mem_Natural
           ∧ (x + 1 = 1 ∨
               (1 < x + 1 ∧ x + 1 - 1 ∈ Natural))
       constructor
-      . exact succ_mem_natural x_is_natural
+      . exact succ_mem_Natural x_is_natural
       . have e1 : 1 < x + 1 := by
           calc
             1 =  1 + 0 := by rw [add_zero]
@@ -430,12 +433,12 @@ theorem pred_mem_Natural
 ```
 
 
-:::lemma_ "add_one_le_of_natural_lt"
+:::lemma_ "natural_add_one_le_of_lt"
 Let `n, m ∈ Natural`. If  `n < m`, then `n + 1 ≤ m`.
 :::
 
-```lean "add_one_le_of_natural_lt"
-theorem add_one_le_of_natural_lt
+```lean "natural_add_one_le_of_lt"
+theorem natural_add_one_le_of_lt
   (n_mem_Natural : n ∈ Natural)
   (m_mem_Natural : m ∈ Natural)
   (n_lt_m : n < m) : n + 1 ≤ m := by
@@ -465,7 +468,7 @@ theorem add_one_le_of_natural_lt
       have k_mem_Natural : k ∈ Natural := by
         exact k_mem_H.left
       constructor
-      . exact succ_mem_natural k_mem_Natural
+      . exact succ_mem_Natural k_mem_Natural
       . intro q q_mem_Natural succ_k_lt_q
 
         have one_lt_q : 1 < q := by
@@ -501,25 +504,47 @@ theorem add_one_le_of_natural_lt
 
   exact n_mem_H.right m m_mem_Natural n_lt_m
 ```
+:::corollary "natural_le_of_lt_succ"
+Let `n, m ∈ Natural`. If  `n < m + 1`, then `n ≤ m`.
+:::
+
+```lean "natural_le_of_lt_succ_proof"
+theorem natural_le_of_lt_succ {n m : ℝ}
+  (n_mem_Natural : n ∈ Natural)
+  (m_mem_Natural : m ∈ Natural)
+  (n_lt_succ_m : n < m + 1) : n ≤ m := by
+  have : n + 1 ≤ m + 1 := by
+    exact natural_add_one_le_of_lt
+      n_mem_Natural
+      (succ_mem_Natural m_mem_Natural)
+      n_lt_succ_m
+  calc
+    n =  n + 1 - 1 := by ring
+    _ ≤ m + 1 - 1 := by
+      exact  add_le_add_left this (-1)
+    _ = m := by ring
+```
+
 Now we are in a position to prove the announced result:
 
-:::theorem "prop_1.8"
+:::theorem "natural_sub_of_lt"
 If $`m` and $`n` are natural numbers and $`n < m`,
 then $`m - n` is also a natural number.
 :::
 
-```lean "prop_1.8_proof"
-theorem proposition_1_8
-  (n m : Natural) (hnm : (n : ℝ) < (m : ℝ))  :
-  ((m : ℝ)  - (n : ℝ) ∈ Natural) := by
+```lean "natural_sub_of_lt_proof"
+theorem natural_sub_of_lt
+  (n_mem_Natural : n ∈ Natural)
+  (m_mem_Natural : m ∈ Natural)
+  (n_lt_m : n < m)  :m - n ∈ Natural := by
   let H : Set ℝ :=
     {m ∈ Natural |
-      ∀ n ∈ Natural, n < m → m - n ∈ Natural}
+      ∀ k ∈ Natural, k < m → m - k ∈ Natural}
   have IH : Inductive H := by
     constructor
     . show 1 ∈ H
       change 1 ∈ Natural ∧
-        (∀ n ∈ Natural, n < 1 → 1 - n ∈ Natural)
+        (∀ k ∈ Natural, k < 1 → 1 - k ∈ Natural)
       constructor
       . exact one_mem_Natural
       intro n n_is_natural hn
@@ -527,289 +552,77 @@ theorem proposition_1_8
       exact not_le_of_gt hn
         (one_le_natural n_is_natural)
     . show ∀ {x : ℝ}, x ∈ H → x + 1 ∈ H
-      intro x hx
-      have x_is_natural : x ∈ Natural := by exact hx.left
-      have h_iff :
-        ∀ k ∈ Natural,
-          k < x + 1 ↔ k < x ∨ k = x := by sorry
-      change x + 1 ∈ Natural ∧
-        (∀ n ∈ Natural, n < x + 1 → x + 1 - n ∈ Natural)
+      intro x x_mem_H
+      have x_mem_Natural : x ∈ Natural := by
+        exact x_mem_H.left
+      change (x + 1) ∈ Natural ∧
+        ∀ k ∈ Natural, k < x + 1 → (x + 1) - k  ∈ Natural
       constructor
-      . show x + 1 ∈ Natural
-        exact succ_mem_natural x_is_natural
-      . show ∀ n ∈ Natural, n < x + 1 → x + 1 - n ∈ Natural
-        intro n hn hnx
-        have ncases : n < x ∨ n = x := by
-          exact (h_iff n hn).mp hnx
-        rcases ncases with n_lt_x | n_eq_x
-        . show x + 1 - n ∈ Natural
-          have x_n_is_natural : x - n ∈ Natural := by
-            exact hx.right n hn n_lt_x
-          have : x + 1 - n = x - n + 1 := by ring
+      . exact (succ_mem_Natural x_mem_Natural)
+      . show ∀ k ∈ Natural, k < x + 1 → x + 1 - k ∈ Natural
+        intro k k_mem_Natural k_lt_succ_x
+        have : k < x ∨ k = x := by
+          exact lt_or_eq_of_le (natural_le_of_lt_succ
+            k_mem_Natural x_mem_Natural k_lt_succ_x)
+        rcases this with k_lt_x | k_eq_x
+        . show x + 1 - k ∈ Natural
+          have x_sub_n_mem_Natural : x - k ∈ Natural := by
+            exact x_mem_H.right k k_mem_Natural k_lt_x
+          have : x + 1 - k = x - k + 1 := by ring
           rw [this]
-          exact (succ_mem_natural x_n_is_natural :
-            x - n + 1 ∈ Natural)
-        . show x + 1 - n ∈ Natural
-          subst n
+          exact (succ_mem_Natural
+            x_sub_n_mem_Natural : x - k + 1 ∈ Natural)
+        . show x + 1 - k ∈ Natural
+          subst k
           have : x + 1 - x = 1 := by ring
           rw [this]
-          -- entender xq tengo que explicitar el type
-          --exact (one_mem_natural : 1 ∈ Natural)
           exact (one_mem_Natural : 1 ∈ Natural)
-  have : (m : ℝ) ∈ H := by
-    exact m.property IH
-  exact (this.right n n.property hnm
-    : (m : ℝ) - (n : ℝ) ∈ Natural)
+  have : m ∈ H := by
+    exact m_mem_Natural IH
+  exact (this.right n n_mem_Natural n_lt_m
+    : m - n ∈ Natural)
 ```
 
-Until now we have used induction in all our proofs of elementary properties
-of ℕ. That happens because ℕ is practically defined by the principle of
-induction, the only instrument to prove its first derived properties.
-
-But as soon as some of them are proven, other properties can be derived with
-those results without using, perhaps, the principle of induction in the proof.
-
-The following Proposition is an example of it:
-
-:::theorem "prop_1.9"
-If $`n` and $`m` are natural numbers and $`n < m`,
-then $`m - n ∈ Natural`, and $`n + 1 ≤ m`.
-:::
-
-:::proof "prop_1.9"
-{uses "prop_1.6"}[]
-{uses "prop_1.8"}[]
-:::
-
-```lean "prop_1.9"
-example
-  (n m : Natural)
-  (h : (n : ℝ) < (m : ℝ)) : (n + 1 : ℝ) ≤ (m : ℝ) := by
-  sorry
-  -- have : (∃ k  : ℕ, k = m - n) := proposition_1_8 n m h
-  -- obtain ⟨k, hk⟩ := this
-  -- have : 0 < k := by omega
-  -- have : 1 ≤ k  := by exact (Nat.succ_le_of_lt this)
-  -- have : m - n ≥ 1 := by omega
-  -- omega
-```
-
-This theorem is in Lean 4:
-```lean "prop_1.9"
-example (n m : ℕ) (h : n < m) : n + 1 ≤ m := by
-  exact Nat.succ_le_of_lt h
-```
 
 # The Well Ordering Principle
 
 We are now going to prove a very important property of `Natural`.
 
-:::definition "minimum"(tags := "Minimum of a set")
-Let us first say that if $`A` is any set of real numbers,
-an element $`a` of $`A` is said to be the _minimum_ of $`A` if it is
-smaller than all the other elements of $`A`.
+:::definition "minimum" (tags := "Minimum of a set")
+If $`A` is a set of real numbers, a real number $`a` is said to be the
+minimum of $`A` if the two following conditions are met:
+* $`a` belongs to $`A`;
+* If $`b \in A`, then $`a \le b`
 :::
 
-Put in another form: if $`A` is a set of real numbers,
-a real number $`a` is said to be the minimum of $`A` if the two
-following conditions are met:
-
-  * $`a` belongs to $`A`;
-  * If $`b \in A`, then $`a \le b`
-
 Not every set $`A \subset` ℝ has a minimum (on this we will return later)
-but if we suppose $`A \subset Natural`, the thing changes:
+but if we suppose $`A \subset Natural`, then thing changes:
 
-:::theorem "thm_1.10"(tags := "Principle of Well-Ordering of Natural")
+:::theorem "thm_1.10"(tags := "Well-Ordering Principle")
 If $`A ⊆ Natural` and $`A` is not the empty set
 then $`A` has a minimum.
 :::
 
 :::proof "thm_1.10"
-We are going to make this proof by induction
-(that is, using Corollary 1.4.). In the previous proofs, it was very easy to
-choose $`P(n)` since it was practically given by the statement of the
-corresponding Proposition.
-Here instead one has to manage to construct the $`P(n)` that leads us to a
-good end. It is convenient to consider the following:
-
+We are going to make this proof by induction.
+It is convenient to consider the following:
 $$`P(n) = \text{Every set } A \subset \mathbb{N} \text{ that contains } n
 \text{ has a minimum}`
 :::
 
-```lean "thm_1.10"
-def P (n : ℕ) : Prop :=
-  ∀ (A : Set ℕ), n ∈ A →
-    ∃ m, IsLeast A m
-```
 
 ```lean "thm_1.10_proof"
-lemma well_ordering' : ∀ n : ℕ, P n := by
-  -- Introduce the arbitrary natural number n.
-  intro n
+theorem well_ordering :
+  ∀ A ⊆ Natural, A.Nonempty →
+    ∃ m ∈ Natural, IsLeast A m := by
+  let H :=  {
+    n ∈ Natural |
+    ∀ S ⊆ Natural, n ∈ S → ∃ m ∈ Natural, IsLeast S m
+    }
+  have IH : Inductive H := by sorry
 
-  -- Prove the statement by induction on n.
-  induction n with
-
-  ---------------------------------------------------------
-  -- Base case: n = 0
-  ---------------------------------------------------------
-  | zero =>
-      -- Expand the definition of P.
-      unfold P
-
-      -- Let A be a subset of ℕ containing 0.
-      intro A zero_in_A
-
-      -- We claim that 0 is the least element of A.
-      use 0
-      constructor
-
-      -- Show that 0 belongs to A.
-      case left =>
-        exact zero_in_A
-
-      -- Show that 0 is less than or equal to every element
-      --  of A.
-      case right =>
-        intro n _
-  --      exact zero_le n
-        sorry
-  ---------------------------------------------------------
-    -- Inductive step
-  ---------------------------------------------------------
-  | succ n ih =>
-
-      -- Expand the definition of P.
-      unfold P
-
-      -- Let A be a subset of ℕ.
-      intro A
-
-      -- Split into two cases depending on whether n
-      -- belongs to A.
-      by_cases nA : n ∈ A
-
-      -----------------------------------------------------
-      -- Case 1: n ∈ A
-      -----------------------------------------------------
-      . -- By the induction hypothesis, every subset
-        -- containing n has a least element.
-        have : ∃ m, IsLeast A m := by
-          exact ih A nA
-
-        -- Obtain the least element m of A.
-        obtain ⟨m, hm⟩ := this
-
-        -- Introduce the assumption that n+1 belongs to A.
-        -- (It is unused in this branch.)
-        intro _
-
-        -- The same least element works.
-        use m
-
-      ------------------------------------------------------
-      -- Case 2: n ∉ A
-      ------------------------------------------------------
-      . -- Adjoin n to A.
-        let A' := A ∪ {n}
-
-        -- Every element of A also belongs to A'.
-        have a_in_A' : ∀ a ∈ A, a ∈ A' := by
-          intro a pa
-          exact Set.subset_union_left pa
-
-        -- n belongs to A' by construction.
-        have n_in_A' : n ∈ A' := by
-          exact Or.inr rfl
-
-        -- Apply the induction hypothesis to A'.
-        have : ∃ m, IsLeast A' m := by
-          exact ih A' n_in_A'
-
-        -- Let m be the least element of A'.
-        obtain ⟨m, hm⟩ := this
-
-        -- m belongs to A'.
-        have m_in_A': m ∈ A' := by
-          exact hm.left
-
-        -- Now assume that n + 1 belongs to A.
-        intro succ_n_in_A
-
-        -- Every element of A is at least m.
-        have m_le_a : ∀ a ∈ A, m ≤ a := by
-          intro a pa
-          have : a ∈ A' := by
-            exact a_in_A' a pa
-          exact hm.right this
-
-        -- Since A' = A ∪ {n}, m is either in A or equals n.
-        have : (m ∈ A) ∨ (m ∈ ({n} : Set ℕ)) := by
-          exact Or.symm (by simpa [A'] using m_in_A')
-
-        -- Rewrite membership in the singleton as equality.
-        have : (m ∈ A) ∨ (m = n) := by
-          rcases this with hA | hN
-          · exact Or.inl hA
-          · have : m = n := by
-              simpa using hN
-            exact Or.inr this
-
-        -- Consider the two possibilities.
-        rcases this with hA | n_eq_m
-
-        ---------------------------------------------------
-        -- Subcase 2a: m ∈ A
-        ---------------------------------------------------
-        . -- m is already the least element of A.
-          have m_le_a : ∀ a ∈ A, m ≤ a := by
-            intro a pa
-            have : a ∈ A' := by
-              exact a_in_A' a pa
-            exact hm.right this
-
-          use m
-          exact ⟨hA, m_le_a⟩
-
-        ---------------------------------------------------
-        -- Subcase 2b: m = n
-        ---------------------------------------------------
-        . -- Since n was assumed not to belong to A,
-          -- m cannot belong to A.
-          have m_not_in_A : m ∉ A := by
-            rw [n_eq_m]
-            exact nA
-
-          -- Therefore every element of A is strictly
-          --larger than m.
-          have : ∀ a ∈ A, m < a := by
-            intro a a_in_A
-
-            have : m ≤ a := by
-              exact hm.right (a_in_A' a a_in_A)
-
-            -- m and a cannot be equal,
-            -- since m ∉ A but a ∈ A.
-            have : m ≠ a := by
-              rintro rfl
-              exact m_not_in_A a_in_A
-
-            exact lt_of_le_of_ne (m_le_a a a_in_A) this
-
-          -- Hence every element of A is at least m+1.
-          have : ∀ a ∈ A, m + 1 ≤ a := by
-            intro a a_in_A
-            exact Nat.succ_le_of_lt (this a a_in_A)
-
-          -- Replace m by n using m = n.
-          have : ∀ a ∈ A, n + 1 ≤ a := by
-            rw [← n_eq_m]
-            exact this
-
-          -- Conclude that n+1 is the least element of A.
-          use (n + 1)
-          exact ⟨succ_n_in_A, this⟩
+  intro A A_subset_Natural
+  sorry
 ```
 
 # Exercises
