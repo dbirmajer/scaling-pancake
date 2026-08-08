@@ -124,12 +124,12 @@ lemma succ_mem_Natural
 ```
 ◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇
 
-:::theorem "thm_1.13" (tags := "Principle of Induction")
+:::theorem "Principle_of_Induction" (tags := "Principle of Induction")
 If $`H ⊆ ℝ` is inductive, then $`ℕ ⊆ H`.
 If $`H` is an inductive subset of ℕ, then $`H = ℕ`.
 :::
 
-:::proof "thm_1.13"
+:::proof "Principle_of_Induction"
 By definition, `Natural` is a subset of any inductive subset of ℝ.
 
 That $`H` is a subset of ℕ means $`H ⊆ ℕ`.
@@ -137,7 +137,7 @@ But being $`H` inductive, then $`N ⊆ H` by $`ℐrm{N_2}`.
 From the two inclusions $`H ⊆ N` and $`N ⊆ H` we conclude $`H = N`. $`□`
 :::
 
-```lean "thm_1.13_proof"
+```lean "Principle_of_Induction_proof"
 theorem natural_subset_of_inductive
   (IH : Inductive H) : Natural ⊆ H := by
   intro n hn
@@ -200,8 +200,8 @@ natural numbers.
 :::proof "prop_1.5 prod"
 Given $`n ∈ Natural` We consider the set:
 $$`H(x) = { x ∈ ℝ :  n · x ∈ Natural}`
-and prove that $`H` is inductive. Then, by the principle of induction
-{uses "thm_1.13"}[] we conclude that $`Natural ⊆ H`.
+and prove that $`H` is inductive. Then, by the _Principle of Induction_
+{uses "Principle_of_Induction"}[] we conclude that $`Natural ⊆ H`.
 Below we give a `Lean` proof.
 :::
 
@@ -591,27 +591,34 @@ We are now going to prove a very important property of `Natural`.
 :::definition "minimum" (tags := "Minimum of a set")
 If $`A` is a set of real numbers, a real number $`a` is said to be the
 minimum of $`A` if the two following conditions are met:
-* $`a` belongs to $`A`;
-* If $`b \in A`, then $`a \le b`
+* `a ∈ A`;
+* If `b ∈ A`, then `a ≤ b`
 :::
 
-Not every set $`A \subset` ℝ has a minimum (on this we will return later)
-but if we suppose $`A \subset Natural`, then thing changes:
+Not every set `A ⊆ ℝ` has a minimum (on this we will return later)
+but if we suppose `A ⊆ Natural`, then thing changes:
 
-:::theorem "thm_1.10"(tags := "Well-Ordering Principle")
-If $`A ⊆ Natural` and $`A` is not the empty set
-then $`A` has a minimum.
+:::theorem "Well_Ordering"(tags := "Well-Ordering Principle")
+If `A ⊆ Natural` and `A` is not the empty set
+then `A` has a minimum.
 :::
 
-:::proof "thm_1.10"
-We are going to make this proof by induction.
-It is convenient to consider the following:
-$$`P(n) = \text{Every set } A \subset \mathbb{N} \text{ that contains } n
-\text{ has a minimum}`
+:::proof "Well_Ordering"
+It is convenient to consider the following set: Let
+
+`H :=  {
+    n ∈ Natural |
+    ∀ S ⊆ Natural, n ∈ S → ∃ m ∈ Natural, IsLeast S m
+    }
+`
+
+We will prove that `H` is inductive. Then, by the _Principle of Induction_
+{uses "Principle_of_Induction"}[] we conclude that $`Natural ⊆ H`.
+Below we give a `Lean` proof.
 :::
 
 
-```lean "thm_1.10_proof"
+```lean "Well_Ordering_proof"
 theorem well_ordering :
   ∀ A ⊆ Natural, A.Nonempty →
     ∃ m ∈ Natural, IsLeast A m := by
@@ -619,17 +626,80 @@ theorem well_ordering :
     n ∈ Natural |
     ∀ S ⊆ Natural, n ∈ S → ∃ m ∈ Natural, IsLeast S m
     }
-  have IH : Inductive H := by sorry
-
-  intro A A_subset_Natural
+  have IH : Inductive H := by
+    constructor
+    . show 1 ∈ H
+      change 1 ∈ Natural ∧
+        ∀ S ⊆ Natural, 1 ∈ S → ∃ m ∈ Natural, IsLeast S m
+      constructor
+      . show 1 ∈ Natural
+        exact one_mem_Natural
+      . show ∀ S ⊆ Natural,
+          1 ∈ S → ∃ m ∈ Natural, IsLeast S m
+        intro S S_subset_Natural one_mem_S
+        use 1
+        constructor
+        . exact one_mem_Natural
+        . show IsLeast S 1
+          constructor
+          . show 1 ∈ S
+            exact one_mem_S
+          . show 1 ∈ lowerBounds S
+            intro s s_mem_S
+            have s_mem_Natural : s ∈ Natural := by
+              exact S_subset_Natural s_mem_S
+            exact one_le_natural s_mem_Natural
+    . show  ∀ {k : ℝ}, k ∈ H → k + 1 ∈ H
+      intro k k_mem_H
+      change k + 1 ∈ Natural ∧
+        ∀ S ⊆ Natural,
+          k + 1 ∈ S → ∃ m ∈ Natural, IsLeast S m
+      have k_mem_Natural : k ∈ Natural := by
+          exact k_mem_H.left
+      constructor
+      . show k + 1 ∈ Natural
+        exact (succ_mem_Natural k_mem_Natural
+                : k + 1 ∈ Natural)
+      . show ∀ S ⊆ Natural, k + 1 ∈ S →
+          ∃ m ∈ Natural, IsLeast S m
+        intro S S_subset_Natural succ_k_mem_S
+        by_cases k_mem_S : k ∈ S
+        . show ∃ m ∈ Natural, IsLeast S m -- k ∈ S
+          exact (k_mem_H.right S S_subset_Natural k_mem_S)
+        . show ∃ m ∈ Natural, IsLeast S m -- k ∉ S
+          let S' := S ∪ {k}
+          have S_subset_Natural' : S' ⊆ Natural := by
+            intro s s_mem_S'
+            rcases s_mem_S' with s_mem_S | s_eq_k
+            . show s ∈ Natural
+              exact S_subset_Natural s_mem_S
+            . show s ∈ Natural
+              have : s = k := by
+                exact s_eq_k
+              subst s
+              exact (k_mem_Natural : k ∈ Natural)
+          have k_mem_S' : k ∈ S' := by
+            exact Set.mem_union_right S rfl
+          have S_subset_S' : S ⊆ S' := by
+            intro x x_mem_S
+            exact Set.mem_union_left {k} x_mem_S
+          have : ∃ m ∈ Natural, IsLeast S' m := by
+            exact
+              (k_mem_H.right S' S_subset_Natural' k_mem_S')
+          rcases this with ⟨m, m_mem_Natural, m_least_S'⟩
+          by_cases m_mem_S : m ∈ S
+          . show ∃ m ∈ Natural, IsLeast S m -- m ∈ S
+            have : m ∈ lowerBounds S := by
+              intro s s_mem_S
+              exact m_least_S'.right (S_subset_S' s_mem_S)
+            use m
+            exact ⟨m_mem_Natural, m_mem_S, this⟩
+          . sorry -- m ∉ S
   sorry
 ```
 
 # Exercises
-1. Demonstrate that if $n$ and $m$ are natural numbers and $m > n$,
-then $m \ge n + 1$ using only the principle of induction.
-
-2. Demonstrate the "strong" induction principle:
+1. Demonstrate the _strong_ induction principle:
 suppose that for each natural number $`n` we have a statement
 $`P(n)` about it such that the two following conditions are met:
 
@@ -642,7 +712,7 @@ Then $`P(n)` is true for all $`n \in \mathbb{N}`
 $`Q(n) = ` "$`P(k)` is true for natural numbers $`k` less than or
 equal to $`n`")
 
-3. Let $`n_0` be any natural number and suppose that for each natural number
+2. Let $`n_0` be any natural number and suppose that for each natural number
 $`n` we have a statement $`P(n)` about it such that the two following conditions
 are met:
   * $`\bullet i)` $`P(n_0)` is true;
