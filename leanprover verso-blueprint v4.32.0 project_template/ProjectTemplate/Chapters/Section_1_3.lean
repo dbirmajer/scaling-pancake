@@ -154,13 +154,13 @@ theorem eq_natural_of_subset_of_inductive {H}
 We will now use the principle of induction to prove elementary properties of
 natural numbers.
 
-:::proposition "prop_1.5 sum"
+:::proposition "sum_of_naturals"
 If $`n` and $`m` are natural numbers, then $`m + n` and $`m ⋅ n` are also
 natural numbers.
 :::
 ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
 
-```lean "prop_1.5 sum"
+```lean "sum_of_naturals_proof"
 theorem sum_of_naturals (n : Natural) :
   ∀ m : Natural, (n : ℝ) + (m : ℝ) ∈ Natural := by
   let H := {x : ℝ | n + x ∈ Natural}
@@ -191,13 +191,13 @@ def addNatural (n m : Natural) : Natural :=
   ⟨(n : ℝ) + (m : ℝ), sum_of_naturals n m⟩
 ```
 
-:::proposition "prop_1.5 prod"
-If $`n` and $`m` are natural numbers, then $`m + n` and $`m ⋅ n` are also
+:::proposition "mul_of_naturals"
+If `n` and `m` are natural numbers, then `m ⋅ n` is also
 natural numbers.
 :::
 ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
 
-:::proof "prop_1.5 prod"
+:::proof "mul_of_naturals"
 Given $`n ∈ Natural` We consider the set:
 $$`H(x) = { x ∈ ℝ :  n · x ∈ Natural}`
 and prove that $`H` is inductive. Then, by the _Principle of Induction_
@@ -205,7 +205,7 @@ and prove that $`H` is inductive. Then, by the _Principle of Induction_
 Below we give a `Lean` proof.
 :::
 
-```lean "prop_1.5 prod"
+```lean "mul_of_naturals_proof"
 theorem mul_of_naturals (n : Natural) :
   ∀ m : Natural, (n : ℝ) * (m : ℝ) ∈ Natural := by
   let H := {x : ℝ | n * x ∈ Natural}
@@ -626,8 +626,13 @@ theorem well_ordering :
     n ∈ Natural |
     ∀ S ⊆ Natural, n ∈ S → ∃ m ∈ Natural, IsLeast S m
     }
+  have H_subset_Natural : H ⊆ Natural := by
+    intro n n_mem_H
+    exact n_mem_H.left
+
   have IH : Inductive H := by
     constructor
+
     . show 1 ∈ H
       change 1 ∈ Natural ∧
         ∀ S ⊆ Natural, 1 ∈ S → ∃ m ∈ Natural, IsLeast S m
@@ -649,17 +654,23 @@ theorem well_ordering :
             have s_mem_Natural : s ∈ Natural := by
               exact S_subset_Natural s_mem_S
             exact one_le_natural s_mem_Natural
+
     . show  ∀ {k : ℝ}, k ∈ H → k + 1 ∈ H
       intro k k_mem_H
       change k + 1 ∈ Natural ∧
         ∀ S ⊆ Natural,
           k + 1 ∈ S → ∃ m ∈ Natural, IsLeast S m
+
       have k_mem_Natural : k ∈ Natural := by
           exact k_mem_H.left
-      constructor
-      . show k + 1 ∈ Natural
+
+      have succ_k_mem_Natural : k + 1 ∈ Natural := by
         exact (succ_mem_Natural k_mem_Natural
                 : k + 1 ∈ Natural)
+      constructor
+
+      . show k + 1 ∈ Natural
+        exact succ_k_mem_Natural
       . show ∀ S ⊆ Natural, k + 1 ∈ S →
           ∃ m ∈ Natural, IsLeast S m
         intro S S_subset_Natural succ_k_mem_S
@@ -668,6 +679,7 @@ theorem well_ordering :
           exact (k_mem_H.right S S_subset_Natural k_mem_S)
         . show ∃ m ∈ Natural, IsLeast S m -- k ∉ S
           let S' := S ∪ {k}
+
           have S_subset_Natural' : S' ⊆ Natural := by
             intro s s_mem_S'
             rcases s_mem_S' with s_mem_S | s_eq_k
@@ -678,50 +690,103 @@ theorem well_ordering :
                 exact s_eq_k
               subst s
               exact (k_mem_Natural : k ∈ Natural)
+
           have k_mem_S' : k ∈ S' := by
             exact Set.mem_union_right S rfl
+
           have S_subset_S' : S ⊆ S' := by
             intro x x_mem_S
             exact Set.mem_union_left {k} x_mem_S
+
           have : ∃ m ∈ Natural, IsLeast S' m := by
             exact
               (k_mem_H.right S' S_subset_Natural' k_mem_S')
           rcases this with ⟨m, m_mem_Natural, m_least_S'⟩
-          by_cases m_mem_S : m ∈ S
+          by_cases m_mem_S_hyp : m ∈ S
+
           . show ∃ m ∈ Natural, IsLeast S m -- m ∈ S
+
             have : m ∈ lowerBounds S := by
               intro s s_mem_S
               exact m_least_S'.right (S_subset_S' s_mem_S)
             use m
-            exact ⟨m_mem_Natural, m_mem_S, this⟩
-          . sorry -- m ∉ S
-  sorry
+            exact ⟨m_mem_Natural, m_mem_S_hyp, this⟩
+          . show ∃ m ∈ Natural, IsLeast S m -- m ∉ S
+
+            have m_eq_k : m = k := by
+              rcases m_least_S'.left with m_mem_S | m_eq_k
+              . false_or_by_contra
+                exact m_mem_S_hyp m_mem_S
+              . exact m_eq_k
+
+            have : ∀ s ∈ S, k + 1 ≤ s := by
+              intro s s_mem_S
+              have s_mem_S' : s ∈ S' := by
+                exact Set.mem_union_left {k} s_mem_S
+
+              have k_ne_s : k ≠ s := by
+                intro k_eq_s
+                subst k
+                subst m
+                exact m_mem_S_hyp s_mem_S
+
+              have k_le_s : k ≤ s := by
+                subst m
+                exact m_least_S'.right s_mem_S'
+
+              have : k < s := by
+                exact lt_of_le_of_ne k_le_s k_ne_s
+              exact natural_add_one_le_of_lt
+                k_mem_Natural
+                (S_subset_Natural s_mem_S)
+                this
+            use k + 1
+            constructor
+
+            . show k + 1 ∈ Natural
+              exact succ_k_mem_Natural
+
+            . show IsLeast S (k + 1)
+              constructor
+
+              . show k + 1 ∈ S
+                assumption
+
+              . show k + 1 ∈ lowerBounds S
+                assumption
+
+  have H_eq_Natural : H = Natural := by
+    exact eq_natural_of_subset_of_inductive
+          H_subset_Natural -- H ⊆ Natural
+          IH               -- Inductive H
+
+  intro A A_subset_Natural A_nonempty
+  rcases A_nonempty with ⟨n, n_mem_A⟩
+
+  have n_mem_Natural : n ∈ Natural := by
+    exact (A_subset_Natural n_mem_A)
+
+  have : n ∈ H := by
+    rw [H_eq_Natural]
+    exact n_mem_Natural
+
+  show  ∃ m ∈ Natural, IsLeast A m
+  exact this.right A A_subset_Natural n_mem_A
 ```
 
 # Exercises
 1. Demonstrate the _strong_ induction principle:
-suppose that for each natural number $`n` we have a statement
-$`P(n)` about it such that the two following conditions are met:
+Let `H ⊆ Natural` such that the two following conditions are met:
+  * `1 ∈ H` ;
+  *  If `k ∈ H` for all `k ≤ n`,  then `n + 1 ∈ H`.
+Then `H = Natural`
 
-  *  $`\diamond i)` $`P(1)` is true;
-  *  $`\diamond ii)` If $`P(k)` is true for all $`k \le n`,
-  then $`P(n + 1)` is true.
-
-Then $`P(n)` is true for all $`n \in \mathbb{N}`
-(_Suggestion_: consider the statement
-$`Q(n) = ` "$`P(k)` is true for natural numbers $`k` less than or
-equal to $`n`")
-
-2. Let $`n_0` be any natural number and suppose that for each natural number
-$`n` we have a statement $`P(n)` about it such that the two following conditions
-are met:
-  * $`\bullet i)` $`P(n_0)` is true;
-  * $`\bullet ii)` if $`P(k)` is true for a certain natural $`k`,
-  then $`P(k + 1)` is also true.
-  Prove that $`P(n)` is true for all $`n \ge n_0`
-  (_Suggestion_: consider $`Q(n) = P(n - n_0 + 1)`)
-
-
+2. Let $`n₀` be any natural number and let `H ⊆ Natural` such that the two
+following conditions are met:
+  * `n₀ ∈ H`;
+  * If `k ∈ H` for a certain natural $`k`, then `k + 1 ∈ H`.
+  Prove that `H = {n ∈ Natural : n₀ ≤ n}`
 ```lean "end NaturalNumbers"
+
 end NaturalNumbers
 ```
