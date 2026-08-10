@@ -37,7 +37,7 @@ natural numbers, since larger subsets of ℝ may also satisfy them.
 
 For brevity, we now give such sets a name:
 
-:::definition "def_1.1"(tags := "Inductive Sets")
+:::definition "inductive_set"(tags := "Inductive Set")
 A subset $`A` of the real numbers is said to be _inductive_ if it has the
 following properties:
   * The real number $`1` belongs to $`A`
@@ -45,28 +45,32 @@ following properties:
   then the real number $`x + 1` also belongs to $`A`.
 :::
 
-```lean "def_1.1"
+```lean "inductive_set"
 def Inductive (A : Set ℝ) : Prop :=
-  (1 : ℝ) ∈ A ∧ (∀ {x : ℝ}, x ∈ A → (x + 1) ∈ A)
-```
-⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄
--- The subset of natural numbers can be characterized as the _smallest_ of all
--- inductive subsets of ℝ.
+  (1 : ℝ) ∈ A ∧
+    ∀ {x : ℝ}, x ∈ A → (x + 1) ∈ A
 
-:::definition "def_1.2"
+example : Inductive {x : ℝ | 0 < x} := by
+  sorry
+```
+
+⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄
+The set of natural numbers can be characterized as the _smallest_ of all
+inductive subsets of ℝ.
+
+:::definition "natural_number"
 A real number $`x ∈ ℝ` is a natural number if $`x` belongs to all the
 inductive subsets of ℝ. The set of natural numbers is denoted as `Natural`.
 :::
 
-
-```lean "def_1.2"
+```lean "natural_number"
 def isNatural (x : ℝ) : Prop :=
   ∀ {A}, Inductive A → x ∈ A
 
 -- The Set of Natural numbeers
 def Natural : Set ℝ := {x | isNatural x}
 
---   For x : ℝ, x ∈ Natural is equivalent to isNatural x
+-- For x : ℝ, x ∈ Natural is equivalent to isNatural x
 example {x : ℝ} :
   x ∈ Natural ↔ isNatural x := by
   rfl
@@ -105,22 +109,12 @@ theorem inductive_natural : Inductive Natural := by
     intro n hn A hA
     exact hA.right (hn hA)
 
-
---@[simp]
 theorem one_mem_Natural : 1 ∈ Natural := by
   exact inductive_natural.left --inductive_natural
-    -- intro A hA
-    -- exact hA.left
 
--- lemma succ_is_natural
---   (hn : n ∈ Natural) : n + 1 ∈ Natural := by
---     exact inductive_natural.right hn
-
---@[simp]
 lemma succ_mem_Natural
   (hn : n ∈ Natural) : n + 1 ∈ Natural := by
     exact inductive_natural.right hn
-
 ```
 ◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇
 

@@ -2,6 +2,8 @@ import Mathlib.Data.Nat.Notation
 import Mathlib.Data.Real.Basic
 import Mathlib.Tactic
 
+  import ProjectTemplate.Chapters.Section_1_3
+
 import Verso
 import VersoManual
 import VersoBlueprint
@@ -13,72 +15,139 @@ open Informal
 
 #doc (Manual) "Definitions by Induction" =>
 
--- import Mathlib.Data.Nat.Notation
--- import Mathlib.Data.Real.Basic
-
--- import VersoManual
--- import TextbookTemplate.Meta.Lean
--- import TextbookTemplate.Papers
--- import Mathlib.Tactic
-
-
-#doc (Manual) "Definitions by Induction" =>
-
 :::group "definitions_induction"
 Core statements about addition on real numbers.
 :::
 
 ```lean "open DefinitionsByInduction"
 namespace DefinitionsByInduction
+open NaturalNumbers
 ```
-We are going to group in this paragraph certain definitions of concepts that
-presuppose the notion of natural number and we will see how,
-from the point of view we are developing,
-certain logical difficulties appear in the elementary or "naive"
-definitions of these concepts, difficulties that we will partially overcome
-for now and definitively in the next chapter.
+
+# Powers with Natural exponents
 
 We will begin with the definition of powers with natural exponents.
 
-_If $`a` is any real number and $`n` is a natural number,
-we know that $`a ^ n` means the product of a by itself $`n` times._
+Given a real number `a`, our goal is to define a function
+`f: Natural → ℝ`  satisfying:
 
-But what does "$`n` times" mean if $`n` is any natural number?
-This question can cause surprise; everyone knows what $`4` times,
-$`5` times, etc., means.
-But if we think about what our definition of natural number is,
-the surprise may disappear.
-For us, a natural number is (see *exercise 4* of the previous paragraph) a
-real number that belongs to all inductive subsets of ℝ.
+* `f(1) = a`
+* `f (n + 1) = a · f(a)` for all `n ∈ Natural`
 
-And that is all we know about the natural number (besides what we have
-already proven in the previous paragraph).
+To that end, we start with the following definition:
 
-Then, while it is clear what $`a^4` or $`a ^ {18}` is,
-to be sure that we know what $`a^n` is for every natural $`n` we must look
-for another way.
+:::definition "power_inductive"
+Fix `a ∈ ℝ`. A set `H ⊆ ℝ × ℝ` is `a`-power-inductive if it
+satisfies the following properties:
+* `(1, a) ∈ H`
+* If `(x, y) ∈ H`, then `(x + 1, a ·y) ∈ H`
+:::
 
-The way, as always, is the principle of induction.
-If we want to define $`a^n` for every natural $`a`,
-let's define it for $`n = 1` in the obvious way:
-$$`a^1 = a (1)`
- and then, assuming that we have defined it for a certain natural $`n`,
- let's define it for $`n + 1` in the following, and also obvious, way:
-$$`a^{n+1} = a^n · a  (2)`
+```lean "power_inductive"
+def PowerInductive (a : ℝ) (H : Set (ℝ × ℝ)) : Prop :=
+  (1, a) ∈ H ∧
+    ∀ {x y : ℝ},
+      (x, y) ∈ H → (x + 1, a * y) ∈ H
 
-In this way we fulfill having defined $`a^n` for all natural numbers.
-More precisely, if $`P(n)` is the statement "$`a^n` is defined,"
-then $`P(1)` is true by $`(1)` and, assuming $`P(n)` is true, $`P(n+1)`
-results true by $`(2)`.
+def PowerInductive'
+    (a : ℝ)
+    (H : Set (ℝ × ℝ)) : Prop :=
+  H ⊆ Natural ×ˢ (Set.univ : Set ℝ) ∧
+  (1, a) ∈ H ∧
+  ∀ {x y : ℝ},
+    (x, y) ∈ H → (x + 1, a * y) ∈ H
+```
 
-Then, by *Corollary 1.4.*, $`P(n)` is true for all natural $`n`,
-which is what we wanted.
+```lean "power_inductive_example"
+example (a : ℝ) :
+  PowerInductive a (Natural ×ˢ (Set.univ : Set ℝ)) := by
+  sorry
+```
 
-At the risk of wearying the reader, we are going to formulate again the
-routine question: "what does it mean to be well-defined?"
-We must confess that we cannot answer that question for now,
-something we will do in the appendix of the next chapter.
-Meanwhile, we appeal to your good will.
+```lean "power_inductive_prop"
+def isPowerGenerated (a : ℝ) (p : ℝ × ℝ) : Prop :=
+  ∀ {A : Set (ℝ × ℝ)},
+    PowerInductive a A → p ∈ A
+
+-- The smallest Power Inductive a set in ℝ × ℝ
+def PowerGraph (a : ℝ) : Set (ℝ × ℝ) :=
+  {p | isPowerGenerated a p}
+
+```
+:::theorem "power_function"
+Let `A = {n ∈ Natural : (n, y) ∈ PowerGraph (a : ℝ) for some y ∈ ℝ}`. Then,
+* `A = Natural`
+* `PowerGraph (a : ℝ)` is a function with domain `Natural` and
+    codomain ℝ
+*  `(1, a) ∈ PowerGraph (a : ℝ)`
+* If `(n , y) ∈ PowerGraph (a : ℝ)`,
+    then `(n , a · y) ∈ PowerGraph (a : ℝ)`
+:::
+
+:::proof "power_function"
+First we will show that `A` is an inductive set. Since `A ⊆ Natural`,
+we conclude by ({uses "Principle_of_Induction"}[]) that `A = Natural`.
+:::
+
+```lean "A_is_inductive"
+section
+def opA (a : ℝ):=
+  {n ∈ Natural | ∃ y : ℝ, (n, y) ∈ PowerGraph a}
+
+theorem inductive_A (a : ℝ) : Inductive (opA a) := by
+  let A := opA a
+  unfold Inductive
+  constructor
+  . show (1 ∈ A)
+    change 1 ∈ Natural ∧  ∃ y : ℝ, (1, y) ∈ PowerGraph a
+    constructor
+    . show 1 ∈ Natural
+      exact one_mem_Natural
+    . show ∃ y : ℝ, (1, y) ∈ PowerGraph a
+      use a
+      intro H hH
+      exact hH.left
+  . show ∀ {x : ℝ}, x ∈ A → x + 1 ∈ A
+    intro x x_mem_A
+    change  x ∈ Natural ∧
+       ∃ y : ℝ, (x, y) ∈ PowerGraph a at x_mem_A
+    change x + 1 ∈ Natural ∧
+       ∃ y : ℝ, (x + 1, y) ∈ PowerGraph a
+    constructor
+    . show x + 1 ∈ Natural
+      exact succ_mem_Natural x_mem_A.left
+    . show ∃ y, (x + 1, y) ∈ PowerGraph a
+      rcases x_mem_A.right with ⟨y, pxy_mem_A⟩
+      use a * y
+      change ∀ {B : Set (ℝ × ℝ)},
+        PowerInductive a B → (x + 1, a * y) ∈ B
+      intro B hB
+      have pxy_mem_B : (x, y) ∈ B := by
+        exact  pxy_mem_A hB
+      exact hB.right pxy_mem_B
+
+theorem A_eq_Natural : (opA a) = Natural := by
+  let A := {n ∈ Natural | ∃ y : ℝ, (n, y) ∈ PowerGraph a}
+  have : A ⊆ Natural := by
+    intro a a_mem_A
+    exact a_mem_A.left
+  exact eq_natural_of_subset_of_inductive
+        this
+        (inductive_A a : Inductive (opA a))
+end
+```
+```lean "(opA a)  is a function"
+section
+variable (a : ℝ)
+
+theorem function_f (a : ℝ) :
+  ∀ n ∈ Natural,
+    ∃! y : ℝ, (n, y) ∈ PowerGraph a := by
+    sorry
+end
+```
+
+
 Having already defined the power with natural exponent,
 we prove its main properties:
 
