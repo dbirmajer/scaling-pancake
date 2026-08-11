@@ -30,7 +30,7 @@ open NaturalNumbers
 A set `H ⊆ ℝ × ℝ` is `G`-inductive with _initial value_ `a ∈ ℝ` and
 _inductive step_ `step : ℝ → ℝ → ℝ` if it  satisfies the following properties:
 * `(1, a) ∈ H`
-* If `(x, y) ∈ H`, then `(x + 1, f x (f x)) ∈ H`
+* If `(x, y) ∈ H`, then `(x + 1, step x y) ∈ H`
 In this case, we write `(a, step, H)` is `G`-inductive.
 :::
 
@@ -47,7 +47,7 @@ For any `a ∈ ℝ` and step function `step : ℝ → ℝ → ℝ`,
 :::
 
 ```lean "general_induction_example"
-example {a : ℝ} {step : ℝ → ℝ → ℝ} :
+theorem natural_times_R {a : ℝ} {step : ℝ → ℝ → ℝ} :
   G_inductive a step (Natural ×ˢ (Set.univ : Set ℝ)) := by
   let R := (Set.univ : Set ℝ)
   constructor
@@ -74,6 +74,19 @@ _smallest_  `G`-inductive set with _initial value_
 def G (a : ℝ) (step : ℝ → ℝ → ℝ ) :=
   ⋂₀  {A : Set (ℝ × ℝ) | G_inductive a step A}
 ```
+
+:::lemma_ "G ⊆ Natural × ℝ"
+`G (a : ℝ) (step : ℝ → ℝ → ℝ ) ⊆ Natural × R`
+:::
+
+```lean "G ⊆ Natural × ℝ"
+theorem G_subset_Natural_times_R
+  {a : ℝ} {step : ℝ → ℝ → ℝ} :
+  G a step ⊆ Natural ×ˢ Set.univ:= by
+  unfold G
+  apply Set.sInter_subset_of_mem
+  exact natural_times_R
+```
 :::corollary "π₁ G ⊆ Natural"
 Let `G` be the `G`-set with _initial value_
 `a ∈ ℝ` and _inductive step_ `step : ℝ → ℝ → ℝ`, and let
@@ -81,10 +94,95 @@ Let `G` be the `G`-set with _initial value_
 :::
 
 :::proof "π₁ G ⊆ Natural"
-Since
+Since ... tbc
 :::
-# Powers with Natural exponents
 
+```lean "π₁ G ⊆ Natural"
+theorem fst_G_subset_natural {a : ℝ} {step : ℝ → ℝ → ℝ} :
+  Prod.fst '' (G  a step) ⊆ Natural := by
+  intro x hx
+  change ∃ p, p ∈ (G  a step) ∧ Prod.fst p = x at hx
+  rcases hx with ⟨p, hpG, rfl⟩
+  exact (G_subset_Natural_times_R hpG).1
+```
+:::theorem "G set is G-inductive"
+Let  Let `G` be the `G`-set with _initial value_
+`a ∈ ℝ` and _inductive step_ `step : ℝ → ℝ → ℝ`, then
+`(a, set, G)` is G-inductive.
+:::
+
+:::proof "G set is G-inductive"
+tbc
+:::
+
+```lean "G set is G-inductive"
+theorem G_set_G_inductive_G (a : ℝ) (step : ℝ → ℝ → ℝ)
+   : G_inductive a step (G a step)   := by
+  let F := G a step
+  unfold G_inductive
+  constructor
+  . show (1, a) ∈ F
+    change (1, a) ∈
+      ⋂₀ {A : Set (ℝ × ℝ) | G_inductive a step A}
+    rw [Set.mem_sInter]
+    intro A hA
+    exact hA.left
+  . show ∀ {x y : ℝ}, (x, y) ∈ F → (x + 1, step x y) ∈ F
+    intro x y pxy
+    change (x + 1, step x y) ∈
+      ⋂₀ {A : Set (ℝ × ℝ) | G_inductive a step A}
+    rw [Set.mem_sInter]
+    intro A hA
+    have : (x, y) ∈ A := by
+      exact pxy A hA
+    exact hA.right this
+```
+
+:::corollary "π₁ G = Natural"
+`π₁ G = Natural`
+:::
+
+:::proof "π₁ G = Natural"
+Since `π₁ G ⊆ Natural`, by {uses "Principle_of_Induction"}[],
+it is enough to show that `π₁ G ⊆ Natural` is inductive.
+:::
+
+```lean "π₁ G = Natural_proof"
+theorem fst_G_eq_natural {a : ℝ} {step: ℝ → ℝ → ℝ} :
+  Prod.fst '' (G  a step) = Natural  := by
+  let F := G  a step
+  have G_inductive_F : G_inductive a step F := by
+    exact (G_set_G_inductive_G a step)
+  let X := Prod.fst '' F
+  have X_subset_Natural: X ⊆ Natural := by
+    exact fst_G_subset_natural
+  have IX : Inductive X := by
+    constructor
+    . show 1 ∈ X
+      have : (1, a) ∈ F := by
+        exact G_inductive_F.left
+      exact ⟨(1, a), this, rfl⟩
+    . show ∀ {x : ℝ}, x ∈ X → x + 1 ∈ X
+      intro x hx
+      change ∃ p, p ∈ F ∧ p.1 = x at hx
+      rcases hx with ⟨p, p_mem_F, fst_p_eq_x⟩
+      let y := p.2
+      have : (x, y) = p := by
+        subst x
+        subst y
+        exact Prod.eta p
+      have : (x, y) ∈ F := by
+        rw [this]
+        exact p_mem_F
+      have : (x + 1, step x y) ∈ F := by
+        exact G_inductive_F.right this
+      exact ⟨(x + 1, step x y), this, rfl⟩
+  exact eq_natural_of_subset_of_inductive
+    X_subset_Natural
+    IX
+```
+
+# Powers with Natural exponents
 
 We will begin with the definition of powers with natural exponents.
 
