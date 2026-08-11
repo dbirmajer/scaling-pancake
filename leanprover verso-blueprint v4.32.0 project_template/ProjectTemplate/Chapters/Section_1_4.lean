@@ -24,7 +24,67 @@ namespace DefinitionsByInduction
 open NaturalNumbers
 ```
 
+# Generalized Induction
+
+:::definition "general_induction"
+A set `H ⊆ ℝ × ℝ` is `G`-inductive with _initial value_ `a ∈ ℝ` and
+_inductive step_ `step : ℝ → ℝ → ℝ` if it  satisfies the following properties:
+* `(1, a) ∈ H`
+* If `(x, y) ∈ H`, then `(x + 1, f x (f x)) ∈ H`
+In this case, we write `(a, step, H)` is `G`-inductive.
+:::
+
+```lean "general_induction"
+def G_inductive (a : ℝ) (step : ℝ → ℝ → ℝ)
+  (H : Set (ℝ × ℝ)) : Prop :=
+    (1, a) ∈ H ∧
+      ∀ {x y : ℝ}, (x, y) ∈ H → (x + 1, step x y) ∈ H
+```
+
+:::lemma_ "Natural × ℝ is G-inductive" (tags := "Natural × ℝ is G-inductive")
+For any `a ∈ ℝ` and step function `step : ℝ → ℝ → ℝ`,
+`Natural × ℝ` is `G`-inductive.
+:::
+
+```lean "general_induction_example"
+example {a : ℝ} {step : ℝ → ℝ → ℝ} :
+  G_inductive a step (Natural ×ˢ (Set.univ : Set ℝ)) := by
+  let R := (Set.univ : Set ℝ)
+  constructor
+  . show (1, a) ∈ Natural ×ˢ R
+    exact ⟨one_mem_Natural , Set.mem_univ a⟩
+  . show ∀ {x y : ℝ}, (x, y) ∈ Natural ×ˢ R →
+      (x + 1, step x y) ∈ Natural ×ˢ Set.univ
+    intro x y hp
+    have : x + 1 ∈ Natural := by
+        exact succ_mem_Natural hp.1
+    exact ⟨this, Set.mem_univ (step x y)⟩
+```
+
+:::definition "G set"
+Given `a ∈ ℝ` and `step : ℝ → ℝ → ℝ`, the `G`-set `G` with
+initial value `a` and  inductive step function `step` is the
+_smallest_  `G`-inductive set with _initial value_
+`a ∈ ℝ` and _inductive step_ `step : ℝ → ℝ → ℝ`. Precisely,
+
+`G = ⋂₀ {A : (a, step, A) is `G`-inductive}`
+:::
+
+```lean "G set"
+def G (a : ℝ) (step : ℝ → ℝ → ℝ ) :=
+  ⋂₀  {A : Set (ℝ × ℝ) | G_inductive a step A}
+```
+:::corollary "π₁ G ⊆ Natural"
+Let `G` be the `G`-set with _initial value_
+`a ∈ ℝ` and _inductive step_ `step : ℝ → ℝ → ℝ`, and let
+`G₁ = {x ∈ ℝ : ∃ y ∈ ℝ, (x, y) ∈ G}`. Then `G₁ ⊆ Natural`
+:::
+
+:::proof "π₁ G ⊆ Natural"
+Since
+:::
 # Powers with Natural exponents
+
 
 We will begin with the definition of powers with natural exponents.
 
@@ -48,14 +108,6 @@ def PowerInductive (a : ℝ) (H : Set (ℝ × ℝ)) : Prop :=
   (1, a) ∈ H ∧
     ∀ {x y : ℝ},
       (x, y) ∈ H → (x + 1, a * y) ∈ H
-
-def PowerInductive'
-    (a : ℝ)
-    (H : Set (ℝ × ℝ)) : Prop :=
-  H ⊆ Natural ×ˢ (Set.univ : Set ℝ) ∧
-  (1, a) ∈ H ∧
-  ∀ {x y : ℝ},
-    (x, y) ∈ H → (x + 1, a * y) ∈ H
 ```
 
 ```lean "power_inductive_example"
@@ -63,6 +115,7 @@ example (a : ℝ) :
   PowerInductive a (Natural ×ˢ (Set.univ : Set ℝ)) := by
   sorry
 ```
+
 
 ```lean "power_inductive_prop"
 def isPowerGenerated (a : ℝ) (p : ℝ × ℝ) : Prop :=
@@ -73,6 +126,46 @@ def isPowerGenerated (a : ℝ) (p : ℝ × ℝ) : Prop :=
 def PowerGraph (a : ℝ) : Set (ℝ × ℝ) :=
   {p | isPowerGenerated a p}
 
+
+def PowerDomain (a : ℝ) :=
+  {x : ℝ | ∃ y : ℝ, (x, y) ∈ PowerGraph a }
+
+def PowerDomain' (a : ℝ) : Set ℝ :=
+  Prod.fst '' PowerGraph a
+
+theorem domain_subset_natural (a : ℝ) :
+  PowerDomain a ⊆ Natural := by sorry
+
+-- just finish the example above
+
+theorem power_inductive_PG (a : ℝ) :
+  PowerInductive a (PowerGraph a) := by sorry
+
+theorem function_at_one {a : ℝ} :
+  ∀ b : ℝ, (1, b) ∈ PowerGraph a → b = a := by
+  let A := PowerGraph a
+  have IA : PowerInductive a A  := by
+    exact power_inductive_PG a
+  have one_a_mem_A : (1, a) ∈ A := by
+    exact IA.left
+  intro b hb
+  change (1, b) ∈ A at hb
+  by_cases hba : b = a
+  . show b = a -- case hab : b = a
+    exact hba
+  . false_or_by_contra
+    show False
+    let A' := A \ {(1, b)}
+    have : PowerInductive a A' := by
+      constructor
+      . show (1, a) ∈ A' -- case hba : b ≠ a
+        constructor
+        . exact one_a_mem_A
+        . simpa using (Ne.symm hba) -- revisar
+      . show ∀ {x y : ℝ}, (x, y) ∈ A' → (x + 1, a * y) ∈ A'
+        -- va a salir xq x + 1 no es 1
+        sorry
+    sorry
 ```
 :::theorem "power_function"
 Let `A = {n ∈ Natural : (n, y) ∈ PowerGraph (a : ℝ) for some y ∈ ℝ}`. Then,
@@ -93,6 +186,8 @@ we conclude by ({uses "Principle_of_Induction"}[]) that `A = Natural`.
 section
 def opA (a : ℝ):=
   {n ∈ Natural | ∃ y : ℝ, (n, y) ∈ PowerGraph a}
+
+-- Quizas se puede deducir de PowerGraph a is inductive
 
 theorem inductive_A (a : ℝ) : Inductive (opA a) := by
   let A := opA a
@@ -134,16 +229,62 @@ theorem A_eq_Natural : (opA a) = Natural := by
   exact eq_natural_of_subset_of_inductive
         this
         (inductive_A a : Inductive (opA a))
+
+def opA' (a : ℝ):=
+  {n ∈ Natural | ∃! y : ℝ, (n, y) ∈ PowerGraph a}
+
+theorem inductive_A' (a : ℝ) : Inductive (opA' a) := by
+  let A' := opA' a
+  unfold Inductive
+  constructor
+  . show (1 ∈ A')
+    change 1 ∈ Natural ∧  ∃! y : ℝ, (1, y) ∈ PowerGraph a
+    constructor
+    . show 1 ∈ Natural
+      exact one_mem_Natural
+    . show ∃! y : ℝ, (1, y) ∈ PowerGraph a
+      use a
+      constructor
+      . intro H hH
+        exact hH.left
+      .
+        sorry
+  . show ∀ {x : ℝ}, x ∈ A' → x + 1 ∈ A'
+    intro x x_mem_A'
+    change  x ∈ Natural ∧
+       ∃! y : ℝ, (x, y) ∈ PowerGraph a at x_mem_A'
+    change x + 1 ∈ Natural ∧
+       ∃! y : ℝ, (x + 1, y) ∈ PowerGraph a
+    constructor
+    . show x + 1 ∈ Natural
+      exact succ_mem_Natural x_mem_A'.left
+    . show ∃! y, (x + 1, y) ∈ PowerGraph a
+      rcases x_mem_A'.right with ⟨y, pxy_mem_A⟩
+      use a * y
+      change ∀ {B : Set (ℝ × ℝ)},
+        PowerInductive a B → (x + 1, a * y) ∈ B
+      intro B hB
+      have pxy_mem_B : (x, y) ∈ B := by
+        exact  pxy_mem_A hB
+      exact hB.right pxy_mem_B
+
 end
 ```
 ```lean "(opA a)  is a function"
 section
 variable (a : ℝ)
 
-theorem function_f (a : ℝ) :
+theorem function_f :
   ∀ n ∈ Natural,
     ∃! y : ℝ, (n, y) ∈ PowerGraph a := by
-    sorry
+    intro n n_mem_Natural
+    constructor
+    . have : n ∈ (opA a) := by
+        rw [A_eq_Natural]
+        exact  n_mem_Natural
+      sorry
+    . sorry
+
 end
 ```
 

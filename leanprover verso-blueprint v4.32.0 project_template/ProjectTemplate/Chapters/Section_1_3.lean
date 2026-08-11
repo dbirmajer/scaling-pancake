@@ -47,8 +47,8 @@ following properties:
 
 ```lean "inductive_set"
 def Inductive (A : Set ℝ) : Prop :=
-  (1 : ℝ) ∈ A ∧
-    ∀ {x : ℝ}, x ∈ A → (x + 1) ∈ A
+    1 ∈ A ∧
+      ∀ {x : ℝ}, x ∈ A → (x + 1) ∈ A
 
 example : Inductive {x : ℝ | 0 < x} := by
   sorry
@@ -696,7 +696,7 @@ theorem well_ordering :
             exact
               (k_mem_H.right S' S_subset_Natural' k_mem_S')
           rcases this with ⟨m, m_mem_Natural, m_least_S'⟩
-          by_cases m_mem_S_hyp : m ∈ S
+          by_cases hmS : m ∈ S
 
           . show ∃ m ∈ Natural, IsLeast S m -- m ∈ S
 
@@ -704,13 +704,13 @@ theorem well_ordering :
               intro s s_mem_S
               exact m_least_S'.right (S_subset_S' s_mem_S)
             use m
-            exact ⟨m_mem_Natural, m_mem_S_hyp, this⟩
+            exact ⟨m_mem_Natural, hmS, this⟩
           . show ∃ m ∈ Natural, IsLeast S m -- m ∉ S
 
             have m_eq_k : m = k := by
               rcases m_least_S'.left with m_mem_S | m_eq_k
               . false_or_by_contra
-                exact m_mem_S_hyp m_mem_S
+                exact hmS m_mem_S
               . exact m_eq_k
 
             have : ∀ s ∈ S, k + 1 ≤ s := by
@@ -722,7 +722,7 @@ theorem well_ordering :
                 intro k_eq_s
                 subst k
                 subst m
-                exact m_mem_S_hyp s_mem_S
+                exact hmS s_mem_S
 
               have k_le_s : k ≤ s := by
                 subst m
