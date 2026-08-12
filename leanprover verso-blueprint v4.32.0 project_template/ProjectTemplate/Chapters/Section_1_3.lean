@@ -363,6 +363,15 @@ theorem one_le_natural {n : ℝ}
   exact hn IH
 ```
 
+:::corollary "one_lt_succ"
+For all `n ∈ Natural`, `1 < n + 1`.
+:::
+
+```lean "one_lt_succ"
+lemma one_lt_succ {n : ℝ} :
+  n ∈ Natural → 1 < n + 1 := by sorry
+
+```
 We want now to prove the fact, intuitively clear, that if a natural number is
 subtracted from a smaller natural number, the result is a natural number.
 As a preliminary step, we prove the following Proposition.

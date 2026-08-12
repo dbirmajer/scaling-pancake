@@ -59,6 +59,38 @@ theorem natural_times_R {a : ℝ} {step : ℝ → ℝ → ℝ} :
     have : x + 1 ∈ Natural := by
         exact succ_mem_Natural hp.1
     exact ⟨this, Set.mem_univ (step x y)⟩
+
+theorem g_inductive_remove_wrong_base
+  {a b: ℝ} {step : ℝ → ℝ → ℝ} (hab : a ≠ b) :
+    G_inductive a step
+      ((Natural ×ˢ
+        (Set.univ : Set ℝ)) \ {(1, b)}) := by
+  let S := (Natural ×ˢ  (Set.univ : Set ℝ)) \ {(1, b)}
+  constructor
+  . show (1, a) ∈ S
+    constructor
+    . show (1, a) ∈ Natural ×ˢ (Set.univ : Set ℝ)
+      exact ⟨one_mem_Natural, Set.mem_univ a⟩
+    . show  (1, a) ∉ {(1, b)}
+      intro h
+      have : a = b := by
+         exact congrArg Prod.snd h
+      exact hab this
+  . show ∀ {x y : ℝ}, (x, y) ∈ S → (x + 1, step x y) ∈ S
+    intro x y hxy
+    change (x, y) ∈
+      (Natural ×ˢ  (Set.univ : Set ℝ)) \ {(1, b)} at hxy
+    have x_mem_Natural : x ∈ Natural := by
+      exact hxy.left.left
+    have succ_x_mem_Nat : x + 1 ∈ Natural := by
+      exact succ_mem_Natural x_mem_Natural
+    have : (x + 1, step x y) ≠ (1, b) := by
+      intro h
+      have : x + 1 = 1 := by
+        exact congrArg Prod.fst h
+      exact (ne_of_lt (one_lt_succ x_mem_Natural)) this.symm
+    exact ⟨⟨succ_x_mem_Nat, Set.mem_univ (step x y) ⟩,
+      this⟩
 ```
 
 :::definition "G set"
@@ -180,6 +212,46 @@ theorem fst_G_eq_natural {a : ℝ} {step: ℝ → ℝ → ℝ} :
   exact eq_natural_of_subset_of_inductive
     X_subset_Natural
     IX
+```
+:::theorem "G a step is a function"
+`G a step` is a functiom
+:::
+
+```lean "G a step is a function-proof"
+lemma function_at_one {a : ℝ} {step : ℝ → ℝ → ℝ}:
+  ∀ b : ℝ, (1, b) ∈ G a step → a = b := by
+  let F := G a step
+  have hF : G_inductive a step F := by
+    exact G_set_G_inductive_G a step
+  intro b b_mem_F
+  change (1, b) ∈ F at b_mem_F
+  by_cases hab : a = b
+  . show a = b -- hab : a = b
+    exact hab
+  . show a = b -- hab : a ≠ b
+    false_or_by_contra
+    let F' := F \ {(1, b)}
+    sorry
+  -- by_cases hba : b = a
+  -- . show b = a -- case hab : b = a
+  --   exact hba
+  -- . false_or_by_contra
+  --   show False
+  --   let A' := A \ {(1, b)}
+  --   have : PowerInductive a A' := by
+  --     constructor
+  --     . show (1, a) ∈ A' -- case hba : b ≠ a
+  --       constructor
+  --       . exact one_a_mem_A
+  --       . simpa using (Ne.symm hba) -- revisar
+  --     . show ∀ {x y : ℝ}, (x, y) ∈ A' → (x + 1, a * y) ∈ A'
+  --       -- va a salir xq x + 1 no es 1
+  --       sorry
+  --   sorry
+
+lemma function_at_x {a : ℝ} {step : ℝ → ℝ → ℝ}:
+  ∀ {x y : ℝ} , (x, y) ∈ G a step ∧
+    (x + 1, b) ∈ G a step → b = step x y := by sorry
 ```
 
 # Powers with Natural exponents
