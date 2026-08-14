@@ -90,6 +90,7 @@ example {x} (hx : x ∈ Natural) : Natural :=
 example (n : Natural) : (n : ℝ) ∈ Natural := by
   exact n.property
 ```
+
 :::lemma_ "inductive_natural"
 The set of natural numbers `Natural` is inductive.
 :::
@@ -112,9 +113,14 @@ theorem inductive_natural : Inductive Natural := by
 theorem one_mem_Natural : 1 ∈ Natural := by
   exact inductive_natural.left --inductive_natural
 
+def one : Natural := ⟨1, one_mem_Natural⟩
+
 lemma succ_mem_Natural
   (hn : n ∈ Natural) : n + 1 ∈ Natural := by
     exact inductive_natural.right hn
+
+def succ (n : Natural) : Natural :=
+  ⟨n + 1, succ_mem_Natural n.property⟩
 ```
 ◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇
 
@@ -183,6 +189,14 @@ example :
 
 def addNatural (n m : Natural) : Natural :=
   ⟨(n : ℝ) + (m : ℝ), sum_of_naturals n m⟩
+
+theorem add_succ (n m : Natural) :
+  addNatural n (succ m) = succ (addNatural n m) := by sorry
+
+theorem add_Nat {n m : ℝ}
+  (hn : n ∈ Natural)
+  (hm: m ∈ Natural) : n + m ∈ Natural := by
+    exact sum_of_naturals ⟨n, hn⟩ ⟨m, hm⟩
 ```
 
 :::proposition "mul_of_naturals"

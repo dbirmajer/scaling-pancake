@@ -149,7 +149,7 @@ tbc
 :::
 
 ```lean "G set is G-inductive"
-theorem G_set_G_inductive_G (a : ℝ) (step : ℝ → ℝ → ℝ)
+theorem G_set_inductive (a : ℝ) (step : ℝ → ℝ → ℝ)
    : G_inductive a step (G a step)   := by
   let F := G a step
   unfold G_inductive
@@ -185,7 +185,7 @@ theorem fst_G_eq_natural {a : ℝ} {step: ℝ → ℝ → ℝ} :
   Prod.fst '' (G  a step) = Natural  := by
   let F := G  a step
   have G_inductive_F : G_inductive a step F := by
-    exact (G_set_G_inductive_G a step)
+    exact (G_set_inductive a step)
   let X := Prod.fst '' F
   have X_subset_Natural: X ⊆ Natural := by
     exact fst_G_subset_natural
@@ -220,7 +220,7 @@ theorem fst_G_eq_natural {a : ℝ} {step: ℝ → ℝ → ℝ} :
 
 ```lean "G a step is a function"
 theorem unique_at_one
-  {a : ℝ} {step : ℝ → ℝ → ℝ} :
+  (a : ℝ) (step : ℝ → ℝ → ℝ) :
   ∀ b : ℝ, (1, b) ∈ G a step → a = b := by
   intro b hb
   by_cases hab : a = b
@@ -230,19 +230,137 @@ theorem unique_at_one
     false_or_by_contra
     let S := ((Natural ×ˢ
         (Set.univ : Set ℝ)) \ {(1, b)})
-    have : G_inductive a step S := by
+    have IS : G_inductive a step S := by
         exact remove_wrong_base hab
     have : G a step ⊆ S := by
-        apply Set.sInter_subset_of_mem this
+        exact Set.sInter_subset_of_mem IS
     have : (1, b) ∈ S := by
       exact this hb
     rcases this with ⟨_, b_ne_b⟩
     exact b_ne_b (Set.mem_singleton (1, b))
 
+theorem G_is_function (a : ℝ) (step : ℝ → ℝ → ℝ) :
+  ∀ n ∈ Natural, ∃! y : ℝ, (n, y) ∈  G a step := by
+  let A := G a step
 
-lemma unique_at_x {a : ℝ} {step : ℝ → ℝ → ℝ}:
-  ∀ {x y : ℝ} , (x, y) ∈ G a step ∧
-    (x + 1, b) ∈ G a step → b = step x y := by sorry
+  have IA : G_inductive a step A :=
+    by exact G_set_inductive a step
+
+  let H := {n ∈ Natural | ∃! y : ℝ, (n, y) ∈  A}
+
+  have H_substet_Nat : H ⊆ Natural := by
+    intro x hx
+    exact hx.left
+
+  have IH : Inductive H := by
+    constructor
+    . show 1 ∈ H
+      exact ⟨one_mem_Natural,
+        ⟨a,
+          ⟨IA.left, fun y hy =>
+            (unique_at_one a step y hy).symm⟩ ⟩⟩
+    . show ∀ {x : ℝ}, x ∈ H → x + 1 ∈ H
+      intro n n_mem_H
+      rcases n_mem_H with
+        ⟨n_mem_Nat, y, ⟨pny_mem_A, y_unique⟩⟩
+
+      change n + 1 ∈ Natural ∧
+        (∃ y' : ℝ, (n + 1, y') ∈ A ∧
+          ∀ b : ℝ, (n + 1, b) ∈ A → b = y')
+
+      have succ_n_mem_Nat : n + 1 ∈ Natural :=
+        by exact succ_mem_Natural n_mem_Nat
+
+      let y' := step n y
+
+      have ey' : (n + 1, y') ∈ A := by
+        exact IA.right pny_mem_A
+
+      have uy' : ∀ b : ℝ, (n + 1, b) ∈ A → b = y' := by
+        intro b p_mem_A
+        by_cases hb : b = y'
+        . exact hb
+
+        . let B := A \ {(n + 1, b)}
+
+          have B_subset_A : B ⊆ A:= by
+            exact Set.sdiff_subset
+
+          have IB : G_inductive a step B := by
+            constructor
+            . show (1, a) ∈ B
+
+              have : 1 ≠ n + 1 := by
+                exact ne_of_lt (one_lt_succ n_mem_Nat)
+
+              have : (1, a) ≠ (n + 1, b) := by
+                intro h
+                exact this (congrArg Prod.fst h)
+              exact ⟨IA.left, this⟩
+
+            . show ∀ {u v : ℝ}, (u, v) ∈ B →
+                (u + 1, step u v) ∈ B
+              intro u v puv_mem_B
+
+              have puv_mem_A : (u , v) ∈ A := by
+                  exact B_subset_A puv_mem_B
+
+              have psucc_mem_A : (u + 1, step u v) ∈ A :=
+                  by exact IA.right puv_mem_A
+
+              by_cases hun : u = n
+              . subst u -- hun : u = n
+                show (n + 1, step n v) ∈ B
+
+                have : v = y := by
+                  exact y_unique  v puv_mem_A
+
+                subst v
+                change (n + 1, y') ∈ B
+
+                have : (n + 1, b) ≠ (n + 1, y') := by
+                  intro h
+                  apply hb
+                  exact congrArg Prod.snd h
+                exact ⟨psucc_mem_A, this.symm⟩
+
+              . show (u + 1, step u v) ∈ B -- hun : u ≠ n
+                have hsucc_ne : u + 1 ≠ n + 1 := by
+                  intro hsucc
+                  apply hun
+                  exact add_right_cancel hsucc
+
+                have : (u + 1, step u v) ≠ (n + 1, b) := by
+                  intro phsucc
+                  apply hsucc_ne
+                  exact congrArg Prod.fst phsucc
+                exact ⟨psucc_mem_A, this⟩
+
+          have : A ⊆ B := by
+            unfold A
+            apply Set.sInter_subset_of_mem
+            exact IB
+
+          have : (n + 1, b) ∈ B := by
+            exact this p_mem_A
+
+          have : (n + 1, b) ≠ (n + 1, b) := by
+            rcases this with ⟨hB, hk⟩
+            exact hk
+          false_or_by_contra
+          exact this rfl
+
+      exact ⟨succ_n_mem_Nat, ⟨y', ⟨ey', uy'⟩⟩⟩
+
+  have : H = Natural := by
+    exact eq_natural_of_subset_of_inductive H_substet_Nat IH
+  intro x hx
+
+  have : x ∈ H := by
+    rw [this]
+    exact hx
+
+  exact this.right
 ```
 
 # Powers with Natural exponents
@@ -257,217 +375,269 @@ Given a real number `a`, our goal is to define a function
 
 To that end, we start with the following definition:
 
-:::definition "power_inductive"
-Fix `a ∈ ℝ`. A set `H ⊆ ℝ × ℝ` is `a`-power-inductive if it
-satisfies the following properties:
-* `(1, a) ∈ H`
-* If `(x, y) ∈ H`, then `(x + 1, a ·y) ∈ H`
-:::
+`Power a = G a (fun x y => a * y)`
+`a ** n = y ↔ (n, y) ∈ G a (fun _ y => a * y)`
 
-```lean "power_inductive"
-def PowerInductive (a : ℝ) (H : Set (ℝ × ℝ)) : Prop :=
-  (1, a) ∈ H ∧
-    ∀ {x y : ℝ},
-      (x, y) ∈ H → (x + 1, a * y) ∈ H
-```
+```lean "power"
+-- noncomputable def power'
+--   (a : ℝ) (n : ℝ) (hn : n ∈ Natural)  : ℝ :=
+--   Classical.choose
+--     (G_is_function
+--       a
+--       (fun _ y => a * y : ℝ → ℝ → ℝ)
+--       (n : ℝ)
+--       hn
+--       )
 
-```lean "power_inductive_example"
-example (a : ℝ) :
-  PowerInductive a (Natural ×ˢ (Set.univ : Set ℝ)) := by
-  sorry
-```
+noncomputable def power
+  (a : ℝ) (n : Natural)  : ℝ :=
+  Classical.choose
+    (G_is_function
+      a
+      (fun _ y => a * y : ℝ → ℝ → ℝ)
+      (n : ℝ)
+      n.property
+      )
 
+local infixr:80 " ** " => power
 
-```lean "power_inductive_prop"
-def isPowerGenerated (a : ℝ) (p : ℝ × ℝ) : Prop :=
-  ∀ {A : Set (ℝ × ℝ)},
-    PowerInductive a A → p ∈ A
+theorem power_mem_graph
+    (a : ℝ) (n : Natural) :
+    ((n : ℝ), power a n) ∈
+      G a (fun _ y => a * y) := by
+  unfold power
+  exact
+    (Classical.choose_spec
+      (G_is_function
+        (a := a)
+        (step := fun _ y => a * y)
+        (n : ℝ)
+        n.property)).1
 
--- The smallest Power Inductive a set in ℝ × ℝ
-def PowerGraph (a : ℝ) : Set (ℝ × ℝ) :=
-  {p | isPowerGenerated a p}
-
-
-def PowerDomain (a : ℝ) :=
-  {x : ℝ | ∃ y : ℝ, (x, y) ∈ PowerGraph a }
-
-def PowerDomain' (a : ℝ) : Set ℝ :=
-  Prod.fst '' PowerGraph a
-
-theorem domain_subset_natural (a : ℝ) :
-  PowerDomain a ⊆ Natural := by sorry
-
--- just finish the example above
-
-theorem power_inductive_PG (a : ℝ) :
-  PowerInductive a (PowerGraph a) := by sorry
-
-theorem function_at_one {a : ℝ} :
-  ∀ b : ℝ, (1, b) ∈ PowerGraph a → b = a := by
-  let A := PowerGraph a
-  have IA : PowerInductive a A  := by
-    exact power_inductive_PG a
-  have one_a_mem_A : (1, a) ∈ A := by
-    exact IA.left
-  intro b hb
-  change (1, b) ∈ A at hb
-  by_cases hba : b = a
-  . show b = a -- case hab : b = a
-    exact hba
-  . false_or_by_contra
-    show False
-    let A' := A \ {(1, b)}
-    have : PowerInductive a A' := by
-      constructor
-      . show (1, a) ∈ A' -- case hba : b ≠ a
-        constructor
-        . exact one_a_mem_A
-        . simpa using (Ne.symm hba) -- revisar
-      . show ∀ {x y : ℝ}, (x, y) ∈ A' → (x + 1, a * y) ∈ A'
-        -- va a salir xq x + 1 no es 1
-        sorry
-    sorry
-```
-:::theorem "power_function"
-Let `A = {n ∈ Natural : (n, y) ∈ PowerGraph (a : ℝ) for some y ∈ ℝ}`. Then,
-* `A = Natural`
-* `PowerGraph (a : ℝ)` is a function with domain `Natural` and
-    codomain ℝ
-*  `(1, a) ∈ PowerGraph (a : ℝ)`
-* If `(n , y) ∈ PowerGraph (a : ℝ)`,
-    then `(n , a · y) ∈ PowerGraph (a : ℝ)`
-:::
-
-:::proof "power_function"
-First we will show that `A` is an inductive set. Since `A ⊆ Natural`,
-we conclude by ({uses "Principle_of_Induction"}[]) that `A = Natural`.
-:::
-
-```lean "A_is_inductive"
-section
-def opA (a : ℝ):=
-  {n ∈ Natural | ∃ y : ℝ, (n, y) ∈ PowerGraph a}
-
--- Quizas se puede deducir de PowerGraph a is inductive
-
-theorem inductive_A (a : ℝ) : Inductive (opA a) := by
-  let A := opA a
-  unfold Inductive
+theorem power_eq_iff_mem_graph
+    (a y : ℝ) (n : Natural) :
+    a ** n = y ↔
+      ((n : ℝ), y) ∈
+        G a (fun _ y => a * y) := by
   constructor
-  . show (1 ∈ A)
-    change 1 ∈ Natural ∧  ∃ y : ℝ, (1, y) ∈ PowerGraph a
-    constructor
-    . show 1 ∈ Natural
-      exact one_mem_Natural
-    . show ∃ y : ℝ, (1, y) ∈ PowerGraph a
-      use a
-      intro H hH
-      exact hH.left
-  . show ∀ {x : ℝ}, x ∈ A → x + 1 ∈ A
-    intro x x_mem_A
-    change  x ∈ Natural ∧
-       ∃ y : ℝ, (x, y) ∈ PowerGraph a at x_mem_A
-    change x + 1 ∈ Natural ∧
-       ∃ y : ℝ, (x + 1, y) ∈ PowerGraph a
-    constructor
-    . show x + 1 ∈ Natural
-      exact succ_mem_Natural x_mem_A.left
-    . show ∃ y, (x + 1, y) ∈ PowerGraph a
-      rcases x_mem_A.right with ⟨y, pxy_mem_A⟩
-      use a * y
-      change ∀ {B : Set (ℝ × ℝ)},
-        PowerInductive a B → (x + 1, a * y) ∈ B
-      intro B hB
-      have pxy_mem_B : (x, y) ∈ B := by
-        exact  pxy_mem_A hB
-      exact hB.right pxy_mem_B
-
-theorem A_eq_Natural : (opA a) = Natural := by
-  let A := {n ∈ Natural | ∃ y : ℝ, (n, y) ∈ PowerGraph a}
-  have : A ⊆ Natural := by
-    intro a a_mem_A
-    exact a_mem_A.left
-  exact eq_natural_of_subset_of_inductive
-        this
-        (inductive_A a : Inductive (opA a))
-
-def opA' (a : ℝ):=
-  {n ∈ Natural | ∃! y : ℝ, (n, y) ∈ PowerGraph a}
-
-theorem inductive_A' (a : ℝ) : Inductive (opA' a) := by
-  let A' := opA' a
-  unfold Inductive
-  constructor
-  . show (1 ∈ A')
-    change 1 ∈ Natural ∧  ∃! y : ℝ, (1, y) ∈ PowerGraph a
-    constructor
-    . show 1 ∈ Natural
-      exact one_mem_Natural
-    . show ∃! y : ℝ, (1, y) ∈ PowerGraph a
-      use a
-      constructor
-      . intro H hH
-        exact hH.left
-      .
-        sorry
-  . show ∀ {x : ℝ}, x ∈ A' → x + 1 ∈ A'
-    intro x x_mem_A'
-    change  x ∈ Natural ∧
-       ∃! y : ℝ, (x, y) ∈ PowerGraph a at x_mem_A'
-    change x + 1 ∈ Natural ∧
-       ∃! y : ℝ, (x + 1, y) ∈ PowerGraph a
-    constructor
-    . show x + 1 ∈ Natural
-      exact succ_mem_Natural x_mem_A'.left
-    . show ∃! y, (x + 1, y) ∈ PowerGraph a
-      rcases x_mem_A'.right with ⟨y, pxy_mem_A⟩
-      use a * y
-      change ∀ {B : Set (ℝ × ℝ)},
-        PowerInductive a B → (x + 1, a * y) ∈ B
-      intro B hB
-      have pxy_mem_B : (x, y) ∈ B := by
-        exact  pxy_mem_A hB
-      exact hB.right pxy_mem_B
-
-end
+  · intro h
+    rw [← h]
+    exact power_mem_graph a n
+  · intro hy
+    exact
+      ((Classical.choose_spec
+        (G_is_function
+          (a := a)
+          (step := fun _ y => a * y)
+          (n : ℝ)
+          n.property)).2 y hy).symm
 ```
-```lean "(opA a)  is a function"
-section
-variable (a : ℝ)
-
-theorem function_f :
-  ∀ n ∈ Natural,
-    ∃! y : ℝ, (n, y) ∈ PowerGraph a := by
-    intro n n_mem_Natural
-    constructor
-    . have : n ∈ (opA a) := by
-        rw [A_eq_Natural]
-        exact  n_mem_Natural
-      sorry
-    . sorry
-
-end
-```
-
-
 Having already defined the power with natural exponent,
 we prove its main properties:
 
-:::proposition "prop_1.11"
+:::proposition "sum_exponents"
 Let $`a` be any real number and let $`m` and $`n` be any natural numbers.
-Then:
-  * a) $`a^{m + n} = a^m ⋅ a^n`
+Then, `a ** (m + n) = a ** m ⋅ a ** n`
+:::
 
-  * b) $`(a^m)^n =a^{m⋅n}`
+:::proposition "mul_exponents"
+Let $`a` be any real number and let $`m` and $`n` be any natural numbers.
+Then,  `(a ** m) ** n = a ** (m ⋅ n)`
 :::
 ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
 
-:::proof "prop_1.11"
+:::proof "sum_exponents"
 * a) We consider the following statement:
 $$`P(n) : a^{m + n} \text{ is equal to } a^m ⋅ a^n`
-whatever the natural number $`m`"
+whatever the natural number $`m`
 :::
 
+```lean "sum_exponents"
+-- theorem power_add (a : ℝ) (n m : ℝ) (hn : n ∈ Natural)
+--  (hm : m ∈ Natural):
+--     power' a (n + m) (add_Nat hn hm) =
+--        (power' a n hn) * (power' a  m hm) := by
+--   let H := {k ∈ Natural |
+--     power' a (n + k) (add_Nat hn }
+--        sorry
+
+-- @[simp]
+-- theorem power_one (a : ℝ) :
+--     a ** one = a := by
+--   sorry
+
+theorem power_one (a : ℝ) :
+    a ** one = a := by
+  apply
+    (power_eq_iff_mem_graph a a one).mpr
+
+  change
+    ((1 : ℝ), a) ∈
+      ⋂₀ {H : Set (ℝ × ℝ) |
+        G_inductive a (fun _ y => a * y) H}
+
+  intro H hH
+  exact hH.left
+
+-- @[simp]
+theorem power_succ (a : ℝ) (n : Natural) :
+    a ** succ n = a * (a ** n) := by
+  apply
+    (power_eq_iff_mem_graph
+      a
+      (a * (a ** n))
+      (succ n)).mpr
+
+  have hn :
+      ((n : ℝ), a ** n) ∈
+        G a (fun _ y => a * y) :=
+    power_mem_graph a n
+
+  have hsucc :
+      ((n : ℝ) + 1, a * (a ** n)) ∈
+        G a (fun _ y => a * y) :=
+    (G_set_inductive
+      a
+      (fun _ y => a * y)).2 hn
+
+  exact hsucc
+
+theorem custom_power_add
+    (a : ℝ) (n m : Natural) :
+    power a (addNatural n m) = a ** n * a ** m := by
+  let H := {k : Natural | power a (addNatural n k) =
+    a ** n * a ** k}
+  let H' : Set ℝ := Subtype.val '' H
+  have IH' : Inductive H' := by
+    constructor
+    . show 1 ∈ H'
+      have one_mem_H : one ∈ H := by
+        change power a (succ n) =
+          a ** n * a ** one
+        have : a ** one = a := by
+          exact power_one a
+        rw [this]
+        have : a ** n * a = a * a ** n := by ring
+        rw [this]
+        exact power_succ a n
+      change (1 : ℝ) ∈ Subtype.val '' H
+      exact ⟨one, one_mem_H, rfl⟩
+
+    . show  ∀ {x : ℝ}, x ∈ H' → x + 1 ∈ H'
+      intro k hk
+      change k ∈ Subtype.val '' H at hk
+      rcases hk with ⟨kN, kN_mem_H, rfl⟩
+
+      have succ_kN_mem_H : succ kN ∈ H := by
+        change power a (addNatural n (succ kN)) =
+          a ** n * a ** (succ kN)
+        rw [power_succ a kN]
+        have : a ** n * (a * a ** kN) =
+          a ** n * a ** kN * a := by ring
+        rw [this]
+        rw [← kN_mem_H]
+        rw [add_succ n kN]
+        have : a ** addNatural n kN * a =
+           a * a ** addNatural n kN := by ring
+        rw [this]
+        exact power_succ a (addNatural n kN)
+
+      change (kN : ℝ) + 1 ∈ Subtype.val '' H
+      exact ⟨succ kN, succ_kN_mem_H, rfl⟩
+
+  have hH' : H' ⊆ Natural := by
+    intro x hx
+    change x ∈ Subtype.val '' H at hx
+    rcases hx with ⟨k, hkH, rfl⟩
+    exact k.property
+  have : H' = Natural := by
+    exact eq_natural_of_subset_of_inductive  hH' IH'
+
+  have hmH' : (m : ℝ) ∈ H' := by
+    rw [this]
+    exact m.property
+
+  have hmH : m ∈ H := by
+    rcases hmH' with ⟨k, hkH, hk_eq_m⟩
+
+    have hkm : k = m := by
+      exact Subtype.ext hk_eq_m
+
+    simpa [hkm] using hkH
+    -- subst m
+    -- assumption
+
+  exact hmH
+```
+
+```lean "custom_power_mul"
+theorem custom_power_mul
+    (a : ℝ) (n m : Natural) :
+    power a (addNatural n m) = a ** n * a ** m := by
+  let H := {k : Natural | power a (addNatural n k) =
+    a ** n * a ** k}
+  let H' : Set ℝ := Subtype.val '' H
+  have IH' : Inductive H' := by
+    constructor
+    . show 1 ∈ H'
+      have one_mem_H : one ∈ H := by
+        change power a (succ n) =
+          a ** n * a ** one
+        have : a ** one = a := by
+          exact power_one a
+        rw [this]
+        have : a ** n * a = a * a ** n := by ring
+        rw [this]
+        exact power_succ a n
+      change (1 : ℝ) ∈ Subtype.val '' H
+      exact ⟨one, one_mem_H, rfl⟩
+
+    . show  ∀ {x : ℝ}, x ∈ H' → x + 1 ∈ H'
+      intro k hk
+      change k ∈ Subtype.val '' H at hk
+      rcases hk with ⟨kN, kN_mem_H, rfl⟩
+
+      have succ_kN_mem_H : succ kN ∈ H := by
+        change power a (addNatural n (succ kN)) =
+          a ** n * a ** (succ kN)
+        rw [power_succ a kN]
+        have : a ** n * (a * a ** kN) =
+          a ** n * a ** kN * a := by ring
+        rw [this]
+        rw [← kN_mem_H]
+        rw [add_succ n kN]
+        have : a ** addNatural n kN * a =
+           a * a ** addNatural n kN := by ring
+        rw [this]
+        exact power_succ a (addNatural n kN)
+
+      change (kN : ℝ) + 1 ∈ Subtype.val '' H
+      exact ⟨succ kN, succ_kN_mem_H, rfl⟩
+
+  have hH' : H' ⊆ Natural := by
+    intro x hx
+    change x ∈ Subtype.val '' H at hx
+    rcases hx with ⟨k, hkH, rfl⟩
+    exact k.property
+  have : H' = Natural := by
+    exact eq_natural_of_subset_of_inductive  hH' IH'
+
+  have hmH' : (m : ℝ) ∈ H' := by
+    rw [this]
+    exact m.property
+
+  have hmH : m ∈ H := by
+    rcases hmH' with ⟨k, hkH, hk_eq_m⟩
+
+    have hkm : k = m := by
+      exact Subtype.ext hk_eq_m
+
+    simpa [hkm] using hkH
+    -- subst m
+    -- assumption
+
+  exact hmH
+```
 :::proposition  "prop_1.12" (tags := "Bernoulli's Inequality")(parent := "definitions_induction")(lean := "zero_lt_one")
 If $`h` is a real number greater than $`−1`,
 then for every natural number n it holds:
