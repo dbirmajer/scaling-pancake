@@ -2,7 +2,7 @@ import Mathlib.Data.Nat.Notation
 import Mathlib.Data.Real.Basic
 import Mathlib.Tactic
 
-  import ProjectTemplate.Chapters.Section_1_3
+  import ProjectTemplate.Chapters.Section_1_3_zero
 
 import Verso
 import VersoManual
@@ -29,7 +29,7 @@ open NaturalNumbers
 :::definition "general_induction"
 A set `H ⊆ ℝ × ℝ` is `G`-inductive with _initial value_ `a ∈ ℝ` and
 _inductive step_ `step : ℝ → ℝ → ℝ` if it  satisfies the following properties:
-* `(1, a) ∈ H`
+* `(0, a) ∈ H`
 * If `(x, y) ∈ H`, then `(x + 1, step x y) ∈ H`
 In this case, we write `(a, step, H)` is `G`-inductive.
 :::
@@ -37,7 +37,7 @@ In this case, we write `(a, step, H)` is `G`-inductive.
 ```lean "general_induction"
 def G_inductive (a : ℝ) (step : ℝ → ℝ → ℝ)
   (H : Set (ℝ × ℝ)) : Prop :=
-    (1, a) ∈ H ∧
+    (0, a) ∈ H ∧
       ∀ {x y : ℝ}, (x, y) ∈ H → (x + 1, step x y) ∈ H
 ```
 
@@ -51,8 +51,8 @@ theorem natural_times_R {a : ℝ} {step : ℝ → ℝ → ℝ} :
   G_inductive a step (Natural ×ˢ (Set.univ : Set ℝ)) := by
   let R := (Set.univ : Set ℝ)
   constructor
-  . show (1, a) ∈ Natural ×ˢ R
-    exact ⟨one_mem_Natural , Set.mem_univ a⟩
+  . show (0, a) ∈ Natural ×ˢ R
+    exact ⟨zero_mem_Natural , Set.mem_univ a⟩
   . show ∀ {x y : ℝ}, (x, y) ∈ Natural ×ˢ R →
       (x + 1, step x y) ∈ Natural ×ˢ Set.univ
     intro x y hp

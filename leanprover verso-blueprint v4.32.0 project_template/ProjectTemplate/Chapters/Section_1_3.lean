@@ -70,6 +70,11 @@ def isNatural (x : ℝ) : Prop :=
 -- The Set of Natural numbeers
 def Natural : Set ℝ := {x | isNatural x}
 
+-- ```lean "G set"
+-- def G (a : ℝ) (step : ℝ → ℝ → ℝ ) :=
+--   ⋂₀  {A : Set (ℝ × ℝ) | G_inductive a step A}
+-- ```
+
 -- For x : ℝ, x ∈ Natural is equivalent to isNatural x
 example {x : ℝ} :
   x ∈ Natural ↔ isNatural x := by
@@ -187,13 +192,13 @@ example :
   intro n m
   exact sum_of_naturals n m
 
-def addNatural (n m : Natural) : Natural :=
+def addNat (n m : Natural) : Natural :=
   ⟨(n : ℝ) + (m : ℝ), sum_of_naturals n m⟩
 
 theorem add_succ (n m : Natural) :
-  addNatural n (succ m) = succ (addNatural n m) := by sorry
+  addNat n (succ m) = succ (addNat n m) := by sorry
 
-theorem add_Nat {n m : ℝ}
+theorem add_Natural {n m : ℝ}
   (hn : n ∈ Natural)
   (hm: m ∈ Natural) : n + m ∈ Natural := by
     exact sum_of_naturals ⟨n, hn⟩ ⟨m, hm⟩
@@ -239,8 +244,15 @@ example :
   intro n m
   exact sum_of_naturals n m
 
-def mulNatural (n m : Natural) : Natural :=
+def mulNat (n m : Natural) : Natural :=
   ⟨(n : ℝ) * (m : ℝ), mul_of_naturals n m⟩
+
+theorem mul_one (n : Natural) :
+  mulNat n one = n := by sorry
+
+theorem mul_succ (n m : Natural) :
+  mulNat n (succ m) =
+    addNat (mulNat n m) n := by sorry
 ```
 
 # More Properties of the Natural Numbers
