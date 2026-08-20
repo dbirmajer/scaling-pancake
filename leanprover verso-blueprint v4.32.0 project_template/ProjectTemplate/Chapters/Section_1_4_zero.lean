@@ -26,6 +26,7 @@ open NaturalNumbers
 
 # Generalized Induction
 
+
 :::definition "general_induction"
 A set `H ⊆ ℝ × ℝ` is `G`-inductive with _initial value_ `a ∈ ℝ` and
 _inductive step_ `step : ℝ → ℝ → ℝ` if it  satisfies the following properties:
@@ -33,6 +34,17 @@ _inductive step_ `step : ℝ → ℝ → ℝ` if it  satisfies the following pro
 * If `(x, y) ∈ H`, then `(x + 1, step x y) ∈ H`
 In this case, we write `(a, step, H)` is `G`-inductive.
 :::
+
+```lean "RecInductive"
+def RecInductive
+    (initial : ℝ)
+    (step : Natural → ℝ → ℝ)
+    (H : Set (Natural × ℝ)) : Prop :=
+  (zero, initial) ∈ H ∧
+  ∀ {n : Natural} {x : ℝ},
+    (n, x) ∈ H →
+    (succ n, step n x) ∈ H
+```
 
 ```lean "general_induction"
 def G_inductive (a : ℝ) (step : ℝ → ℝ → ℝ)
@@ -46,51 +58,107 @@ For any `a ∈ ℝ` and step function `step : ℝ → ℝ → ℝ`,
 `Natural × ℝ` is `G`-inductive.
 :::
 
+:::lemma_ "Natural × ℝ is RecInductive" (tags := "Natural × ℝ is RecInductive")
+For any `a ∈ ℝ` and step function `step : ℝ → ℝ → ℝ`,
+`Natural × ℝ` is RecInductive.
+:::
+
 ```lean "general_induction_example"
 theorem natural_times_R {a : ℝ} {step : ℝ → ℝ → ℝ} :
   G_inductive a step (Natural ×ˢ (Set.univ : Set ℝ)) := by
   let R := (Set.univ : Set ℝ)
   constructor
   . show (0, a) ∈ Natural ×ˢ R
-    exact ⟨zero_mem_Natural , Set.mem_univ a⟩
+    exact ⟨zero.property , Set.mem_univ a⟩
   . show ∀ {x y : ℝ}, (x, y) ∈ Natural ×ˢ R →
       (x + 1, step x y) ∈ Natural ×ˢ Set.univ
     intro x y hp
+    have : x ∈ Natural := by
+      exact hp.1
     have : x + 1 ∈ Natural := by
-        exact succ_mem_Natural hp.1
+        let sx := succ ⟨x, this⟩
+        exact sx.property
     exact ⟨this, Set.mem_univ (step x y)⟩
 
-theorem remove_wrong_base
-  {a b: ℝ} {step : ℝ → ℝ → ℝ} (hab : a ≠ b) :
-    G_inductive a step
-      ((Natural ×ˢ
-        (Set.univ : Set ℝ)) \ {(1, b)}) := by
-  let S := (Natural ×ˢ  (Set.univ : Set ℝ)) \ {(1, b)}
+theorem recInductive_univ {a : ℝ} {step : Natural → ℝ → ℝ} :
+  RecInductive a step
+    (Set.univ : Set (Natural × ℝ)) := by
   constructor
-  . show (1, a) ∈ S
+
+  . show (zero, a) ∈ Set.univ
+    exact Set.mem_univ  (zero, a)
+
+  . show ∀ {n : Natural} {x : ℝ}, (n, x) ∈ Set.univ →
+      (succ n, step n x) ∈ Set.univ
+    intro n x hp
+    exact Set.mem_univ (succ n, step n x)
+```
+
+
+```lean "remove_wrong_base"
+theorem remove_wrong_base
+  {a b: ℝ} {step : Natural → ℝ → ℝ} (hab : a ≠ b) :
+    RecInductive a step
+    ((Set.univ : Set (Natural × ℝ)) \ {(zero,  b)}) := by
+
+  let U := (Set.univ : Set (Natural × ℝ))
+  let S := U  \ {(zero,  b)}
+  constructor
+  . show (zero, a) ∈ S
+
     constructor
-    . show (1, a) ∈ Natural ×ˢ (Set.univ : Set ℝ)
-      exact ⟨one_mem_Natural, Set.mem_univ a⟩
-    . show  (1, a) ∉ {(1, b)}
+    . show (zero, a) ∈ U
+      exact Set.mem_univ (zero,  a)
+
+    . show  (zero, a) ∉ {(zero, b)}
       intro h
-      have : a = b := by
-         exact congrArg Prod.snd h
-      exact hab this
-  . show ∀ {x y : ℝ}, (x, y) ∈ S → (x + 1, step x y) ∈ S
-    intro x y hxy
-    change (x, y) ∈
-      (Natural ×ˢ  (Set.univ : Set ℝ)) \ {(1, b)} at hxy
-    have x_mem_Natural : x ∈ Natural := by
-      exact hxy.left.left
-    have succ_x_mem_Nat : x + 1 ∈ Natural := by
-      exact succ_mem_Natural x_mem_Natural
-    have : (x + 1, step x y) ≠ (1, b) := by
+      exact hab (congrArg Prod.snd h)
+
+  . show ∀ {n : Natural} {x : ℝ},
+      (n, x) ∈ S → (succ n, step n x) ∈ S
+    intro n x hpG
+    change (succ n, step n x) ∈ Set.univ \ {(zero, b)}
+    constructor
+    . show (succ n, step n x) ∈ Set.univ
+      exact Set.mem_univ (succ n, step n x)
+
+    . show (succ n, step n x) ∉ {(zero, b)}
       intro h
-      have : x + 1 = 1 := by
-        exact congrArg Prod.fst h
-      exact (ne_of_lt (one_lt_succ x_mem_Natural)) this.symm
-    exact ⟨⟨succ_x_mem_Nat, Set.mem_univ (step x y) ⟩,
-      this⟩
+      have : succ n = zero := by
+        exact (congrArg Prod.fst h)
+      exact ne_of_lt (zero_lt_succ n) this.symm
+
+-- theorem remove_wrong_base
+--   {a b: ℝ} {step : ℝ → ℝ → ℝ} (hab : a ≠ b) :
+--     G_inductive a step
+--       ((Natural ×ˢ
+--         (Set.univ : Set ℝ)) \ {(1, b)}) := by
+--   let S := (Natural ×ˢ  (Set.univ : Set ℝ)) \ {(1, b)}
+--   constructor
+--   . show (0, a) ∈ S
+--     constructor
+--     . show (0, a) ∈ Natural ×ˢ (Set.univ : Set ℝ)
+--       exact ⟨zero.property, Set.mem_univ a⟩
+--     . show  (0, a) ∉ {(0, b)}
+--       intro h
+--       have : a = b := by
+--          exact congrArg Prod.snd h
+--       exact hab this
+--   . show ∀ {x y : ℝ}, (x, y) ∈ S → (x + 1, step x y) ∈ S
+--     intro x y hxy
+--     change (x, y) ∈
+--       (Natural ×ˢ  (Set.univ : Set ℝ)) \ {(1, b)} at hxy
+--     have x_mem_Natural : x ∈ Natural := by
+--       exact hxy.left.left
+--     have succ_x_mem_Nat : x + 1 ∈ Natural := by
+--       exact succ_mem_Natural x_mem_Natural
+--     have : (x + 1, step x y) ≠ (1, b) := by
+--       intro h
+--       have : x + 1 = 1 := by
+--         exact congrArg Prod.fst h
+--       exact (ne_of_lt (one_lt_succ x_mem_Natural)) this.symm
+--     exact ⟨⟨succ_x_mem_Nat, Set.mem_univ (step x y) ⟩,
+--       this⟩
 ```
 
 :::definition "G set"
@@ -102,9 +170,16 @@ _smallest_  `G`-inductive set with _initial value_
 `G = ⋂₀ {A : (a, step, A) is `G`-inductive}`
 :::
 
+
 ```lean "G set"
 def G (a : ℝ) (step : ℝ → ℝ → ℝ ) :=
   ⋂₀  {A : Set (ℝ × ℝ) | G_inductive a step A}
+
+def RecGraph
+    (initial : ℝ)
+    (step : Natural → ℝ → ℝ) :
+    Set (Natural × ℝ) :=
+  ⋂₀ {H | RecInductive initial step H}
 ```
 
 :::lemma_ "G ⊆ Natural × ℝ"
@@ -149,218 +224,179 @@ tbc
 :::
 
 ```lean "G set is G-inductive"
-theorem G_set_inductive (a : ℝ) (step : ℝ → ℝ → ℝ)
-   : G_inductive a step (G a step)   := by
-  let F := G a step
-  unfold G_inductive
+theorem RG_inductive (a : ℝ) (step : Natural → ℝ → ℝ)
+   : RecInductive a step (RecGraph a step)   := by
+  let F := RecGraph a step
+--  unfold G_inductive
   constructor
-  . show (1, a) ∈ F
-    change (1, a) ∈
-      ⋂₀ {A : Set (ℝ × ℝ) | G_inductive a step A}
-    rw [Set.mem_sInter]
+
+  . show (zero, a) ∈ RecGraph a step
+    change (zero, a) ∈
+      ⋂₀ {A : Set (Natural × ℝ) | RecInductive a step A}
+    apply Set.mem_sInter.mpr
     intro A hA
     exact hA.left
-  . show ∀ {x y : ℝ}, (x, y) ∈ F → (x + 1, step x y) ∈ F
-    intro x y pxy
-    change (x + 1, step x y) ∈
-      ⋂₀ {A : Set (ℝ × ℝ) | G_inductive a step A}
-    rw [Set.mem_sInter]
-    intro A hA
-    have : (x, y) ∈ A := by
-      exact pxy A hA
+
+  . show ∀ {n : Natural} {x : ℝ}, (n, x) ∈ F →
+      (succ n, step n x) ∈ F
+    intro n x pnx A hA
+    have : (n, x) ∈ A := by
+      exact pnx A hA
     exact hA.right this
 ```
 
-:::corollary "π₁ G = Natural"
-`π₁ G = Natural`
-:::
 
-:::proof "π₁ G = Natural"
-Since `π₁ G ⊆ Natural`, by {uses "Principle_of_Induction"}[],
-it is enough to show that `π₁ G ⊆ Natural` is inductive.
-:::
-
-```lean "π₁ G = Natural_proof"
-theorem fst_G_eq_natural {a : ℝ} {step: ℝ → ℝ → ℝ} :
-  Prod.fst '' (G  a step) = Natural  := by
-  let F := G  a step
-  have G_inductive_F : G_inductive a step F := by
-    exact (G_set_inductive a step)
-  let X := Prod.fst '' F
-  have X_subset_Natural: X ⊆ Natural := by
-    exact fst_G_subset_natural
-  have IX : Inductive X := by
-    constructor
-    . show 1 ∈ X
-      have : (1, a) ∈ F := by
-        exact G_inductive_F.left
-      exact ⟨(1, a), this, rfl⟩
-    . show ∀ {x : ℝ}, x ∈ X → x + 1 ∈ X
-      intro x hx
-      change ∃ p, p ∈ F ∧ p.1 = x at hx
-      rcases hx with ⟨p, p_mem_F, fst_p_eq_x⟩
-      let y := p.2
-      have : (x, y) = p := by
-        subst x
-        subst y
-        exact Prod.eta p
-      have : (x, y) ∈ F := by
-        rw [this]
-        exact p_mem_F
-      have : (x + 1, step x y) ∈ F := by
-        exact G_inductive_F.right this
-      exact ⟨(x + 1, step x y), this, rfl⟩
-  exact eq_natural_of_subset_of_inductive
-    X_subset_Natural
-    IX
-```
 :::theorem "G a step is a function"
 `G a step` is a functiom
 :::
 
-```lean "G a step is a function"
-theorem unique_at_one
-  (a : ℝ) (step : ℝ → ℝ → ℝ) :
-  ∀ b : ℝ, (1, b) ∈ G a step → a = b := by
-  intro b hb
+
+```lean "RecGraph is a function"
+theorem unique_at_zero
+  (a : ℝ) (step : Natural → ℝ → ℝ) :
+  ∀ b : ℝ, (zero, b) ∈ RecGraph a step → a = b := by
+  intro b hzb
   by_cases hab : a = b
   . show a = b -- hab : a = b
     exact hab
   . show a = b -- hab : a ≠ b
     false_or_by_contra
-    let S := ((Natural ×ˢ
-        (Set.univ : Set ℝ)) \ {(1, b)})
-    have IS : G_inductive a step S := by
+--    ((Set.univ : Set (Natural × ℝ)) \ {(zero,  b)}) := by
+
+    let U := (Set.univ : Set (Natural × ℝ))
+    let S := U  \ {(zero,  b)}
+
+  --  let S := Set.univ (Natural × ℝ) \ {(zero, b)})
+    have IS : RecInductive a step S := by
         exact remove_wrong_base hab
-    have : G a step ⊆ S := by
-        exact Set.sInter_subset_of_mem IS
-    have : (1, b) ∈ S := by
-      exact this hb
-    rcases this with ⟨_, b_ne_b⟩
-    exact b_ne_b (Set.mem_singleton (1, b))
 
-theorem G_is_function (a : ℝ) (step : ℝ → ℝ → ℝ) :
-  ∀ n ∈ Natural, ∃! y : ℝ, (n, y) ∈  G a step := by
-  let A := G a step
+    have : (zero, b) ∈ S := by
+      exact (Set.sInter_subset_of_mem IS) hzb
 
-  have IA : G_inductive a step A :=
-    by exact G_set_inductive a step
+    rcases this with ⟨_, hb⟩
 
-  let H := {n ∈ Natural | ∃! y : ℝ, (n, y) ∈  A}
+    exact hb (Set.mem_singleton (zero, b))
 
-  have H_substet_Nat : H ⊆ Natural := by
-    intro x hx
-    exact hx.left
+theorem RG_is_function (a : ℝ) (step : Natural → ℝ → ℝ) :
+  ∀ n : Natural, ∃! x : ℝ, (n, x) ∈  RecGraph a step := by
 
-  have IH : Inductive H := by
+  let P (n : Natural) :=
+    ∃! x : ℝ, (n, x) ∈  RecGraph a step
+
+  let F := RecGraph a step
+
+  have F_inductive : RecInductive a step F := by
+          exact RG_inductive a step
+
+  have zaF : (zero, a) ∈ F := by
+    exact F_inductive.left
+
+  have zero_case : P zero := by
+  --∃! x : ℝ, (zero, x) ∈ F := by
+    use a
     constructor
-    . show 1 ∈ H
-      exact ⟨one_mem_Natural,
-        ⟨a,
-          ⟨IA.left, fun y hy =>
-            (unique_at_one a step y hy).symm⟩ ⟩⟩
-    . show ∀ {x : ℝ}, x ∈ H → x + 1 ∈ H
-      intro n n_mem_H
-      rcases n_mem_H with
-        ⟨n_mem_Nat, y, ⟨pny_mem_A, y_unique⟩⟩
+    . exact zaF
+    . intro y hy
+      exact (unique_at_zero a step y hy).symm
 
-      change n + 1 ∈ Natural ∧
-        (∃ y' : ℝ, (n + 1, y') ∈ A ∧
-          ∀ b : ℝ, (n + 1, b) ∈ A → b = y')
+  have succ_case : ∀ n : Natural,
+    P n → P (succ n) := by
+    -- (∃! x : ℝ, (n, x) ∈  F) →
+    --   ∃! x' : ℝ, (succ n, x') ∈ F := by
+    intro n hn
 
-      have succ_n_mem_Nat : n + 1 ∈ Natural :=
-        by exact succ_mem_Natural n_mem_Nat
+    rcases hn with ⟨x, hnx, hux⟩
+    use step n x
+    constructor
+    . exact F_inductive.right hnx
+    .
+      intro y hny
+      by_contra hxy
+      let B := F \ {(succ n, y)}
 
-      let y' := step n y
+      have hsubset : B ⊆ F := by
+        exact Set.diff_subset
 
-      have ey' : (n + 1, y') ∈ A := by
-        exact IA.right pny_mem_A
+      have hproper :B ≠ F := by
+        intro hBF
 
-      have uy' : ∀ b : ℝ, (n + 1, b) ∈ A → b = y' := by
-        intro b p_mem_A
-        by_cases hb : b = y'
-        . exact hb
+        have hnyB : (succ n, y) ∈ B := by
+          rw [hBF]
+          exact hny
 
-        . let B := A \ {(n + 1, b)}
+        rcases hnyB with ⟨_, hnot_mem⟩
+        apply hnot_mem
+        exact Set.mem_singleton (succ n, y)
 
-          have B_subset_A : B ⊆ A:= by
-            exact Set.sdiff_subset
 
-          have IB : G_inductive a step B := by
-            constructor
-            . show (1, a) ∈ B
+      have : RecInductive a step B := by
+        constructor
+        . have : (zero, a) ≠ (succ n, y) := by
+            intro h
+            have : zero = succ n :=
+              congrArg Prod.fst h
+            exact ne_of_lt (zero_lt_succ n) this
 
-              have : 1 ≠ n + 1 := by
-                exact ne_of_lt (one_lt_succ n_mem_Nat)
+          exact ⟨zaF, this⟩
 
-              have : (1, a) ≠ (n + 1, b) := by
-                intro h
-                exact this (congrArg Prod.fst h)
-              exact ⟨IA.left, this⟩
+        . intro k z kzB
 
-            . show ∀ {u v : ℝ}, (u, v) ∈ B →
-                (u + 1, step u v) ∈ B
-              intro u v puv_mem_B
+          have kzF : (succ k, step k z) ∈ F :=
+            by exact F_inductive.right kzB.left
 
-              have puv_mem_A : (u , v) ∈ A := by
-                  exact B_subset_A puv_mem_B
+          have kzy : (succ k, step k z) ≠ (succ n , y) := by
+            intro h
+            by_cases hkn : k = n
+            . -- hkn : k = n
+              rw [hkn] at kzB
+              rw [hkn] at h
+              have : z = x := by
+                exact hux z kzB.left
+              rw [this ]at h
 
-              have psucc_mem_A : (u + 1, step u v) ∈ A :=
-                  by exact IA.right puv_mem_A
+              have : step n x = y := by
+                exact congrArg Prod.snd h
 
-              by_cases hun : u = n
-              . subst u -- hun : u = n
-                show (n + 1, step n v) ∈ B
+              exact hxy this.symm
 
-                have : v = y := by
-                  exact y_unique  v puv_mem_A
+            . -- hkn : k ≠ n
 
-                subst v
-                change (n + 1, y') ∈ B
+              have : succ k = succ n := by
+                exact  congrArg Prod.fst h
 
-                have : (n + 1, b) ≠ (n + 1, y') := by
-                  intro h
-                  apply hb
-                  exact congrArg Prod.snd h
-                exact ⟨psucc_mem_A, this.symm⟩
+              exact hkn (succ.inj this)
 
-              . show (u + 1, step u v) ∈ B -- hun : u ≠ n
-                have hsucc_ne : u + 1 ≠ n + 1 := by
-                  intro hsucc
-                  apply hun
-                  exact add_right_cancel hsucc
+          exact ⟨kzF, kzy⟩
 
-                have : (u + 1, step u v) ≠ (n + 1, b) := by
-                  intro phsucc
-                  apply hsucc_ne
-                  exact congrArg Prod.fst phsucc
-                exact ⟨psucc_mem_A, this⟩
+      have : F ⊆ B := by
+        exact Set.sInter_subset_of_mem this
 
-          have : A ⊆ B := by
-            unfold A
-            apply Set.sInter_subset_of_mem
-            exact IB
+      have : F = B := by
+        exact Set.Subset.antisymm this hsubset
 
-          have : (n + 1, b) ∈ B := by
-            exact this p_mem_A
+      exact hproper this.symm
 
-          have : (n + 1, b) ≠ (n + 1, b) := by
-            rcases this with ⟨hB, hk⟩
-            exact hk
-          false_or_by_contra
-          exact this rfl
+  intro n
+  exact induction zero_case succ_case n
+```
 
-      exact ⟨succ_n_mem_Nat, ⟨y', ⟨ey', uy'⟩⟩⟩
+```lean "recursion"
+-- Induction defines proofs;
+-- recursion defines functions.
+theorem Natural.recursion
+    (initial : ℝ)
+    (step : Natural → ℝ → ℝ) :
+    ∃! f : Natural → ℝ,
+      f zero = initial ∧
+      ∀ n : Natural,
+        f (succ n) = step n (f n) := by
+  sorry
 
-  have : H = Natural := by
-    exact eq_natural_of_subset_of_inductive H_substet_Nat IH
-  intro x hx
-
-  have : x ∈ H := by
-    rw [this]
-    exact hx
-
-  exact this.right
+noncomputable def Natural.rec
+    (initial : ℝ)
+    (step : Natural → ℝ → ℝ) :
+    Natural → ℝ :=
+  Classical.choose (Natural.recursion initial step)
 ```
 
 # Powers with Natural exponents
