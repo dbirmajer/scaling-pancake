@@ -292,7 +292,6 @@ theorem RG_is_function (a : ℝ) (step : Natural → ℝ → ℝ) :
     exact F_inductive.left
 
   have zero_case : P zero := by
-  --∃! x : ℝ, (zero, x) ∈ F := by
     use a
     constructor
     . exact zaF
@@ -301,8 +300,6 @@ theorem RG_is_function (a : ℝ) (step : Natural → ℝ → ℝ) :
 
   have succ_case : ∀ n : Natural,
     P n → P (succ n) := by
-    -- (∃! x : ℝ, (n, x) ∈  F) →
-    --   ∃! x' : ℝ, (succ n, x') ∈ F := by
     intro n hn
 
     rcases hn with ⟨x, hnx, hux⟩
@@ -360,7 +357,6 @@ theorem RG_is_function (a : ℝ) (step : Natural → ℝ → ℝ) :
               exact hxy this.symm
 
             . -- hkn : k ≠ n
-
               have : succ k = succ n := by
                 exact  congrArg Prod.fst h
 
@@ -384,21 +380,102 @@ theorem RG_is_function (a : ℝ) (step : Natural → ℝ → ℝ) :
 -- Induction defines proofs;
 -- recursion defines functions.
 theorem Natural.recursion
-    (initial : ℝ)
-    (step : Natural → ℝ → ℝ) :
-    ∃! f : Natural → ℝ,
+  (initial : ℝ)
+  (step : Natural → ℝ → ℝ) : ∃! f : Natural → ℝ,
       f zero = initial ∧
+        ∀ n : Natural,f (succ n) = step n (f n) := by
+
+    let F := RecGraph initial step
+
+    let f : Natural → ℝ :=
+      fun n => Classical.choose
+        (RG_is_function initial step n)
+
+    have f_spec (n : Natural) :
+      (n, f n) ∈ RecGraph initial step ∧
+      ∀ y : ℝ,
+        (n, y) ∈ RecGraph initial step →
+        y = f n := by
+      exact
+      Classical.choose_spec
+        (RG_is_function initial step n)
+
+    have hRG :
+      RecInductive initial step F := by
+        exact RG_inductive initial step
+
+    have f_zero : f zero = initial := by
+      have hinitial : (zero, initial) ∈ F := by
+        exact hRG.left
+      exact ((f_spec zero).2 initial hinitial).symm
+
+    have f_succ :
       ∀ n : Natural,
         f (succ n) = step n (f n) := by
-  sorry
+      intro n
+
+      have hstep :
+        (succ n, step n (f n)) ∈ RecGraph initial step := by
+          exact hRG.2 (f_spec n).1
+
+      exact ((f_spec (succ n)).right
+        (step n (f n)) hstep).symm
+
+    refine ⟨f, ⟨f_zero, f_succ⟩, ?_⟩
+
+     -- Uniqueness
+    intro g hg
+    funext n
+
+    apply induction (P := fun n => g n = f n)
+
+    · calc
+      g zero = initial := hg.1
+      _ = f zero := f_zero.symm
+
+    · intro n ih
+      calc
+      g (succ n) = step n (g n) := hg.2 n
+      _ = step n (f n) := congrArg (step n) ih
+      _ = f (succ n) := (f_succ n).symm
+
 
 noncomputable def Natural.rec
     (initial : ℝ)
     (step : Natural → ℝ → ℝ) :
     Natural → ℝ :=
   Classical.choose (Natural.recursion initial step)
+
+theorem Natural.rec_spec
+    (initial : ℝ)
+    (step : Natural → ℝ → ℝ) :
+    Natural.rec initial step zero = initial ∧
+    ∀ n : Natural,
+      Natural.rec initial step (succ n) =
+        step n (Natural.rec initial step n) := by
+  exact
+    (Classical.choose_spec
+      (Natural.recursion initial step)).1
 ```
 
+```lean "simplificstion theorems"
+@[simp]
+theorem Natural.rec_zero
+    (initial : ℝ)
+    (step : Natural → ℝ → ℝ) :
+    Natural.rec initial step zero = initial := by
+  exact (Natural.rec_spec initial step).left
+
+
+@[simp]
+theorem Natural.rec_succ
+    (initial : ℝ)
+    (step : Natural → ℝ → ℝ)
+    (n : Natural) :
+    Natural.rec initial step (succ n) =
+      step n (Natural.rec initial step n) := by
+  exact (Natural.rec_spec initial step).right n
+```
 # Powers with Natural exponents
 
 We will begin with the definition of powers with natural exponents.
@@ -406,60 +483,21 @@ We will begin with the definition of powers with natural exponents.
 Given a real number `a`, our goal is to define a function
 `f: Natural → ℝ`  satisfying:
 
-* `f(1) = a`
-* `f (n + 1) = a · f(a)` for all `n ∈ Natural`
+* `f(0) = 1`
+* `f (n + 1) = a · f(n)` for all `n ∈ Natural`
 
 To that end, we start with the following definition:
 
 `Power a = G a (fun x y => a * y)`
 `a ** n = y ↔ (n, y) ∈ G a (fun _ y => a * y)`
 
-```lean "power"
-noncomputable def power
-  (a : ℝ) (n : Natural)  : ℝ :=
-  Classical.choose
-    (G_is_function
-      a
-      (fun _ y => a * y : ℝ → ℝ → ℝ)
-      (n : ℝ)
-      n.property
-      )
+```lean "exp"
+noncomputable def exp (a : ℝ) :=
+  Natural.rec 1 (fun _ x => a * x )
 
---local infixr:80 " ** " => power
-local infixr:80 " ^ " => power
-
-
-theorem power_mem_graph
-    (a : ℝ) (n : Natural) :
-    ((n : ℝ), power a n) ∈
-      G a (fun _ y => a * y) := by
-  unfold power
-  exact
-    (Classical.choose_spec
-      (G_is_function
-        (a := a)
-        (step := fun _ y => a * y)
-        (n : ℝ)
-        n.property)).1
-
-theorem power_eq_iff_mem_graph
-    (a y : ℝ) (n : Natural) :
-    a ^ n = y ↔
-      ((n : ℝ), y) ∈
-        G a (fun _ y => a * y) := by
-  constructor
-  · intro h
-    rw [← h]
-    exact power_mem_graph a n
-  · intro hy
-    exact
-      ((Classical.choose_spec
-        (G_is_function
-          (a := a)
-          (step := fun _ y => a * y)
-          (n : ℝ)
-          n.property)).2 y hy).symm
+local infixr:80 " ^ " => exp
 ```
+
 Having already defined the power with natural exponent,
 we prove its main properties:
 
@@ -476,111 +514,53 @@ $$`P(n) : a^{m + n} \text{ is equal to } a^m ⋅ a^n`
 whatever the natural number $`m`
 :::
 
-```lean "pow_one"
-theorem pow_one (a : ℝ) :
-    a ^ one = a := by
-  apply
-    (power_eq_iff_mem_graph a a one).mpr
-
-  change
-    ((1 : ℝ), a) ∈
-      ⋂₀ {H : Set (ℝ × ℝ) |
-        G_inductive a (fun _ y => a * y) H}
-
-  intro H hH
-  exact hH.left
+```lean "pow_zero"
+theorem pow_zero (a : ℝ) :
+    a ^ zero = 1 := by
+    unfold exp
+    exact Natural.rec_zero 1 (fun _ x => a * x)
 ```
 
 ```lean "pow_succ"
-@[simp]
-theorem power_succ (a : ℝ) (n : Natural) :
-    a ^ succ n = a * (a ^ n) := by
-  apply
-    (power_eq_iff_mem_graph
-      a
-      (a * (a ^ n))
-      (succ n)).mpr
-
-  have hn :
-      ((n : ℝ), a ^ n) ∈
-        G a (fun _ y => a * y) :=
-    power_mem_graph a n
-
-  have hsucc :
-      ((n : ℝ) + 1, a * (a ^ n)) ∈
-        G a (fun _ y => a * y) :=
-    (G_set_inductive
-      a
-      (fun _ y => a * y)).2 hn
-
-  exact hsucc
+theorem pow_succ (a : ℝ) (n : Natural) :
+    a ^ (succ n) = a * (a ^ n) := by
+    change Natural.rec _ (fun _ x => a * x) (succ n) =
+       a * (a ^ n)
+    unfold exp
+    apply Natural.rec_succ 1 (fun _ x => a * x)
 
 theorem pow_add
-    (a : ℝ) (n m : Natural) :
-     a ^ (addNat n m) = a ^ n * a ^ m := by
-  let H := {k : Natural | power a (addNat n k) =
-    a ^ n * a ^ k}
-  let H' : Set ℝ := Subtype.val '' H
-  have IH' : Inductive H' := by
-    constructor
-    . show 1 ∈ H'
-      have one_mem_H : one ∈ H := by
-        change  a ^ (succ n) =
-          a ^ n * a ^ one
-        have : a ^ one = a := by
-          exact pow_one a
-        rw [this]
-        have : a ^ n * a = a * a ^ n := by ring
-        rw [this]
-        exact power_succ a n
-      change (1 : ℝ) ∈ Subtype.val '' H
-      exact ⟨one, one_mem_H, rfl⟩
+  (a : ℝ) (n m : Natural) :
+      a ^ (n + m) = a ^ n * a ^ m := by
+  let P (k : Natural) : Prop := a ^ (n + k) = a ^ n * a ^ k
 
-    . show  ∀ {x : ℝ}, x ∈ H' → x + 1 ∈ H'
-      intro k hk
-      change k ∈ Subtype.val '' H at hk
-      rcases hk with ⟨kN, kN_mem_H, rfl⟩
+  have zero_case : P zero := by
+    change a ^ (n + zero) = a ^ n * a ^ zero
+    unfold exp
+    calc a ^ (n + zero)
+    _ = a ^ n := by rw [Nat_add_zero]
+    _ = a ^ n * 1 := by rw [mul_one]
+    _ = a ^ n * a ^ zero := by rw [pow_zero]
 
-      have succ_kN_mem_H : succ kN ∈ H := by
-        change  a ^ (addNat n (succ kN)) =
-          a ^ n * a ^ (succ kN)
-        rw [power_succ a kN]
-        have : a ^ n * (a * a ^ kN) =
-          a ^ n * a ^ kN * a := by ring
-        rw [this]
-        rw [← kN_mem_H]
-        rw [add_succ n kN]
-        have : a ^ addNat n kN * a =
-           a * a ^ addNat n kN := by ring
-        rw [this]
-        exact power_succ a (addNat n kN)
-
-      change (kN : ℝ) + 1 ∈ Subtype.val '' H
-      exact ⟨succ kN, succ_kN_mem_H, rfl⟩
-
-  have hH' : H' ⊆ Natural := by
-    intro x hx
-    change x ∈ Subtype.val '' H at hx
-    rcases hx with ⟨k, hkH, rfl⟩
-    exact k.property
-  have : H' = Natural := by
-    exact eq_natural_of_subset_of_inductive  hH' IH'
-
-  have hmH' : (m : ℝ) ∈ H' := by
+  have succ_case : ∀ k : Natural, P k → P (succ k) := by
+    intro k pk
+    change a ^ (n + k) = a ^ n * a ^ k at pk
+    change a ^ (n + succ k) = a ^ n * a ^ (succ k)
+    have : n + succ k = succ (n + k) := by
+      exact add_succ n k
     rw [this]
-    exact m.property
+    have : a ^ succ (n + k) =  a * a ^ (n + k) :=
+      by exact pow_succ a (n + k)
+    rw [this]
+    rw [pk]
+    have : a * (a ^ n * a ^ k) = a ^ n * (a * a ^ k) :=
+      by ring
+    rw [this]
+    have : a * a ^ k = a ^ (succ k) := by
+      rw [pow_succ a k]
+    rw [this]
 
-  have hmH : m ∈ H := by
-    rcases hmH' with ⟨k, hkH, hk_eq_m⟩
-
-    have hkm : k = m := by
-      exact Subtype.ext hk_eq_m
-
-    simpa [hkm] using hkH
-    -- subst m
-    -- assumption
-
-  exact hmH
+  exact induction zero_case succ_case m
 ```
 
 :::proposition "mul_exponents"

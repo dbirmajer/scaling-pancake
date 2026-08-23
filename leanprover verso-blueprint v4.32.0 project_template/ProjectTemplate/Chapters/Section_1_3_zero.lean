@@ -426,6 +426,16 @@ theorem add_succ (n m : Natural) :
   rw [add_assoc]
 ```
 
+```lean "Natural.add_zero"
+theorem Nat_add_zero (n : Natural) :
+  n + zero  = n := by
+
+  apply Subtype.ext
+  change (n : ℝ) + (0 : ℝ) = (n : ℝ)
+  exact add_zero (n : ℝ)
+```
+
+
 :::proposition "mul_of_naturals"
 If `n` and `m` are natural numbers, then `m ⋅ n` is also
 natural numbers.
@@ -477,9 +487,9 @@ theorem coe_mul (n m : Natural) :
   rfl
 ```
 
-```lean "mul_one"
+```lean "Nat_mul_one"
 @[simp]
-theorem mul_one (n : Natural) :
+theorem Nat_mul_one (n : Natural) :
     n * one = n := by
   change mul n one = n
   simp [mul, one]
