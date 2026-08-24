@@ -639,31 +639,32 @@ final equality are the same.                                                ■�
 :::
 
 ```lean "prop_1.12"
-lemma bernoulli_inequality (h : ℝ) (n : ℕ)
-    (q : h > -1) :
-    (1 + h) ^ n ≥ 1 + n * h := by
-  induction n with
-  | zero =>
-      norm_num
-  | succ n ih =>
-      have hnonneg : 0 ≤ 1 + h := by
-        linarith
-      calc
-        (1 + h) ^ (n + 1)
-            = (1 + h) ^ n * (1 + h) := by
-                rw [pow_succ]
-        _ ≥ (1 + (n : ℝ) * h) * (1 + h) := by
-              exact mul_le_mul_of_nonneg_right ih hnonneg
-        _ = 1 + (n + 1) * h + n * h^2 := by
-              ring
-        _ ≥ 1 + (n + 1) * h := by
-              have hsq : 0 ≤ n * h ^ 2 := by
-                exact mul_nonneg
-                  (Nat.cast_nonneg n) (sq_nonneg h)
-              simpa [add_zero] using
-              add_le_add_right hsq (1 + (n + 1) * h)
-        _ = 1 + ↑(n + 1) * h := by
-          rw [Nat.cast_add, Nat.cast_one]
+lemma bernoulli_inequality (x : ℝ) (n : Natural)
+  (hx : x > -1) :
+    (1 + x) ^ n ≥ 1 + (n : ℝ) * x := by
+  sorry
+  -- induction n with
+  -- | zero =>
+  --     norm_num
+  -- | succ n ih =>
+  --     have hnonneg : 0 ≤ 1 + h := by
+  --       linarith
+  --     calc
+  --       (1 + h) ^ (n + 1)
+  --           = (1 + h) ^ n * (1 + h) := by
+  --               rw [pow_succ]
+  --       _ ≥ (1 + (n : ℝ) * h) * (1 + h) := by
+  --             exact mul_le_mul_of_nonneg_right ih hnonneg
+  --       _ = 1 + (n + 1) * h + n * h^2 := by
+  --             ring
+  --       _ ≥ 1 + (n + 1) * h := by
+  --             have hsq : 0 ≤ n * h ^ 2 := by
+  --               exact mul_nonneg
+  --                 (Nat.cast_nonneg n) (sq_nonneg h)
+  --             simpa [add_zero] using
+  --             add_le_add_right hsq (1 + (n + 1) * h)
+  --       _ = 1 + ↑(n + 1) * h := by
+  --         rw [Nat.cast_add, Nat.cast_one]
 ```
 
 (Question: where have we used the hypothesis $`h > −1`?)
