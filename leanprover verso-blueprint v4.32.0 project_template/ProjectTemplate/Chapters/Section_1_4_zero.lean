@@ -570,70 +570,29 @@ Then,  `(a ** m) ** n = a ** (m ⋅ n)`
 
 ```lean "power_mul"
 theorem pow_mul
-    (a : ℝ) (n m : Natural) :
-    a ^ (mulNat n  m) = (a ^ n) ^ m := by
+  (a : ℝ) (n m : Natural) :
+    a ^ (n * m) = (a ^ n) ^ m := by
 
-  let H := {k : Natural |
-      a ^ mulNat n k = (a ^ n) ^ k}
+  let P (k : Natural) := a ^ (n * k) = (a ^ n) ^ k
 
-  let H' : Set ℝ := Subtype.val '' H
+  have zero_case : P zero := by
+    calc a ^ (n * zero)
+    _ = a ^ zero := by rw [Nat_mul_zero n]
+    _= 1 := by exact pow_zero a
+    _ = (a ^ n) ^ zero := by
+      rw [pow_zero (a ^ n)]
 
-  have IH' : Inductive H' := by
-    constructor
-    . show 1 ∈ H'
-      have one_mem_H : one ∈ H := by
-        change (a ^ mulNat n one) =
-          (a ^ n) ^ one
-        rw [mul_one]
-        rw [pow_one]
-      change (1 : ℝ) ∈ Subtype.val '' H
-      exact ⟨one, one_mem_H, rfl⟩
+  have succ_case : ∀ k : Natural, P k → P (succ k) := by
+    intro k pk
+    change a ^ (n * succ k) = (a ^ n) ^ succ k
+    calc a ^ (n * succ k)
+    _ = a ^ (n * k + n) := by rw [mul_succ]
+    _ = a ^ (n * k) * a ^ n := by rw [pow_add]
+    _ = (a ^ n) ^ k * a ^ n := by rw [pk]
+    _ =  a ^ n * (a ^ n) ^ k := by rw [mul_comm]
+    _ = (a ^ n) ^ succ k := by rw [pow_succ (a ^ n) k]
 
-
-    . show  ∀ {x : ℝ}, x ∈ H' → x + 1 ∈ H'
-      intro k hk
-      change k ∈ Subtype.val '' H at hk
-      rcases hk with ⟨kN, kN_mem_H, rfl⟩
-      have succ_kN_mem_H : succ kN ∈ H := by
-        change power a (mulNat n (succ kN)) =
-          (a ^ n) ^ (succ kN)
-        rw [mul_succ]
-        rw [power_succ]
-        have : a ^ mulNat n kN = (a ^ n) ^ kN  := by
-          exact kN_mem_H
-
-        rw [pow_add]
-        rw [mul_comm]
-        rw [this]
-
-      change (kN : ℝ) + 1 ∈ Subtype.val '' H
-      exact ⟨succ kN, succ_kN_mem_H, rfl⟩
-
-  have hH' : H' ⊆ Natural := by
-    intro x hx
-    change x ∈ Subtype.val '' H at hx
-    rcases hx with ⟨k, hkH, rfl⟩
-    exact k.property
-
-  have : H' = Natural := by
-    exact eq_natural_of_subset_of_inductive  hH' IH'
-
-  have hmH' : (m : ℝ) ∈ H' := by
-    rw [this]
-    exact m.property
-
-  have hmH : m ∈ H := by
-    rcases hmH' with ⟨k, hkH, hk_eq_m⟩
-
-    have hkm : k = m := by
-      exact Subtype.ext hk_eq_m
-
-    simpa [hkm] using hkH
-
-    -- subst m
-    -- assumption
-
-  exact hmH
+  exact induction zero_case succ_case m
 ```
 
 

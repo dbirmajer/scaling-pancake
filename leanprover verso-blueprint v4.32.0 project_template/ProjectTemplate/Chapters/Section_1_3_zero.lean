@@ -409,11 +409,11 @@ def add (n m : Natural) : Natural :=
 instance : Add Natural where
   add := add
 
-@[simp]
-theorem coe_add (n m : Natural) :
-    ((n + m : Natural) : ℝ) =
-      (n : ℝ) + (m : ℝ) := by
-  rfl
+-- @[simp]
+-- theorem coe_add (n m : Natural) :
+--     ((n + m : Natural) : ℝ) =
+--       (n : ℝ) + (m : ℝ) := by
+--   rfl
 ```
 
 ```lean "add_succ"
@@ -429,10 +429,8 @@ theorem add_succ (n m : Natural) :
 ```lean "Natural.add_zero"
 theorem Nat_add_zero (n : Natural) :
   n + zero  = n := by
-
-  apply Subtype.ext
-  change (n : ℝ) + (0 : ℝ) = (n : ℝ)
-  exact add_zero (n : ℝ)
+  change add n zero = n
+  simp [add, zero]
 ```
 
 
@@ -480,14 +478,20 @@ def mul (n m : Natural) : Natural := by
 instance : Mul Natural where
   mul := mul
 
-@[simp]
-theorem coe_mul (n m : Natural) :
-    ((n * m : Natural) : ℝ) =
-      (n : ℝ) * (m : ℝ) := by
-  rfl
+-- @[simp]
+-- theorem coe_mul (n m : Natural) :
+--     ((n * m : Natural) : ℝ) =
+--       (n : ℝ) * (m : ℝ) := by
+--   rfl
 ```
 
 ```lean "Nat_mul_one"
+@[simp]
+theorem Nat_mul_zero (n : Natural) :
+    n * zero = zero := by
+  change mul n zero = zero
+  simp [mul, zero]
+
 @[simp]
 theorem Nat_mul_one (n : Natural) :
     n * one = n := by
@@ -497,10 +501,10 @@ theorem Nat_mul_one (n : Natural) :
 
 ```lean "mul_succ"
 @[simp]
-theorem mul_succ (n m : Natural) :
+theorem mul_succ {n m : Natural} :
   n * (succ m) = (n * m) + n := by
-  apply Subtype.ext
-  simp only [coe_mul, coe_add, coe_succ]
+  change mul n (succ m) = add (mul n m) n
+  simp [mul, succ, add]
   ring
 ```
 
