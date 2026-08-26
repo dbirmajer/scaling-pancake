@@ -924,9 +924,44 @@ theorem mul_ne_zero {a b : ℝ}
 ```
 
 :::definition "sq" (parent := "properties_core")(lean := "sq")
-If $a$ is a real number, then the square of $a$ is the product of $`a` with
-itself: $`a^2 = a \cdot a`.
+If $`a` is a real number, then the square of $`a` is the product of $`a` with
+itself: `square a = a \cdot a`.
 :::
+
+```lean "sq_nonneg"
+def square (x : ℝ) := x * x
+
+theorem sq_nonneg (x : ℝ) : 0 ≤ square x := by
+
+  unfold square
+  have hPos : ∀ {a : ℝ}, 0 < a → 0 < a * a := by
+    intro a ha
+    calc
+    0 = 0 * a := by  rw [zero_mul]
+    _ < a * a := by
+        exact (mul_lt_mul_of_pos_right ha ha)
+
+  by_cases hx : x = 0
+  . -- x = 0
+    subst x
+    rw [mul_zero]
+  . have : 0 < x ∨ x < 0 := by
+      exact lt_or_gt_of_ne (Ne.symm hx)
+    rcases this with xPos | xNeg
+    . exact le_of_lt (hPos xPos)
+
+    . have : (-x) * (-x) = x * x := by
+        exact neg_mul_neg x x
+      rw [← this]
+
+      have : 0 < -x := by
+        calc
+        0 = x + (-x) := by rw [add_neg_cancel]
+        _ < 0 + (-x) := by exact add_lt_add_left xNeg (-x)
+        _ = -x := by rw [zero_add]
+
+      exact le_of_lt (hPos this)
+```
 
 ```lean "sq"
 example (a : ℝ) : a ^ 2 = a * a := by
@@ -1069,24 +1104,10 @@ theorem sq_pos_of_ne_zero {a : ℝ}:
     `x < z`.
 :::
 
+
 :::corollary "sq_nonneg" (parent := "properties_core")(lean := "sq_nonneg")
 If $`a ∈ ℝ`, then $`0 ≤ a ^ 2`
 :::
-
-```lean "sq_nonneg"
-example (a : ℝ) : 0 ≤ a ^ 2:= by
-  exact sq_nonneg a
-```
-```lean "sq_nonneg_proof"
-example (a : ℝ) : 0 ≤ a ^ 2:= by
-  by_cases h : a = 0
-  . subst a
-    calc (0 : ℝ)
-    _ = 0 * 0 := by rw [zero_mul]
-    _ = 0 ^ 2 := by rw [sq]
-    _ ≤ 0 ^ 2 := by exact le_of_eq rfl
-  . exact le_of_lt (sq_pos_of_ne_zero h)
-```
 
 
 To finish this section, we are going to prove the following fact: `0 < 1`.

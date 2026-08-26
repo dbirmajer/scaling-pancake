@@ -229,6 +229,9 @@ theorem natural_nonegative :
   Natural ⊆ {x : ℝ | 0 ≤ x} := by
     apply Set.sInter_subset_of_mem
     exact inductive_zero_le
+
+theorem nat_nonneg (k : Natural) : 0 ≤ (k : ℝ) := by
+  exact natural_nonegative k.property
 ```
 
 :::lemma_ "inductive_natural"
@@ -274,7 +277,9 @@ def succ (n : Natural) : Natural :=
 
 def one : Natural := succ zero
 
--- It is useful to register coercion lemmas once:
+def two : Natural := succ one
+
+--It is useful to register coercion lemmas once:
 @[simp]
 theorem coe_succ (n : Natural) :
     ((succ n : Natural) : ℝ) = (n : ℝ) + 1 := by
