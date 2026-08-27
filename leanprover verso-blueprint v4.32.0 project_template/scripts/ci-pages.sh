@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-lake build ProjectTemplate
+lake build ProjectTemplate.Blueprint
 lake lean ProjectTemplateMain.lean -- --run ProjectTemplateMain.lean --output _out/site
 
 test -f _out/site/html-multi/index.html

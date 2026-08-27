@@ -11,10 +11,6 @@ import ProjectTemplate.Chapters.Section_1_1
 import ProjectTemplate.Chapters.Section_1_2
 import ProjectTemplate.Chapters.Section_1_3
 import ProjectTemplate.Chapters.Section_1_4
-import ProjectTemplate.Chapters.Section_1_5
-import ProjectTemplate.Chapters.Section_1_6
-import ProjectTemplate.Chapters.Section_1_7
-import ProjectTemplate.Chapters.Section_1_8
 
 open Verso.Genre
 open Verso.Genre.Manual
@@ -39,10 +35,6 @@ incomplete and will continue to evolve.
 {include 0 ProjectTemplate.Chapters.Section_1_2}
 {include 0 ProjectTemplate.Chapters.Section_1_3}
 {include 0 ProjectTemplate.Chapters.Section_1_4}
-{include 0 ProjectTemplate.Chapters.Section_1_5}
-{include 0 ProjectTemplate.Chapters.Section_1_6}
-{include 0 ProjectTemplate.Chapters.Section_1_7}
-{include 0 ProjectTemplate.Chapters.Section_1_8}
 
 
 {blueprint_graph}
