@@ -747,12 +747,8 @@ If `A ⊆ Natural` and `A` is not the empty set then `A` has a minimum.
 :::
 
 :::proof "Well_Ordering"
-It is convenient to consider the following proposition: Let
-
-
-`
-P(n) := ∀ H ⊆ Natural, n ∈ H → ∃ m, IsLeast H m
-`
+It is convenient to consider the following proposition:
+`P(n) := ∀ H ⊆ Natural, n ∈ H → ∃ m, IsLeast H m`.
 We will prove that `H` is inductive. Then, by the _Principle of Induction_
 {uses "Principle_of_Induction"}[] we conclude that $`Natural ⊆ H`.
 Below we give a `Lean` proof.

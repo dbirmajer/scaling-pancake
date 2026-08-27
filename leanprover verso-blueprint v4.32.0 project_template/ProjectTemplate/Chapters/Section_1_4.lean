@@ -753,7 +753,7 @@ $$`(a/b)^n = a^n/b^n`
  for every natural $`n`. (Use _a)_ and _b)_)
 .
 
-  * d) Prove that if $`a>1` and $`n ∈ N`, then $`a^n > 1`$.
+  * d) Prove that if $`a>1` and $`n ∈ N`, then $`a^n > 1`.
   Deduce that if $`m` and $`n` are natural and $`n < m`, then
   $`a^n < a^m`.
   * e) What happens if $`0 < a <1`? (Use _d)_) and $`1/a > 1`)

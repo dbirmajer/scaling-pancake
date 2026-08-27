@@ -31,6 +31,8 @@ with Lean and Mathlib.
 The development is a work in progress. Some chapters and formal proofs remain
 incomplete and will continue to evolve.
 
+[Download the textbook as a PDF](calculus-in-lean.pdf)
+
 {include 0 ProjectTemplate.Chapters.Section_1_1}
 {include 0 ProjectTemplate.Chapters.Section_1_2}
 {include 0 ProjectTemplate.Chapters.Section_1_3}

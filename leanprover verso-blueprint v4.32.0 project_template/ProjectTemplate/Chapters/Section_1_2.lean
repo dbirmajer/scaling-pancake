@@ -253,7 +253,7 @@ example {a : ℝ} (h : a ≠ 0) : a < 0 ∨ 0 < a := by
 ```
 
 :::definition "positive and negative" (parent := "order_core")
-A real number $`a`$ is called *positive* if $`0 < a.`
+A real number $`a` is called *positive* if $`0 < a.`
 
 A real number $`a` is called *negative* if $`a < 0.`
 :::
@@ -454,7 +454,7 @@ lemma add_right_eq_self {a b : ℝ}
 We are now in a position to prove :
 
 :::theorem "mul_zero" (parent := "properties_core")(lean := "mul_zero")
-For every real number $`a`, $\;`a \cdot 0 =0`.
+For every real number $`a`, $`a \cdot 0 = 0`.
 :::
 
 Here is an example of using this theorem in Lean 4:
@@ -837,7 +837,7 @@ theorem neg_neg_iff_pos {a : ℝ} :
   `add_neg_cancel` rewritten in the opposite direction.
 
 * Applying `add_lt_add_left h (-a)` to the hypothesis $`0 < a`
-  adds $`-a`$ to both sides, producing $`0 + (-a) < a + (-a).`
+  adds $`-a` to both sides, producing $`0 + (-a) < a + (-a).`
 
   Since the `calc` proof is written from top to bottom, this inequality
   appears as $`a + (-a) > 0 + (-a),`
