@@ -1,15 +1,19 @@
 import Mathlib.Data.Nat.Notation
 import Mathlib.Data.Real.Basic
-import Mathlib.Data.Nat.Factorial.Basic
-import Mathlib.Data.Nat.Choose.Basic
-import Mathlib.Data.Nat.Choose.Sum
+-- import Mathlib.Data.Nat.Factorial.Basic
+-- import Mathlib.Data.Nat.Choose.Basic
+-- import Mathlib.Data.Nat.Choose.Sum
 
-import Mathlib.Algebra.BigOperators.Intervals
-import Mathlib.Algebra.BigOperators.NatAntidiagonal
-import Mathlib.Algebra.BigOperators.Ring.Finset
-import Mathlib.Algebra.Order.BigOperators.Group.Finset
-import Mathlib.Tactic.Linarith
+-- import Mathlib.Algebra.BigOperators.Intervals
+-- import Mathlib.Algebra.BigOperators.NatAntidiagonal
+-- import Mathlib.Algebra.BigOperators.Ring.Finset
+-- import Mathlib.Algebra.Order.BigOperators.Group.Finset
+-- import Mathlib.Tactic.Linarith
 import Mathlib.Tactic.Ring
+
+import ProjectTemplate.Chapters.Section_1_2
+import ProjectTemplate.Chapters.Section_1_3
+import ProjectTemplate.Chapters.Section_1_4
 
 
 import Verso
@@ -66,19 +70,20 @@ $$`
 `
 and so on.
 
-For example, if $`a_1, a_2, \ldots, a_n,\ldots` is the
+For example, if $`a_0, a_1, a_2, \ldots, a_n,\ldots` is the
 _constant sequence_, that is, if $`a_n = b` for every natural
 number $`n` (in which case the sequence is $`b, b, …, b, …`),
 then
-$$` \prod_{k=1}^{n} a_k = b^n.`
+$$` \prod_{k=0}^{n-1} a_k = b ^ n.`
 
-This recovers the original meaning of $`b^n`: the product of $`b`
+This recovers the original meaning of $`b ^ n`: the product of $`b`
 by itself $`n` times. What we have done is give a precise meaning
 to the expression _the product of $`n` numbers_, regardless of
 the natural number $`n`".
 
 
 We now introduce two definitions that will be useful shortly.
+
 
 :::definition "factorial"
 The _factorial_ of a natural number $`n`,
