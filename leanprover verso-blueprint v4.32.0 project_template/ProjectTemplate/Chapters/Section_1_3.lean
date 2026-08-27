@@ -1,6 +1,7 @@
 import Mathlib.Data.Nat.Notation
 import Mathlib.Data.Real.Basic
-import Mathlib.Tactic.Ring
+--import Mathlib.Tactic.Ring
+import Mathlib.Tactic
 
 import Verso
 import VersoManual
@@ -17,250 +18,12 @@ open Informal
 Core statements about addition on real numbers.
 :::
 
-# The Natural Numbers
+# The _less or equal_ Relation in ℝ
 
-```lean "open NaturalNumbers"
-namespace NaturalNumbers
+```lean "open LE"
+namespace LE
 ```
-We now distinguish certain subsets of the real numbers, beginning with the
-natural numbers—the numbers used for counting: $`1, 2, 3,\ldots`.
-Starting from $`0` and $`1`, define $`2 = 1 + 1,\; 3 = 2 + 1`, and so on.
-The property $`0 < 1` implies that each new number is greater than,
-and therefore distinct from, those preceding it.
-
-However, “and so on” is not a precise definition.
-We therefore seek a property characterizing the natural numbers.
-
-They contain $`1` and are closed under adding $`1`: if $`x` belongs to the set,
-then so does $`x + 1`. These conditions alone do not uniquely determine the
-natural numbers, since larger subsets of ℝ may also satisfy them.
-
-For brevity, we now give such sets a name:
-
-:::definition "inductive_set"(tags := "Inductive Set")
-A subset $`A` of the real numbers is said to be _inductive_ if it has the
-following properties:
-  * The real number $`1` belongs to $`A`
-  * If any real number $`x` belongs to $`A`,
-  then the real number $`x + 1` also belongs to $`A`.
-:::
-
-```lean "inductive_set"
-def Inductive (A : Set ℝ) : Prop :=
-    1 ∈ A ∧
-      ∀ {x : ℝ}, x ∈ A → (x + 1) ∈ A
-
-example : Inductive {x : ℝ | 0 < x} := by
-  sorry
-```
-
-⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄
-The set of natural numbers can be characterized as the _smallest_ of all
-inductive subsets of ℝ.
-
-:::definition "natural_number"
-A real number $`x ∈ ℝ` is a natural number if $`x` belongs to all the
-inductive subsets of ℝ. The set of natural numbers is denoted as `Natural`.
-:::
-
-```lean "natural_number"
-def isNatural (x : ℝ) : Prop :=
-  ∀ {A}, Inductive A → x ∈ A
-
--- The Set of Natural numbeers
-def Natural : Set ℝ := {x | isNatural x}
-
--- ```lean "G set"
--- def G (a : ℝ) (step : ℝ → ℝ → ℝ ) :=
---   ⋂₀  {A : Set (ℝ × ℝ) | G_inductive a step A}
--- ```
-
--- For x : ℝ, x ∈ Natural is equivalent to isNatural x
-example {x : ℝ} :
-  x ∈ Natural ↔ isNatural x := by
-  rfl
-```
-
-By contrast, `n : Natural` means that `n` is an
-element of the _subtype_ determined by the set `Natural`:
-`n : {x : ℝ // x ∈ Natural}`
-So it packages both pieces together:
-* `n : ℝ`  the underlying real number
-* `n.property`  a proof that `(n : ℝ) ∈ Natural`
-
-```lean "def_1.2_subtype"
-example {x} (hx : x ∈ Natural) : Natural :=
-  by exact ⟨x, hx⟩
-
-example (n : Natural) : (n : ℝ) ∈ Natural := by
-  exact n.property
-```
-
-:::lemma_ "inductive_natural"
-The set of natural numbers `Natural` is inductive.
-:::
-
-:::proof "inductive_natural"
-We prove that `1 ∈ Natural` and the inductive step,
-`n ∈ Natural → n + 1 ∈ Natural`.
-:::
-
-```lean "inductive_natural_proof"
-theorem inductive_natural : Inductive Natural := by
-  constructor
-  . show 1 ∈ Natural
-    intro A hA
-    exact hA.left
-  . show ∀ n : ℝ, n ∈ Natural → (n + 1) ∈ Natural
-    intro n hn A hA
-    exact hA.right (hn hA)
-
-theorem one_mem_Natural : 1 ∈ Natural := by
-  exact inductive_natural.left --inductive_natural
-
-def one : Natural := ⟨1, one_mem_Natural⟩
-
-lemma succ_mem_Natural
-  (hn : n ∈ Natural) : n + 1 ∈ Natural := by
-    exact inductive_natural.right hn
-
-def succ (n : Natural) : Natural :=
-  ⟨n + 1, succ_mem_Natural n.property⟩
-```
-◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇
-
-:::theorem "Principle_of_Induction" (tags := "Principle of Induction")
-If $`H ⊆ ℝ` is inductive, then $`ℕ ⊆ H`.
-If $`H` is an inductive subset of ℕ, then $`H = ℕ`.
-:::
-
-:::proof "Principle_of_Induction"
-By definition, `Natural` is a subset of any inductive subset of ℝ.
-
-That $`H` is a subset of ℕ means $`H ⊆ ℕ`.
-But being $`H` inductive, then $`N ⊆ H` by $`ℐrm{N_2}`.
-From the two inclusions $`H ⊆ N` and $`N ⊆ H` we conclude $`H = N`. $`□`
-:::
-
-```lean "Principle_of_Induction_proof"
-theorem natural_subset_of_inductive
-  (IH : Inductive H) : Natural ⊆ H := by
-  intro n hn
-  exact hn IH
-
-theorem eq_natural_of_subset_of_inductive {H}
-  (hH : H ⊆ Natural)
-  (IH : Inductive H) : H = Natural := by
-    apply Set.Subset.antisymm
-    . exact hH
-    . exact natural_subset_of_inductive  IH
-```
-
-We will now use the principle of induction to prove elementary properties of
-natural numbers.
-
-:::proposition "sum_of_naturals"
-If $`n` and $`m` are natural numbers, then $`m + n` and $`m ⋅ n` are also
-natural numbers.
-:::
-■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
-
-```lean "sum_of_naturals_proof"
-theorem sum_of_naturals (n : Natural) :
-  ∀ m : Natural, (n : ℝ) + (m : ℝ) ∈ Natural := by
-  let H := {x : ℝ | n + x ∈ Natural}
-  have IH : Inductive H := by
-    unfold Inductive
-    constructor
-    . -- 1 ∈ H
-      change isNatural ((n : ℝ) +  1)
-      intro A hA
-      have : (n : ℝ) ∈ A := by exact n.property hA
-      exact hA.right this
-    . -- ∀ {x : ℝ}, x ∈ H → (x + 1) ∈ H
-      intro x hx
-      change ((n : ℝ) + (x + (1 : ℝ))) ∈ Natural
-      change (n : ℝ) + x ∈ Natural at hx
-      rw [← add_assoc]
-      exact inductive_natural.right hx
-  intro m
-  have : (m : ℝ) ∈ H := by exact m.property IH
-  simpa [H]
-
-example :
-  ∀ n m : Natural, (n : ℝ ) + (m : ℝ) ∈ Natural := by
-  intro n m
-  exact sum_of_naturals n m
-
-def addNat (n m : Natural) : Natural :=
-  ⟨(n : ℝ) + (m : ℝ), sum_of_naturals n m⟩
-
-theorem add_succ (n m : Natural) :
-  addNat n (succ m) = succ (addNat n m) := by sorry
-
-theorem add_Natural {n m : ℝ}
-  (hn : n ∈ Natural)
-  (hm: m ∈ Natural) : n + m ∈ Natural := by
-    exact sum_of_naturals ⟨n, hn⟩ ⟨m, hm⟩
-```
-
-:::proposition "mul_of_naturals"
-If `n` and `m` are natural numbers, then `m ⋅ n` is also
-natural numbers.
-:::
-■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
-
-:::proof "mul_of_naturals"
-Given $`n ∈ Natural` We consider the set:
-$$`H(x) = { x ∈ ℝ :  n · x ∈ Natural}`
-and prove that $`H` is inductive. Then, by the _Principle of Induction_
-{uses "Principle_of_Induction"}[] we conclude that $`Natural ⊆ H`.
-Below we give a `Lean` proof.
-:::
-
-```lean "mul_of_naturals_proof"
-theorem mul_of_naturals (n : Natural) :
-  ∀ m : Natural, (n : ℝ) * (m : ℝ) ∈ Natural := by
-  let H := {x : ℝ | n * x ∈ Natural}
-  have IH : Inductive H := by
-    unfold Inductive
-    constructor
-    . show 1 ∈ H
-      intro A hA
-      rw [mul_one]
-      exact n.property hA
-    . show ∀ {x : ℝ}, x ∈ H → (x + 1) ∈ H
-      intro x hx
-      change ((n : ℝ) * (x + (1 : ℝ))) ∈ Natural
-      rw [mul_add, mul_one]
-      let nx : Natural  := ⟨(n : ℝ) * x, hx⟩
-      change (nx : ℝ) + (n : ℝ) ∈ Natural
-      exact (sum_of_naturals nx n)
-  intro m
-  exact m.property IH
-
-example :
-  ∀ n m : Natural, (n : ℝ ) + (m : ℝ) ∈ Natural := by
-  intro n m
-  exact sum_of_naturals n m
-
-def mulNat (n m : Natural) : Natural :=
-  ⟨(n : ℝ) * (m : ℝ), mul_of_naturals n m⟩
-
-theorem mul_one (n : Natural) :
-  mulNat n one = n := by sorry
-
-theorem mul_succ (n m : Natural) :
-  mulNat n (succ m) =
-    addNat (mulNat n m) n := by sorry
-```
-
-# More Properties of the Natural Numbers
-
-Before demonstrating more properties of the natural numbers,
-we are going to introduce a new concept:
-
-:::definition "ge"
+:::definition "le"
 Given real numbers $`a` and  $`b`, we say that $`a` is
 _less or equal_ than  $`b`,
 and we write $`a \le b`, if one of the two following possibilities occurs:
@@ -364,194 +127,551 @@ example {a b c : ℝ}
    exact mul_le_mul_of_nonneg_right hab (le_of_lt hc)
 ```
 
-We return now to elementary properties of natural numbers.
+```lean "end LE"
+end LE
+```
+# The Natural Numbers
 
-:::theorem "one_le_natural" (parent := "natural-numbers")
-If $`n` is a natural number, then $`1 ≤ n`
+We now distinguish certain subsets of the real numbers, beginning with the
+natural numbers—the numbers used for counting: $`0, 1, 2, 3,\ldots`.
+Starting from $`0` and $`1`, define $`2 = 1 + 1,\; 3 = 2 + 1`, and so on.
+The property $`0 < 1` implies that each new number is greater than,
+and therefore distinct from, those preceding it.
+
+However, “and so on” is not a precise definition.
+We therefore seek a property characterizing the natural numbers.
+
+They contain $`0` and are closed under adding $`1`: if $`x` belongs to the set,
+then so does $`x + 1`. These conditions alone do not uniquely determine the
+natural numbers, since larger subsets of ℝ may also satisfy them.
+
+For brevity, we now give such sets a name:
+
+:::definition "inductive_set"(tags := "Inductive Set")
+A subset $`A` of the real numbers is said to be _inductive_ if it has the
+following properties:
+  * The real number $`0` belongs to $`A`
+  * If any real number $`x` belongs to $`A`,
+  then the real number $`x + 1` also belongs to $`A`.
 :::
 
-:::proof "one_le_natural"
-Let's consider $`H = \lbrace x : ℝ | 1 ≤ x\rbrace`. We will prove that $`H`
-is an inductive set, and conclude that `Natural ⊆ H`.
+```lean "open NaturalNumbers"
+namespace NaturalNumbers
+```
+
+```lean "inductive_set"
+def Inductive (A : Set ℝ) : Prop :=
+    0 ∈ A ∧
+      ∀ {x : ℝ}, x ∈ A → x + 1 ∈ A
+```
+
+:::lemma_ "ℝ_{ ≥ 0} is inductive"
+$`ℝ_{≥ 0}` is an inductive set.
 :::
 
-```lean "one_le_natural"
-theorem one_le_natural {n : ℝ}
-  (hn : n ∈ Natural): 1 ≤ n := by
-  let H := {x : ℝ | 1 ≤ x}
-  have IH : Inductive H := by
+```lean "inductive_zero_le"
+lemma inductive_zero_le : Inductive {x : ℝ | 0 ≤  x} := by
+  constructor
+  . show 0 ∈ {x : ℝ| 0 ≤ x}
+    have : (0 : ℝ) = (0 : ℝ) := by rfl
+    exact le_of_eq this
+  . show ∀ {x : ℝ}, x ∈ {x | 0 ≤ x} → x + 1 ∈ {x | 0 ≤ x}
+    intro x hx
+    have : 0 < x + 1 := by
+      calc
+      0 ≤ x := by exact hx
+      _ = 0 + x := by rw [zero_add]
+      _ < 1 + x := by exact add_lt_add_left (zero_lt_one) x
+      _ = x + 1 := by rw [add_comm]
+    exact le_of_lt this
+```
+⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄⋄
+The set of natural numbers can be characterized as the _smallest_ of all
+inductive subsets of ℝ.
+
+:::definition "natural_number"
+A real number $`x ∈ ℝ` is a natural number if $`x` belongs to all the
+inductive subsets of ℝ. The set of natural numbers is denoted as `Natural`.
+:::
+
+```lean "natural_number"
+-- The Set of Natural numbeers
+def Natural := ⋂₀ {A : Set ℝ | Inductive A}
+```
+
+Equivalently, `n : Natural` means that `n` is an
+element of the _subtype_ determined by the set `Natural`:
+`n : {x : ℝ // x ∈ Natural}`
+
+So it packages both pieces together:
+* `n : ℝ`  the underlying real number
+* `n.property`  a proof that `(n : ℝ) ∈ Natural`
+
+```lean "def_1.2_subtype"
+example {x} (hx : x ∈ Natural) : Natural :=
+  by exact ⟨x, hx⟩
+
+example (n : Natural) : (n : ℝ) ∈ Natural := by
+  exact n.property
+
+example (n m : Natural) : n = m ↔ (n : ℝ) = (m : ℝ) := by
+  constructor
+  . exact congrArg Subtype.val
+  . apply Subtype.ext
+```
+
+:::corollary "natural_nonnegative"
+`Natural ⊆ {x : ℝ | 0 ≤ x}`
+:::
+
+```lean "natural_nonnegative"
+theorem natural_nonegative :
+  Natural ⊆ {x : ℝ | 0 ≤ x} := by
+    apply Set.sInter_subset_of_mem
+    exact inductive_zero_le
+
+theorem nat_nonneg (k : Natural) : 0 ≤ (k : ℝ) := by
+  exact natural_nonegative k.property
+```
+
+:::lemma_ "inductive_natural"
+The set of natural numbers `Natural` is inductive.
+:::
+
+:::proof "inductive_natural"
+We prove that `0 ∈ Natural` and the inductive step,
+`n ∈ Natural → n + 1 ∈ Natural`.
+:::
+
+```lean "inductive_natural_proof"
+theorem inductive_natural : Inductive Natural := by
+  constructor
+  . show 0 ∈ Natural
+    intro A hA
+    exact hA.left
+  . show ∀ n : ℝ, n ∈ Natural → (n + 1) ∈ Natural
+    intro n hn A hA
+    have : Natural ⊆ A := by
+      exact Set.sInter_subset_of_mem hA
+    have : n ∈ A := by
+      exact this hn
+    exact hA.right this
+
+-- theorem zero_mem_Natural : 0 ∈ Natural := by
+--   exact inductive_natural.left
+
+def zero : Natural := ⟨0, inductive_natural.left⟩
+
+-- It is useful to register coercion lemmas once:
+@[simp]
+theorem coe_zero :
+    ((zero : Natural) : ℝ) = 0 := by
+  rfl
+
+theorem zero_le (n : Natural) : zero ≤ n := by
+  change (0 : ℝ) ≤ (n : ℝ)
+  exact natural_nonegative n.property
+
+def succ (n : Natural) : Natural :=
+  ⟨n + 1, inductive_natural.right n.property⟩
+
+def one : Natural := succ zero
+
+def two : Natural := succ one
+
+--It is useful to register coercion lemmas once:
+@[simp]
+theorem coe_succ (n : Natural) :
+    ((succ n : Natural) : ℝ) = (n : ℝ) + 1 := by
+  rfl
+
+theorem succ.inj {n m : Natural} :
+  succ n = succ m → n = m := by
+  simp [succ]
+  apply Subtype.ext
+
+
+theorem zero_lt_succ (n : Natural) :
+  zero < succ n := by
+  change (0 : ℝ) < (n : ℝ) + 1
+  calc (0 : ℝ)
+  _ ≤ (n : ℝ) := by exact zero_le n
+  _ = (0 : ℝ) + (n : ℝ) := by rw [zero_add]
+  _ < (1 : ℝ) + (n : ℝ) := by
+    exact add_lt_add_left zero_lt_one (n : ℝ)
+  _ = n + 1 := by rw [add_comm]
+```
+◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇
+
+:::theorem "Principle_of_Induction" (tags := "Principle of Induction")
+If $`H ⊆ ℝ` is inductive, then $`ℕ ⊆ H`.
+If $`H` is an inductive subset of ℕ, then $`H = ℕ`.
+:::
+
+:::proof "Principle_of_Induction"
+By definition, `Natural` is a subset of any inductive subset of ℝ.
+
+That $`H` is a subset of ℕ means $`H ⊆ ℕ`.
+But being $`H` inductive, then $`N ⊆ H` by $`ℐrm{N_2}`.
+From the two inclusions $`H ⊆ N` and $`N ⊆ H` we conclude $`H = N`. $`□`
+:::
+
+```lean "Principle_of_Induction_proof"
+theorem eq_natural_of_subset_of_inductive {H}
+  (hH : H ⊆ Natural)
+  (IH : Inductive H) : H = Natural := by
+    apply Set.Subset.antisymm
+    . exact hH
+    . exact Set.sInter_subset_of_mem IH
+```
+```lean "induction"
+theorem induction
+    {P : Natural → Prop}
+    (zero_case : P zero)
+    (succ_case : ∀ n : Natural, P n → P (succ n)) :
+    ∀ n : Natural, P n := by
+  intro n
+
+  let H : Set Natural := {k | P k}
+  let H' : Set ℝ := Subtype.val '' H
+
+  have hH'_subset : H' ⊆ Natural := by
+    intro x hx
+    rcases hx with ⟨k, hk, rfl⟩
+    exact k.property
+
+  have hH'_inductive : Inductive H' := by
     constructor
-    . simp [H]
-    . simp [H]
+    · -- zero case
+      exact ⟨zero, zero_case, rfl⟩
+
+    · -- successor case
       intro x hx
-      have : (0 : ℝ)  ≤ 1 := by exact le_of_lt zero_lt_one
-      exact le_trans this hx
-  exact hn IH
+      rcases hx with ⟨k, hk, rfl⟩
+      exact ⟨succ k, succ_case k hk, rfl⟩
+
+  have hH'_eq : H' = Natural :=
+    eq_natural_of_subset_of_inductive
+      hH'_subset hH'_inductive
+
+  have hnH' : (n : ℝ) ∈ H' := by
+    rw [hH'_eq]
+    exact n.property
+
+  rcases hnH' with ⟨k, hkH, hk_eq_n⟩
+
+  have hkP : P k := by
+    change P k at hkH
+    exact hkH
+
+  have hkn : k = n :=
+    Subtype.ext hk_eq_n
+
+  subst n
+  exact hkP
 ```
 
-:::corollary "one_lt_succ"
-For all `n ∈ Natural`, `1 < n + 1`.
+We will now use the principle of induction to prove elementary properties of
+natural numbers.
+
+:::proposition "add_natural"
+If $`n` and $`m` are natural numbers, then $`m + n` and $`m ⋅ n` are also
+natural numbers.
+:::
+■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+
+```lean "add"
+def add (n m : Natural) : Natural :=
+  have hnm: (n : ℝ) + (m : ℝ) ∈ Natural := by
+    let H := {x : ℝ | n + x ∈ Natural}
+
+    have IH : Inductive H := by
+      unfold Inductive
+      constructor
+
+      . show 0 ∈ H
+        change (n : ℝ) + 0 ∈ Natural
+        --intro A hA
+        have : (n : ℝ) + 0 = (n : ℝ) := by ring
+        rw [this]
+        exact n.property
+
+
+      . show ∀ {x : ℝ}, x ∈ H → (x + 1) ∈ H
+        intro x hx
+        change ((n : ℝ) + (x + (1 : ℝ))) ∈ Natural
+        rw [← add_assoc]
+        exact inductive_natural.right hx
+
+    change (m : ℝ) ∈ H
+    have : Natural ⊆ H := by
+      exact Set.sInter_subset_of_mem IH
+
+    exact this m.property
+  ⟨(n : ℝ) + (m : ℝ), hnm⟩
+
+
+instance : Add Natural where
+  add := add
+
+-- @[simp]
+-- theorem coe_add (n m : Natural) :
+--     ((n + m : Natural) : ℝ) =
+--       (n : ℝ) + (m : ℝ) := by
+--   rfl
+```
+
+```lean "add_succ"
+theorem add_succ (n m : Natural) :
+  add n (succ m) = succ (add n m) := by
+  apply Subtype.ext
+  change
+    (n : ℝ) + ((m : ℝ) + 1) =
+      (n : ℝ) + (m : ℝ) + 1
+  rw [add_assoc]
+```
+
+```lean "Natural.add_zero"
+theorem Nat_add_zero (n : Natural) :
+  n + zero  = n := by
+  change add n zero = n
+  simp [add, zero]
+```
+
+
+:::proposition "mul_of_naturals"
+If `n` and `m` are natural numbers, then `m ⋅ n` is also
+natural numbers.
+:::
+■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+
+:::proof "mul_of_naturals"
+Given $`n ∈ Natural` We consider the set:
+$$`H(x) = { x ∈ ℝ :  n · x ∈ Natural}`
+and prove that $`H` is inductive. Then, by the _Principle of Induction_
+{uses "Principle_of_Induction"}[] we conclude that $`Natural ⊆ H`.
+Below we give a `Lean` proof.
 :::
 
-```lean "one_lt_succ"
-lemma one_lt_succ {n : ℝ} :
-  n ∈ Natural → 1 < n + 1 := by sorry
+```lean "mul"
+def mul (n m : Natural) : Natural := by
+  have hnm : (n : ℝ) * (m : ℝ) ∈ Natural := by
+    let H := {x : ℝ | (n : ℝ) * x ∈ Natural}
 
+    have IH : Inductive H := by
+      unfold Inductive
+      constructor
+
+      . show 0 ∈ H
+        intro A hA
+        rw [mul_zero]
+        exact hA.left
+
+      . show ∀ {x : ℝ}, x ∈ H → (x + 1) ∈ H
+        intro x hx
+        change ((n : ℝ) * (x + (1 : ℝ))) ∈ Natural
+        rw [mul_add, mul_one]
+        let nx : Natural  := ⟨(n : ℝ) * x, hx⟩
+        exact (nx + n).property
+
+    change (m : ℝ) ∈ H
+    exact Set.sInter_subset_of_mem IH m.property
+
+  exact ⟨(n : ℝ) * (m : ℝ), hnm⟩
+
+
+instance : Mul Natural where
+  mul := mul
+
+-- @[simp]
+-- theorem coe_mul (n m : Natural) :
+--     ((n * m : Natural) : ℝ) =
+--       (n : ℝ) * (m : ℝ) := by
+--   rfl
 ```
+
+```lean "Nat_mul_one"
+@[simp]
+theorem Nat_mul_zero (n : Natural) :
+    n * zero = zero := by
+  change mul n zero = zero
+  simp [mul, zero]
+
+@[simp]
+theorem Nat_mul_one (n : Natural) :
+    n * one = n := by
+  change mul n one = n
+  simp [mul, one]
+```
+
+```lean "mul_succ"
+@[simp]
+theorem mul_succ {n m : Natural} :
+  n * (succ m) = (n * m) + n := by
+  change mul n (succ m) = add (mul n m) n
+  simp [mul, succ, add]
+  ring
+```
+
+# More Properties of the Natural Numbers
+
 We want now to prove the fact, intuitively clear, that if a natural number is
 subtracted from a smaller natural number, the result is a natural number.
 As a preliminary step, we prove the following Proposition.
 
 :::theorem "th_1.7."
-If $`n` is a natural number then either $`n = 1` or $`n - 1` is a natural
+If $`n` is a natural number then either $`n = 0` or $`n - 1` is a natural
 number.
 :::
 
 ```lean "thm_1.7_proof"
-theorem pred_mem_Natural
-  (n_mem_Natural : n ∈ Natural) (one_lt_n : 1 < n) :
-    n - 1 ∈ Natural := by
+theorem sub_one_of_pos (n : Natural) (hn : zero < n) :
+    (n : ℝ) - 1 ∈ Natural := by
+
   let H : Set ℝ :=
-    {n ∈ Natural | n = 1 ∨ (1 < n ∧ n - 1 ∈ Natural)}
+    {x ∈ Natural | x = 0 ∨ (0 < x ∧ x - 1 ∈ Natural)}
+
   have hH : H ⊆ Natural := by
     intro n hn
     exact hn.left
+
   have IH : Inductive H := by
     constructor
-    . show 1 ∈ H
-      change 1 ∈
-        Natural ∧ (1 = 1 ∨ (1 < 1 ∧ 1 - 1 ∈ Natural))
+    . show 0 ∈ H
+      change 0 ∈
+        Natural ∧ (0 = 0 ∨ (0 < 0 ∧ 0 - 1 ∈ Natural))
       constructor
       . exact inductive_natural.left
       . exact Or.inl rfl
+
     . show ∀ {x : ℝ}, x ∈ H → x + 1 ∈ H
       intro x hx
+      let nx : Natural := ⟨x,  hH hx⟩
       have x_is_natural : x ∈ Natural := by exact hH hx
-      have one_le_x : 1 ≤ x := by
-        exact (one_le_natural x_is_natural)
 
-      have e1 : 1 < x + 1 := by
-            calc
-            1 =  1 + 0 := by rw [add_zero]
-            _ < x + 1 := by exact
-              add_lt_add_of_le_of_lt one_le_x zero_lt_one
+      have e1 : 0 < x + 1 := by
+        calc
+        0 =  0 + 0 := by rw [add_zero]
+        _ < x + 1 := by exact
+            add_lt_add_of_le_of_lt (zero_le nx) zero_lt_one
+
       change x + 1 ∈ Natural
-          ∧ (x + 1 = 1 ∨
-              (1 < x + 1 ∧ x + 1 - 1 ∈ Natural))
+          ∧ (x + 1 = 0 ∨
+              (0 < x + 1 ∧ x + 1 - 1 ∈ Natural))
+
       constructor
-      . exact succ_mem_Natural x_is_natural
-      . have e1 : 1 < x + 1 := by
-          calc
-            1 =  1 + 0 := by rw [add_zero]
-            _ < x + 1 := by exact
-              add_lt_add_of_le_of_lt one_le_x zero_lt_one
-        have e2 : x + 1 - 1 ∈ Natural := by
+
+      . exact (succ nx).property
+
+      . have e2 : x + 1 - 1 ∈ Natural := by
           norm_num
-          exact x_is_natural
+          exact hH hx
         exact Or.inr ⟨e1, e2⟩
-  have H_eq_Natural : H = Natural := by
+
+  have HN : H = Natural := by
     exact eq_natural_of_subset_of_inductive hH IH
-  have n_mem_H : n  ∈ H := by
-    have : Natural ⊆ H := by rw [H_eq_Natural]
-    exact this n_mem_Natural
-  rcases n_mem_H.right with  one_eq_n | one_lt_n
-  . false_or_by_contra
-    exact ne_of_lt one_lt_n one_eq_n.symm
+
+  have nH : (n : ℝ) ∈ H := by
+    exact HN.symm.le n.property
+
+  rcases nH.right with  zero_eq_n | zero_lt_n
+  .
+    false_or_by_contra
+    have : zero = n := by
+      apply Subtype.ext zero_eq_n.symm
+    exact ne_of_lt hn this
+
   . show (n : ℝ) - 1 ∈ Natural
-    exact one_lt_n.right
+    exact zero_lt_n.right
 ```
 
 
-:::lemma_ "natural_add_one_le_of_lt"
+:::lemma_ "succ_le_of_lt"
 Let `n, m ∈ Natural`. If  `n < m`, then `n + 1 ≤ m`.
 :::
 
-```lean "natural_add_one_le_of_lt"
-theorem natural_add_one_le_of_lt
-  (n_mem_Natural : n ∈ Natural)
-  (m_mem_Natural : m ∈ Natural)
-  (n_lt_m : n < m) : n + 1 ≤ m := by
-  let H := {k ∈ Natural | ∀ q ∈ Natural, k < q → k + 1 ≤ q}
-  have IH : Inductive H := by
-    constructor
-    . show 1 ∈ H
-      change 1 ∈ Natural ∧ ∀ q ∈ Natural, 1 < q → 1 + 1 ≤ q
-      constructor
-      . exact one_mem_Natural
-      . rw [one_add_one_eq_two]
-        intro q q_mem_Natural one_lt_q
-        have pred_q_mem_Natural : q - 1 ∈ Natural := by
-          exact pred_mem_Natural q_mem_Natural one_lt_q
-        have one_le_pred_q : 1 ≤ q - 1 := by
-          exact one_le_natural (pred_q_mem_Natural)
-        calc
-        2 = 1 + 1 := by rw [one_add_one_eq_two]
-        _ ≤  (q - 1) + 1 := by
-          exact add_le_add_left one_le_pred_q 1
-        _ = q := by ring
+```lean "succ_le_of_lt"
+theorem succ_le_of_lt (n : Natural) :
+  ∀ m : Natural, n < m → succ n ≤ m := by
+  let P (k : Natural) : Prop :=
+    ∀ m : Natural, k < m → succ k  ≤ m
 
-    . show ∀ {x : ℝ}, x ∈ H → x + 1 ∈ H
-      intro k k_mem_H
-      change k + 1 ∈ Natural ∧
-        ∀ q ∈ Natural, (k + 1 < q → k + 1 + 1 ≤ q)
-      have k_mem_Natural : k ∈ Natural := by
-        exact k_mem_H.left
-      constructor
-      . exact succ_mem_Natural k_mem_Natural
-      . intro q q_mem_Natural succ_k_lt_q
+  have zero_case : P zero := by
+    intro m hm
+    change 0 + 1 ≤ (m : ℝ)
 
-        have one_lt_q : 1 < q := by
-          calc (1 : ℝ)
-          _  = 0 + 1 := by rw [zero_add]
-          _ < 1 + 1 := by
-            exact add_lt_add_left zero_lt_one 1
-          _ ≤ k + 1 := by
-            exact add_le_add_left
-              (one_le_natural k_mem_Natural) 1
-          _ < q := by exact succ_k_lt_q
+    have : (0 : ℝ) + (1 : ℝ) = (1 : ℝ) := by ring
+    rw [this]
 
-        have pred_q_mem_Natural : q - 1 ∈ Natural := by
-          exact pred_mem_Natural q_mem_Natural one_lt_q
+    have : (m : ℝ) - 1 ∈ Natural := by
+      exact sub_one_of_pos m hm
 
-        have k_lt_pred_q : k < q - 1 := by
-          calc
-          k = k + 1 - 1 := by ring
-          _ < q - 1 := by
-            exact add_lt_add_left succ_k_lt_q (-1)
+    have : 0 ≤ (m : ℝ) - 1 :=
+      by exact zero_le ⟨(m : ℝ) - 1, this⟩
 
-        have : k + 1 ≤ q - 1 := by
-          exact k_mem_H.right (q - 1)
-            pred_q_mem_Natural  k_lt_pred_q
+    calc
+    1 = 0 + 1 := by rw [zero_add]
+    _ ≤ (m : ℝ) - 1 + 1 := by exact add_le_add_left this 1
+    _ = (m : ℝ) := by ring
 
-        calc k + 1 + 1
-        _ ≤ q - 1 + 1 := by
-          exact add_le_add_left this 1
-        _ = q := by ring
+  have succ_case : ∀ k : Natural, P k → P (succ k) := by
 
-  have n_mem_H : n ∈ H := by
-    exact n_mem_Natural IH
+    intro k pk
+    change ∀ m : Natural, succ k < m → succ (succ k) ≤ m
+    intro m hm
+    simp [succ] at hm
+    simp [succ]
 
-  exact n_mem_H.right m m_mem_Natural n_lt_m
+    have : (0 : ℝ) ≤ (k : ℝ) := by
+      exact zero_le k
+
+    have : 0 < (m : ℝ) := by
+      calc (0 : ℝ)
+      _ < 1 := by exact zero_lt_one
+      _ = 0 + 1 := by rw [zero_add]
+      _ ≤ (k : ℝ) + 1 := by
+        exact add_le_add_left this 1
+      _ < m := by exact hm
+
+    have hm_sub_one : (m : ℝ) - 1 ∈ Natural := by
+      exact sub_one_of_pos m this
+
+    have : (k : ℝ) + 1 < (m : ℝ) := by
+      exact hm
+
+    have : (k : ℝ) < (m : ℝ) - 1 := by
+      calc (k : ℝ)
+      _ = k + 1 - 1 := by ring
+      _ < (m : ℝ) - 1 := by
+        exact add_lt_add_left this (-1)
+
+    have : (k : ℝ) + 1 ≤ (m : ℝ) - 1 := by
+      exact pk ⟨(m : ℝ) - 1, hm_sub_one⟩ this
+
+
+    calc (k : ℝ) + 1 + 1
+    _ ≤ (m : ℝ) - 1 + 1 := by
+      exact add_le_add_left this 1
+    _ = m := by ring
+
+  exact induction zero_case  succ_case n
 ```
-:::corollary "natural_le_of_lt_succ"
+:::corollary "le_of_lt_succ"
 Let `n, m ∈ Natural`. If  `n < m + 1`, then `n ≤ m`.
 :::
 
-```lean "natural_le_of_lt_succ_proof"
-theorem natural_le_of_lt_succ {n m : ℝ}
-  (n_mem_Natural : n ∈ Natural)
-  (m_mem_Natural : m ∈ Natural)
-  (n_lt_succ_m : n < m + 1) : n ≤ m := by
-  have : n + 1 ≤ m + 1 := by
-    exact natural_add_one_le_of_lt
-      n_mem_Natural
-      (succ_mem_Natural m_mem_Natural)
-      n_lt_succ_m
-  calc
-    n =  n + 1 - 1 := by ring
-    _ ≤ m + 1 - 1 := by
-      exact  add_le_add_left this (-1)
-    _ = m := by ring
+```lean "le_of_lt_succ"
+
+theorem le_of_lt_succ (n : Natural) :
+  ∀ m : Natural, n < succ m → n ≤ m := by
+
+  intro m hnm
+
+  have hsucc : succ n ≤ succ m := by
+     exact succ_le_of_lt n (succ m) hnm
+
+  simp [succ] at hsucc
+  exact hsucc
 ```
 
 Now we are in a position to prove the announced result:
@@ -561,57 +681,52 @@ If $`m` and $`n` are natural numbers and $`n < m`,
 then $`m - n` is also a natural number.
 :::
 
-```lean "natural_sub_of_lt_proof"
-theorem natural_sub_of_lt
-  (n_mem_Natural : n ∈ Natural)
-  (m_mem_Natural : m ∈ Natural)
-  (n_lt_m : n < m)  :m - n ∈ Natural := by
-  let H : Set ℝ :=
-    {m ∈ Natural |
-      ∀ k ∈ Natural, k < m → m - k ∈ Natural}
-  have IH : Inductive H := by
-    constructor
-    . show 1 ∈ H
-      change 1 ∈ Natural ∧
-        (∀ k ∈ Natural, k < 1 → 1 - k ∈ Natural)
-      constructor
-      . exact one_mem_Natural
-      intro n n_is_natural hn
-      false_or_by_contra
-      exact not_le_of_gt hn
-        (one_le_natural n_is_natural)
-    . show ∀ {x : ℝ}, x ∈ H → x + 1 ∈ H
-      intro x x_mem_H
-      have x_mem_Natural : x ∈ Natural := by
-        exact x_mem_H.left
-      change (x + 1) ∈ Natural ∧
-        ∀ k ∈ Natural, k < x + 1 → (x + 1) - k  ∈ Natural
-      constructor
-      . exact (succ_mem_Natural x_mem_Natural)
-      . show ∀ k ∈ Natural, k < x + 1 → x + 1 - k ∈ Natural
-        intro k k_mem_Natural k_lt_succ_x
-        have : k < x ∨ k = x := by
-          exact lt_or_eq_of_le (natural_le_of_lt_succ
-            k_mem_Natural x_mem_Natural k_lt_succ_x)
-        rcases this with k_lt_x | k_eq_x
-        . show x + 1 - k ∈ Natural
-          have x_sub_n_mem_Natural : x - k ∈ Natural := by
-            exact x_mem_H.right k k_mem_Natural k_lt_x
-          have : x + 1 - k = x - k + 1 := by ring
-          rw [this]
-          exact (succ_mem_Natural
-            x_sub_n_mem_Natural : x - k + 1 ∈ Natural)
-        . show x + 1 - k ∈ Natural
-          subst k
-          have : x + 1 - x = 1 := by ring
-          rw [this]
-          exact (one_mem_Natural : 1 ∈ Natural)
-  have : m ∈ H := by
-    exact m_mem_Natural IH
-  exact (this.right n n_mem_Natural n_lt_m
-    : m - n ∈ Natural)
-```
 
+```lean "sub_of_lt"
+theorem sub_of_le (n : Natural) :
+  ∀ m : Natural, n ≤ m → (m : ℝ) - (n : ℝ) ∈ Natural := by
+  let P (k : Natural) :=
+    ∀ m : Natural, k ≤ m → (m : ℝ) - (k : ℝ) ∈ Natural
+
+  have zero_case : P zero := by
+    unfold P
+    intro m hm
+    simp [zero]
+
+  have succ_case : ∀ k : Natural, P k → P (succ k) := by
+    unfold P
+    intro k pk m hkm
+    simp [succ]
+
+    have k_lt_m : (k : ℝ) < (m : ℝ) :=
+      calc (k : ℝ)
+      _ = (0 : ℝ) + (k : ℝ)  := by rw [zero_add]
+      _ < (1 : ℝ) + (k : ℝ)  := by
+        exact add_lt_add_left zero_lt_one (k : ℝ)
+      _ = (k : ℝ) + (1 : ℝ) := by rw [add_comm]
+      _ ≤ (m : ℝ) := by exact hkm
+
+    have : (m : ℝ) - (k : ℝ) ∈ Natural :=
+      by exact pk m (le_of_lt k_lt_m)
+
+    let nmk  : Natural := ⟨(m : ℝ) - (k : ℝ), this⟩
+
+    have : (m : ℝ) - (k : ℝ) - 1  =
+      (m : ℝ)  - ((k : ℝ) + 1) := by
+      ring
+
+    rw [← this]
+
+    have : 0 < (m : ℝ) - (k : ℝ) := by
+      calc
+      0 = (k : ℝ) - (k : ℝ) := by ring
+      _ < (m : ℝ) - (k : ℝ) := by
+        exact add_lt_add_left k_lt_m (-k : ℝ)
+
+    exact sub_one_of_pos nmk this
+
+  exact induction zero_case succ_case n
+```
 
 # The Well Ordering Principle
 
@@ -628,19 +743,16 @@ Not every set `A ⊆ ℝ` has a minimum (on this we will return later)
 but if we suppose `A ⊆ Natural`, then thing changes:
 
 :::theorem "Well_Ordering"(tags := "Well-Ordering Principle")
-If `A ⊆ Natural` and `A` is not the empty set
-then `A` has a minimum.
+If `A ⊆ Natural` and `A` is not the empty set then `A` has a minimum.
 :::
 
 :::proof "Well_Ordering"
-It is convenient to consider the following set: Let
+It is convenient to consider the following proposition: Let
 
-`H :=  {
-    n ∈ Natural |
-    ∀ S ⊆ Natural, n ∈ S → ∃ m ∈ Natural, IsLeast S m
-    }
+
 `
-
+P(n) := ∀ H ⊆ Natural, n ∈ H → ∃ m, IsLeast H m
+`
 We will prove that `H` is inductive. Then, by the _Principle of Induction_
 {uses "Principle_of_Induction"}[] we conclude that $`Natural ⊆ H`.
 Below we give a `Lean` proof.
@@ -650,163 +762,93 @@ Below we give a `Lean` proof.
 ```lean "Well_Ordering_proof"
 theorem well_ordering :
   ∀ A ⊆ Natural, A.Nonempty →
-    ∃ m ∈ Natural, IsLeast A m := by
-  let H :=  {
-    n ∈ Natural |
-    ∀ S ⊆ Natural, n ∈ S → ∃ m ∈ Natural, IsLeast S m
-    }
-  have H_subset_Natural : H ⊆ Natural := by
-    intro n n_mem_H
-    exact n_mem_H.left
+    ∃ m, IsLeast A m := by
 
-  have IH : Inductive H := by
+  let P (n : Natural) : Prop :=
+    ∀ H ⊆ Natural, (n : ℝ) ∈ H → ∃ m, IsLeast H m
+
+  have zero_case : P zero := by
+    intro H hH hnH
+    use 0
+    unfold IsLeast
     constructor
+    . exact hnH
+    . unfold lowerBounds
+      intro a haH
+      exact zero_le ⟨a, hH haH⟩
 
-    . show 1 ∈ H
-      change 1 ∈ Natural ∧
-        ∀ S ⊆ Natural, 1 ∈ S → ∃ m ∈ Natural, IsLeast S m
-      constructor
-      . show 1 ∈ Natural
-        exact one_mem_Natural
-      . show ∀ S ⊆ Natural,
-          1 ∈ S → ∃ m ∈ Natural, IsLeast S m
-        intro S S_subset_Natural one_mem_S
-        use 1
+  have succ_case : ∀ n : Natural,
+    P n → P (succ n) := by
+    intro n pn H hH succnH
+
+    by_cases hnH : ↑n ∈ H
+
+    . rcases pn H hH hnH with ⟨m, hm⟩ -- hnH : ↑n ∈ H
+      use m
+
+    . let H' := H ∪ {↑n}  -- ↑n ∉ H
+
+      have hH' : H' ⊆ Natural := by
+        apply Set.union_subset
+        · exact hH
+        · exact Set.singleton_subset_iff.mpr n.property
+
+      have hnH' : ↑n ∈ H' := by
+        exact Set.mem_union_right H
+          (Set.mem_singleton (n : ℝ))
+
+      rcases pn H' hH' hnH' with ⟨m, hm⟩
+
+      by_cases hmH : m ∈ H
+      . use m -- hmH : m ∈ H
+        unfold IsLeast
         constructor
-        . exact one_mem_Natural
-        . show IsLeast S 1
-          constructor
-          . show 1 ∈ S
-            exact one_mem_S
-          . show 1 ∈ lowerBounds S
-            intro s s_mem_S
-            have s_mem_Natural : s ∈ Natural := by
-              exact S_subset_Natural s_mem_S
-            exact one_le_natural s_mem_Natural
+        . exact hmH
+        . intro x hxH
+          have : x ∈ H' := by
+            exact Set.mem_union_left {↑n} hxH
+          exact hm.right this
 
-    . show  ∀ {k : ℝ}, k ∈ H → k + 1 ∈ H
-      intro k k_mem_H
-      change k + 1 ∈ Natural ∧
-        ∀ S ⊆ Natural,
-          k + 1 ∈ S → ∃ m ∈ Natural, IsLeast S m
+      . use (succ n) -- hmH : m ∉ H
+        have : m = n := by
+          rcases hm.left with hm_in_H  | hm_in_singleton
+          . exact False.elim (hmH hm_in_H)
+          . simpa using hm_in_singleton
+        rw [this] at hm
+        rw [this] at hmH
 
-      have k_mem_Natural : k ∈ Natural := by
-          exact k_mem_H.left
+        constructor
+        . exact succnH
+        . intro x hxH
 
-      have succ_k_mem_Natural : k + 1 ∈ Natural := by
-        exact (succ_mem_Natural k_mem_Natural
-                : k + 1 ∈ Natural)
-      constructor
+          have x_mem_Nat : x ∈ Natural := by
+            exact hH hxH
 
-      . show k + 1 ∈ Natural
-        exact succ_k_mem_Natural
-      . show ∀ S ⊆ Natural, k + 1 ∈ S →
-          ∃ m ∈ Natural, IsLeast S m
-        intro S S_subset_Natural succ_k_mem_S
-        by_cases k_mem_S : k ∈ S
-        . show ∃ m ∈ Natural, IsLeast S m -- k ∈ S
-          exact (k_mem_H.right S S_subset_Natural k_mem_S)
-        . show ∃ m ∈ Natural, IsLeast S m -- k ∉ S
-          let S' := S ∪ {k}
+          have hxH' : x ∈ H' := by
+            exact Set.mem_union_left {↑n} hxH
 
-          have S_subset_Natural' : S' ⊆ Natural := by
-            intro s s_mem_S'
-            rcases s_mem_S' with s_mem_S | s_eq_k
-            . show s ∈ Natural
-              exact S_subset_Natural s_mem_S
-            . show s ∈ Natural
-              have : s = k := by
-                exact s_eq_k
-              subst s
-              exact (k_mem_Natural : k ∈ Natural)
+          have : x ≠ n := by
+            intro x_eq_n
+            subst x
+            exact hmH hxH
 
-          have k_mem_S' : k ∈ S' := by
-            exact Set.mem_union_right S rfl
-
-          have S_subset_S' : S ⊆ S' := by
-            intro x x_mem_S
-            exact Set.mem_union_left {k} x_mem_S
-
-          have : ∃ m ∈ Natural, IsLeast S' m := by
+          have : n < x := by
             exact
-              (k_mem_H.right S' S_subset_Natural' k_mem_S')
-          rcases this with ⟨m, m_mem_Natural, m_least_S'⟩
-          by_cases hmS : m ∈ S
+              (lt_of_le_of_ne (hm.right hxH') this.symm )
 
-          . show ∃ m ∈ Natural, IsLeast S m -- m ∈ S
+          exact succ_le_of_lt n ⟨x, x_mem_Nat⟩ this
 
-            have : m ∈ lowerBounds S := by
-              intro s s_mem_S
-              exact m_least_S'.right (S_subset_S' s_mem_S)
-            use m
-            exact ⟨m_mem_Natural, hmS, this⟩
-          . show ∃ m ∈ Natural, IsLeast S m -- m ∉ S
-
-            have m_eq_k : m = k := by
-              rcases m_least_S'.left with m_mem_S | m_eq_k
-              . false_or_by_contra
-                exact hmS m_mem_S
-              . exact m_eq_k
-
-            have : ∀ s ∈ S, k + 1 ≤ s := by
-              intro s s_mem_S
-              have s_mem_S' : s ∈ S' := by
-                exact Set.mem_union_left {k} s_mem_S
-
-              have k_ne_s : k ≠ s := by
-                intro k_eq_s
-                subst k
-                subst m
-                exact hmS s_mem_S
-
-              have k_le_s : k ≤ s := by
-                subst m
-                exact m_least_S'.right s_mem_S'
-
-              have : k < s := by
-                exact lt_of_le_of_ne k_le_s k_ne_s
-              exact natural_add_one_le_of_lt
-                k_mem_Natural
-                (S_subset_Natural s_mem_S)
-                this
-            use k + 1
-            constructor
-
-            . show k + 1 ∈ Natural
-              exact succ_k_mem_Natural
-
-            . show IsLeast S (k + 1)
-              constructor
-
-              . show k + 1 ∈ S
-                assumption
-
-              . show k + 1 ∈ lowerBounds S
-                assumption
-
-  have H_eq_Natural : H = Natural := by
-    exact eq_natural_of_subset_of_inductive
-          H_subset_Natural -- H ⊆ Natural
-          IH               -- Inductive H
-
-  intro A A_subset_Natural A_nonempty
-  rcases A_nonempty with ⟨n, n_mem_A⟩
-
-  have n_mem_Natural : n ∈ Natural := by
-    exact (A_subset_Natural n_mem_A)
-
-  have : n ∈ H := by
-    rw [H_eq_Natural]
-    exact n_mem_Natural
-
-  show  ∃ m ∈ Natural, IsLeast A m
-  exact this.right A A_subset_Natural n_mem_A
+  intro A hA hA_nonempty
+  rcases hA_nonempty with ⟨n, hnA⟩
+  have : n ∈ Natural := by
+    exact hA hnA
+  exact (induction zero_case succ_case ⟨n, this⟩) A hA hnA
 ```
 
 # Exercises
 1. Demonstrate the _strong_ induction principle:
 Let `H ⊆ Natural` such that the two following conditions are met:
-  * `1 ∈ H` ;
+  * `0 ∈ H` ;
   *  If `k ∈ H` for all `k ≤ n`,  then `n + 1 ∈ H`.
 Then `H = Natural`
 
