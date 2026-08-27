@@ -2,7 +2,8 @@ import Mathlib.Data.Nat.Notation
 import Mathlib.Data.Real.Basic
 import Mathlib.Tactic
 
-  import ProjectTemplate.Chapters.Section_1_3
+import ProjectTemplate.Chapters.Section_1_2
+import ProjectTemplate.Chapters.Section_1_3
 
 import Verso
 import VersoManual
@@ -22,347 +23,374 @@ Core statements about addition on real numbers.
 ```lean "open DefinitionsByInduction"
 namespace DefinitionsByInduction
 open NaturalNumbers
+open BasicProperties
 ```
 
 # Generalized Induction
 
+
 :::definition "general_induction"
-A set `H ⊆ ℝ × ℝ` is `G`-inductive with _initial value_ `a ∈ ℝ` and
+A set `H ⊆ ℝ × ℝ` is RecInductive with _initial value_ `a ∈ ℝ` and
 _inductive step_ `step : ℝ → ℝ → ℝ` if it  satisfies the following properties:
-* `(1, a) ∈ H`
+* `(0, a) ∈ H`
 * If `(x, y) ∈ H`, then `(x + 1, step x y) ∈ H`
-In this case, we write `(a, step, H)` is `G`-inductive.
+--In this case, we write `(a, step, H)` is `G`-inductive.
 :::
 
-```lean "general_induction"
-def G_inductive (a : ℝ) (step : ℝ → ℝ → ℝ)
-  (H : Set (ℝ × ℝ)) : Prop :=
-    (1, a) ∈ H ∧
-      ∀ {x y : ℝ}, (x, y) ∈ H → (x + 1, step x y) ∈ H
+```lean "RecInductive"
+def RecInductive
+    (initial : ℝ)
+    (step : Natural → ℝ → ℝ)
+    (H : Set (Natural × ℝ)) : Prop :=
+  (zero, initial) ∈ H ∧
+  ∀ {n : Natural} {x : ℝ},
+    (n, x) ∈ H →
+    (succ n, step n x) ∈ H
 ```
 
-:::lemma_ "Natural × ℝ is G-inductive" (tags := "Natural × ℝ is G-inductive")
+
+:::lemma_ "Natural × ℝ is RecInductive" (tags := "Natural × ℝ is RecInductive")
 For any `a ∈ ℝ` and step function `step : ℝ → ℝ → ℝ`,
-`Natural × ℝ` is `G`-inductive.
+`Natural × ℝ` is RecInductive.
 :::
 
 ```lean "general_induction_example"
-theorem natural_times_R {a : ℝ} {step : ℝ → ℝ → ℝ} :
-  G_inductive a step (Natural ×ˢ (Set.univ : Set ℝ)) := by
-  let R := (Set.univ : Set ℝ)
+theorem recInductive_univ {a : ℝ} {step : Natural → ℝ → ℝ} :
+  RecInductive a step
+    (Set.univ : Set (Natural × ℝ)) := by
   constructor
-  . show (1, a) ∈ Natural ×ˢ R
-    exact ⟨one_mem_Natural , Set.mem_univ a⟩
-  . show ∀ {x y : ℝ}, (x, y) ∈ Natural ×ˢ R →
-      (x + 1, step x y) ∈ Natural ×ˢ Set.univ
-    intro x y hp
-    have : x + 1 ∈ Natural := by
-        exact succ_mem_Natural hp.1
-    exact ⟨this, Set.mem_univ (step x y)⟩
 
+  . show (zero, a) ∈ Set.univ
+    exact Set.mem_univ  (zero, a)
+
+  . show ∀ {n : Natural} {x : ℝ}, (n, x) ∈ Set.univ →
+      (succ n, step n x) ∈ Set.univ
+    intro n x hp
+    exact Set.mem_univ (succ n, step n x)
+```
+
+
+```lean "remove_wrong_base"
 theorem remove_wrong_base
-  {a b: ℝ} {step : ℝ → ℝ → ℝ} (hab : a ≠ b) :
-    G_inductive a step
-      ((Natural ×ˢ
-        (Set.univ : Set ℝ)) \ {(1, b)}) := by
-  let S := (Natural ×ˢ  (Set.univ : Set ℝ)) \ {(1, b)}
+  {a b: ℝ} {step : Natural → ℝ → ℝ} (hab : a ≠ b) :
+    RecInductive a step
+    ((Set.univ : Set (Natural × ℝ)) \ {(zero,  b)}) := by
+
+  let U := (Set.univ : Set (Natural × ℝ))
+  let S := U  \ {(zero,  b)}
   constructor
-  . show (1, a) ∈ S
+  . show (zero, a) ∈ S
+
     constructor
-    . show (1, a) ∈ Natural ×ˢ (Set.univ : Set ℝ)
-      exact ⟨one_mem_Natural, Set.mem_univ a⟩
-    . show  (1, a) ∉ {(1, b)}
+    . show (zero, a) ∈ U
+      exact Set.mem_univ (zero,  a)
+
+    . show  (zero, a) ∉ {(zero, b)}
       intro h
-      have : a = b := by
-         exact congrArg Prod.snd h
-      exact hab this
-  . show ∀ {x y : ℝ}, (x, y) ∈ S → (x + 1, step x y) ∈ S
-    intro x y hxy
-    change (x, y) ∈
-      (Natural ×ˢ  (Set.univ : Set ℝ)) \ {(1, b)} at hxy
-    have x_mem_Natural : x ∈ Natural := by
-      exact hxy.left.left
-    have succ_x_mem_Nat : x + 1 ∈ Natural := by
-      exact succ_mem_Natural x_mem_Natural
-    have : (x + 1, step x y) ≠ (1, b) := by
+      exact hab (congrArg Prod.snd h)
+
+  . show ∀ {n : Natural} {x : ℝ},
+      (n, x) ∈ S → (succ n, step n x) ∈ S
+    intro n x hpG
+    change (succ n, step n x) ∈ Set.univ \ {(zero, b)}
+    constructor
+    . show (succ n, step n x) ∈ Set.univ
+      exact Set.mem_univ (succ n, step n x)
+
+    . show (succ n, step n x) ∉ {(zero, b)}
       intro h
-      have : x + 1 = 1 := by
-        exact congrArg Prod.fst h
-      exact (ne_of_lt (one_lt_succ x_mem_Natural)) this.symm
-    exact ⟨⟨succ_x_mem_Nat, Set.mem_univ (step x y) ⟩,
-      this⟩
+      have : succ n = zero := by
+        exact (congrArg Prod.fst h)
+      exact ne_of_lt (zero_lt_succ n) this.symm
 ```
 
-:::definition "G set"
-Given `a ∈ ℝ` and `step : ℝ → ℝ → ℝ`, the `G`-set `G` with
-initial value `a` and  inductive step function `step` is the
-_smallest_  `G`-inductive set with _initial value_
-`a ∈ ℝ` and _inductive step_ `step : ℝ → ℝ → ℝ`. Precisely,
+:::definition "RecGraph"
+Given `intial ∈ ℝ` and `step : Natural → ℝ → ℝ`,
+the `RecGraph` with initial value `initial` and  inductive step function
+`step` is the _smallest_  RecInductive set with _initial value_
+`initla ∈ ℝ` and _inductive step_ `step : Natural → ℝ → ℝ`. Precisely,
 
-`G = ⋂₀ {A : (a, step, A) is `G`-inductive}`
+`RecGraph = ⋂₀ {H | RecInductive initial step H}`
 :::
 
-```lean "G set"
-def G (a : ℝ) (step : ℝ → ℝ → ℝ ) :=
-  ⋂₀  {A : Set (ℝ × ℝ) | G_inductive a step A}
+
+```lean "RecGraph"
+def RecGraph
+    (initial : ℝ)
+    (step : Natural → ℝ → ℝ) :
+    Set (Natural × ℝ) :=
+  ⋂₀ {H | RecInductive initial step H}
 ```
 
-:::lemma_ "G ⊆ Natural × ℝ"
-`G (a : ℝ) (step : ℝ → ℝ → ℝ ) ⊆ Natural × R`
+
+:::theorem "ReGraph is RecInductive"
+Let  `F` be the `RecInductive`-set with _initial value_
+`a ∈ ℝ` and _inductive step_ `step : Natural → ℝ → ℝ`, then
+`F` is `RecInductive`.
 :::
 
-```lean "G ⊆ Natural × ℝ"
-theorem G_subset_Natural_times_R
-  {a : ℝ} {step : ℝ → ℝ → ℝ} :
-  G a step ⊆ Natural ×ˢ Set.univ:= by
-  unfold G
-  apply Set.sInter_subset_of_mem
-  exact natural_times_R
-```
 
-:::corollary "π₁ G ⊆ Natural"
-Let `G` be the `G`-set with _initial value_
-`a ∈ ℝ` and _inductive step_ `step : ℝ → ℝ → ℝ`, and let
-`G₁ = {x ∈ ℝ : ∃ y ∈ ℝ, (x, y) ∈ G}`. Then `G₁ ⊆ Natural`
-:::
-
-:::proof "π₁ G ⊆ Natural"
-Since ... tbc
-:::
-
-```lean "π₁ G ⊆ Natural"
-theorem fst_G_subset_natural {a : ℝ} {step : ℝ → ℝ → ℝ} :
-  Prod.fst '' (G  a step) ⊆ Natural := by
-  intro x hx
-  change ∃ p, p ∈ (G  a step) ∧ Prod.fst p = x at hx
-  rcases hx with ⟨p, hpG, rfl⟩
-  exact (G_subset_Natural_times_R hpG).1
-```
-:::theorem "G set is G-inductive"
-Let  Let `G` be the `G`-set with _initial value_
-`a ∈ ℝ` and _inductive step_ `step : ℝ → ℝ → ℝ`, then
-`(a, set, G)` is G-inductive.
-:::
-
-:::proof "G set is G-inductive"
-tbc
-:::
-
-```lean "G set is G-inductive"
-theorem G_set_inductive (a : ℝ) (step : ℝ → ℝ → ℝ)
-   : G_inductive a step (G a step)   := by
-  let F := G a step
-  unfold G_inductive
+```lean "RG-inductive"
+theorem RG_inductive (a : ℝ) (step : Natural → ℝ → ℝ)
+   : RecInductive a step (RecGraph a step)   := by
+  let F := RecGraph a step
   constructor
-  . show (1, a) ∈ F
-    change (1, a) ∈
-      ⋂₀ {A : Set (ℝ × ℝ) | G_inductive a step A}
-    rw [Set.mem_sInter]
+
+  . show (zero, a) ∈ RecGraph a step
+    change (zero, a) ∈
+      ⋂₀ {A : Set (Natural × ℝ) | RecInductive a step A}
+    apply Set.mem_sInter.mpr
     intro A hA
     exact hA.left
-  . show ∀ {x y : ℝ}, (x, y) ∈ F → (x + 1, step x y) ∈ F
-    intro x y pxy
-    change (x + 1, step x y) ∈
-      ⋂₀ {A : Set (ℝ × ℝ) | G_inductive a step A}
-    rw [Set.mem_sInter]
-    intro A hA
-    have : (x, y) ∈ A := by
-      exact pxy A hA
+
+  . show ∀ {n : Natural} {x : ℝ}, (n, x) ∈ F →
+      (succ n, step n x) ∈ F
+    intro n x pnx A hA
+    have : (n, x) ∈ A := by
+      exact pnx A hA
     exact hA.right this
 ```
 
-:::corollary "π₁ G = Natural"
-`π₁ G = Natural`
+
+Our goal is to prove that `F = RecGraph a step ⊆ Natural × ℝ` is a function.
+We start by proving the following lemma:
+:::lemma_ "Unique at zero"
+Let  `F` be the `RecInductive`-set with _initial value_
+`a ∈ ℝ` and _inductive step_ `step : Natural → ℝ → ℝ`, then
+`∀ b : ℝ, (zero, b) ∈ RecGraph a step → a = b`.
 :::
 
-:::proof "π₁ G = Natural"
-Since `π₁ G ⊆ Natural`, by {uses "Principle_of_Induction"}[],
-it is enough to show that `π₁ G ⊆ Natural` is inductive.
-:::
-
-```lean "π₁ G = Natural_proof"
-theorem fst_G_eq_natural {a : ℝ} {step: ℝ → ℝ → ℝ} :
-  Prod.fst '' (G  a step) = Natural  := by
-  let F := G  a step
-  have G_inductive_F : G_inductive a step F := by
-    exact (G_set_inductive a step)
-  let X := Prod.fst '' F
-  have X_subset_Natural: X ⊆ Natural := by
-    exact fst_G_subset_natural
-  have IX : Inductive X := by
-    constructor
-    . show 1 ∈ X
-      have : (1, a) ∈ F := by
-        exact G_inductive_F.left
-      exact ⟨(1, a), this, rfl⟩
-    . show ∀ {x : ℝ}, x ∈ X → x + 1 ∈ X
-      intro x hx
-      change ∃ p, p ∈ F ∧ p.1 = x at hx
-      rcases hx with ⟨p, p_mem_F, fst_p_eq_x⟩
-      let y := p.2
-      have : (x, y) = p := by
-        subst x
-        subst y
-        exact Prod.eta p
-      have : (x, y) ∈ F := by
-        rw [this]
-        exact p_mem_F
-      have : (x + 1, step x y) ∈ F := by
-        exact G_inductive_F.right this
-      exact ⟨(x + 1, step x y), this, rfl⟩
-  exact eq_natural_of_subset_of_inductive
-    X_subset_Natural
-    IX
-```
-:::theorem "G a step is a function"
-`G a step` is a functiom
-:::
-
-```lean "G a step is a function"
-theorem unique_at_one
-  (a : ℝ) (step : ℝ → ℝ → ℝ) :
-  ∀ b : ℝ, (1, b) ∈ G a step → a = b := by
-  intro b hb
+```lean "unique_at_zero"
+lemma unique_at_zero
+  (a : ℝ) (step : Natural → ℝ → ℝ) :
+  ∀ b : ℝ, (zero, b) ∈ RecGraph a step → a = b := by
+  intro b hzb
   by_cases hab : a = b
   . show a = b -- hab : a = b
     exact hab
   . show a = b -- hab : a ≠ b
     false_or_by_contra
-    let S := ((Natural ×ˢ
-        (Set.univ : Set ℝ)) \ {(1, b)})
-    have IS : G_inductive a step S := by
+
+    let U := (Set.univ : Set (Natural × ℝ))
+    let S := U  \ {(zero,  b)}
+
+    have IS : RecInductive a step S := by
         exact remove_wrong_base hab
-    have : G a step ⊆ S := by
-        exact Set.sInter_subset_of_mem IS
-    have : (1, b) ∈ S := by
-      exact this hb
-    rcases this with ⟨_, b_ne_b⟩
-    exact b_ne_b (Set.mem_singleton (1, b))
 
-theorem G_is_function (a : ℝ) (step : ℝ → ℝ → ℝ) :
-  ∀ n ∈ Natural, ∃! y : ℝ, (n, y) ∈  G a step := by
-  let A := G a step
+    have : (zero, b) ∈ S := by
+      exact (Set.sInter_subset_of_mem IS) hzb
 
-  have IA : G_inductive a step A :=
-    by exact G_set_inductive a step
+    rcases this with ⟨_, hb⟩
 
-  let H := {n ∈ Natural | ∃! y : ℝ, (n, y) ∈  A}
-
-  have H_substet_Nat : H ⊆ Natural := by
-    intro x hx
-    exact hx.left
-
-  have IH : Inductive H := by
-    constructor
-    . show 1 ∈ H
-      exact ⟨one_mem_Natural,
-        ⟨a,
-          ⟨IA.left, fun y hy =>
-            (unique_at_one a step y hy).symm⟩ ⟩⟩
-    . show ∀ {x : ℝ}, x ∈ H → x + 1 ∈ H
-      intro n n_mem_H
-      rcases n_mem_H with
-        ⟨n_mem_Nat, y, ⟨pny_mem_A, y_unique⟩⟩
-
-      change n + 1 ∈ Natural ∧
-        (∃ y' : ℝ, (n + 1, y') ∈ A ∧
-          ∀ b : ℝ, (n + 1, b) ∈ A → b = y')
-
-      have succ_n_mem_Nat : n + 1 ∈ Natural :=
-        by exact succ_mem_Natural n_mem_Nat
-
-      let y' := step n y
-
-      have ey' : (n + 1, y') ∈ A := by
-        exact IA.right pny_mem_A
-
-      have uy' : ∀ b : ℝ, (n + 1, b) ∈ A → b = y' := by
-        intro b p_mem_A
-        by_cases hb : b = y'
-        . exact hb
-
-        . let B := A \ {(n + 1, b)}
-
-          have B_subset_A : B ⊆ A:= by
-            exact Set.sdiff_subset
-
-          have IB : G_inductive a step B := by
-            constructor
-            . show (1, a) ∈ B
-
-              have : 1 ≠ n + 1 := by
-                exact ne_of_lt (one_lt_succ n_mem_Nat)
-
-              have : (1, a) ≠ (n + 1, b) := by
-                intro h
-                exact this (congrArg Prod.fst h)
-              exact ⟨IA.left, this⟩
-
-            . show ∀ {u v : ℝ}, (u, v) ∈ B →
-                (u + 1, step u v) ∈ B
-              intro u v puv_mem_B
-
-              have puv_mem_A : (u , v) ∈ A := by
-                  exact B_subset_A puv_mem_B
-
-              have psucc_mem_A : (u + 1, step u v) ∈ A :=
-                  by exact IA.right puv_mem_A
-
-              by_cases hun : u = n
-              . subst u -- hun : u = n
-                show (n + 1, step n v) ∈ B
-
-                have : v = y := by
-                  exact y_unique  v puv_mem_A
-
-                subst v
-                change (n + 1, y') ∈ B
-
-                have : (n + 1, b) ≠ (n + 1, y') := by
-                  intro h
-                  apply hb
-                  exact congrArg Prod.snd h
-                exact ⟨psucc_mem_A, this.symm⟩
-
-              . show (u + 1, step u v) ∈ B -- hun : u ≠ n
-                have hsucc_ne : u + 1 ≠ n + 1 := by
-                  intro hsucc
-                  apply hun
-                  exact add_right_cancel hsucc
-
-                have : (u + 1, step u v) ≠ (n + 1, b) := by
-                  intro phsucc
-                  apply hsucc_ne
-                  exact congrArg Prod.fst phsucc
-                exact ⟨psucc_mem_A, this⟩
-
-          have : A ⊆ B := by
-            unfold A
-            apply Set.sInter_subset_of_mem
-            exact IB
-
-          have : (n + 1, b) ∈ B := by
-            exact this p_mem_A
-
-          have : (n + 1, b) ≠ (n + 1, b) := by
-            rcases this with ⟨hB, hk⟩
-            exact hk
-          false_or_by_contra
-          exact this rfl
-
-      exact ⟨succ_n_mem_Nat, ⟨y', ⟨ey', uy'⟩⟩⟩
-
-  have : H = Natural := by
-    exact eq_natural_of_subset_of_inductive H_substet_Nat IH
-  intro x hx
-
-  have : x ∈ H := by
-    rw [this]
-    exact hx
-
-  exact this.right
+    exact hb (Set.mem_singleton (zero, b))
 ```
 
+:::theorem "RecGraph a step is a function"
+Let  `F` be the `RecInductive`-set with _initial value_
+`a ∈ ℝ` and _inductive step_ `step : Natural → ℝ → ℝ`, then
+`F` is a function.
+:::
+
+```lean "RecGraph is a function"
+theorem RG_is_function (a : ℝ) (step : Natural → ℝ → ℝ) :
+  ∀ n : Natural, ∃! x : ℝ, (n, x) ∈  RecGraph a step := by
+
+  let P (n : Natural) :=
+    ∃! x : ℝ, (n, x) ∈  RecGraph a step
+
+  let F := RecGraph a step
+
+  have F_inductive : RecInductive a step F := by
+          exact RG_inductive a step
+
+  have zaF : (zero, a) ∈ F := by
+    exact F_inductive.left
+
+  have zero_case : P zero := by
+    use a
+    constructor
+    . exact zaF
+    . intro y hy
+      exact (unique_at_zero a step y hy).symm
+
+  have succ_case : ∀ n : Natural,
+    P n → P (succ n) := by
+    intro n hn
+
+    rcases hn with ⟨x, hnx, hux⟩
+    use step n x
+    constructor
+    . exact F_inductive.right hnx
+    .
+      intro y hny
+      by_contra hxy
+      let B := F \ {(succ n, y)}
+
+      have hsubset : B ⊆ F := by
+        exact Set.sdiff_subset
+
+      have hproper :B ≠ F := by
+        intro hBF
+
+        have hnyB : (succ n, y) ∈ B := by
+          rw [hBF]
+          exact hny
+
+        rcases hnyB with ⟨_, hnot_mem⟩
+        apply hnot_mem
+        exact Set.mem_singleton (succ n, y)
+
+
+      have : RecInductive a step B := by
+        constructor
+        . have : (zero, a) ≠ (succ n, y) := by
+            intro h
+            have : zero = succ n :=
+              congrArg Prod.fst h
+            exact ne_of_lt (zero_lt_succ n) this
+
+          exact ⟨zaF, this⟩
+
+        . intro k z kzB
+
+          have kzF : (succ k, step k z) ∈ F :=
+            by exact F_inductive.right kzB.left
+
+          have kzy : (succ k, step k z) ≠ (succ n , y) := by
+            intro h
+            by_cases hkn : k = n
+            . -- hkn : k = n
+              rw [hkn] at kzB
+              rw [hkn] at h
+              have : z = x := by
+                exact hux z kzB.left
+              rw [this ]at h
+
+              have : step n x = y := by
+                exact congrArg Prod.snd h
+
+              exact hxy this.symm
+
+            . -- hkn : k ≠ n
+              have : succ k = succ n := by
+                exact  congrArg Prod.fst h
+
+              exact hkn (succ.inj this)
+
+          exact ⟨kzF, kzy⟩
+
+      have : F ⊆ B := by
+        exact Set.sInter_subset_of_mem this
+
+      have : F = B := by
+        exact Set.Subset.antisymm this hsubset
+
+      exact hproper this.symm
+
+  intro n
+  exact induction zero_case succ_case n
+```
+
+```lean "recursion"
+-- Induction defines proofs;
+-- recursion defines functions.
+theorem recursion
+  (initial : ℝ)
+  (step : Natural → ℝ → ℝ) : ∃! f : Natural → ℝ,
+      f zero = initial ∧
+        ∀ n : Natural,f (succ n) = step n (f n) := by
+
+    let F := RecGraph initial step
+
+    let f : Natural → ℝ :=
+      fun n => Classical.choose
+        (RG_is_function initial step n)
+
+    have f_spec (n : Natural) :
+      (n, f n) ∈ RecGraph initial step ∧
+      ∀ y : ℝ,
+        (n, y) ∈ RecGraph initial step →
+        y = f n := by
+      exact
+      Classical.choose_spec
+        (RG_is_function initial step n)
+
+    have hRG :
+      RecInductive initial step F := by
+        exact RG_inductive initial step
+
+    have f_zero : f zero = initial := by
+      have hinitial : (zero, initial) ∈ F := by
+        exact hRG.left
+      exact ((f_spec zero).2 initial hinitial).symm
+
+    have f_succ :
+      ∀ n : Natural,
+        f (succ n) = step n (f n) := by
+      intro n
+
+      have hstep :
+        (succ n, step n (f n)) ∈ RecGraph initial step := by
+          exact hRG.2 (f_spec n).1
+
+      exact ((f_spec (succ n)).right
+        (step n (f n)) hstep).symm
+
+    refine ⟨f, ⟨f_zero, f_succ⟩, ?_⟩
+
+     -- Uniqueness
+    intro g hg
+    funext n
+
+    apply induction (P := fun n => g n = f n)
+
+    · calc
+      g zero = initial := hg.1
+      _ = f zero := f_zero.symm
+
+    · intro n ih
+      calc
+      g (succ n) = step n (g n) := hg.2 n
+      _ = step n (f n) := congrArg (step n) ih
+      _ = f (succ n) := (f_succ n).symm
+
+
+noncomputable def rec
+    (initial : ℝ)
+    (step : Natural → ℝ → ℝ) :
+    Natural → ℝ :=
+  Classical.choose (recursion initial step)
+
+theorem Natural.rec_spec
+    (initial : ℝ)
+    (step : Natural → ℝ → ℝ) :
+    rec initial step zero = initial ∧
+    ∀ n : Natural,
+      rec initial step (succ n) =
+        step n (rec initial step n) := by
+  exact
+    (Classical.choose_spec
+      (recursion initial step)).1
+```
+
+```lean "simplification theorems"
+@[simp]
+theorem rec_zero
+    (initial : ℝ)
+    (step : Natural → ℝ → ℝ) :
+    rec initial step zero = initial := by
+  exact (Natural.rec_spec initial step).left
+
+
+@[simp]
+theorem rec_succ
+    (initial : ℝ)
+    (step : Natural → ℝ → ℝ)
+    (n : Natural) :
+    rec initial step (succ n) =
+      step n (rec initial step n) := by
+  exact (Natural.rec_spec initial step).right n
+```
 # Powers with Natural exponents
 
 We will begin with the definition of powers with natural exponents.
@@ -370,60 +398,18 @@ We will begin with the definition of powers with natural exponents.
 Given a real number `a`, our goal is to define a function
 `f: Natural → ℝ`  satisfying:
 
-* `f(1) = a`
-* `f (n + 1) = a · f(a)` for all `n ∈ Natural`
+* `f(0) = 1`
+* `f (n + 1) = a · f(n)` for all `n ∈ Natural`
 
 To that end, we start with the following definition:
 
-`Power a = G a (fun x y => a * y)`
-`a ** n = y ↔ (n, y) ∈ G a (fun _ y => a * y)`
+```lean "exp"
+noncomputable def exp (a : ℝ) :=
+  rec 1 (fun _ x => a * x )
 
-```lean "power"
-noncomputable def power
-  (a : ℝ) (n : Natural)  : ℝ :=
-  Classical.choose
-    (G_is_function
-      a
-      (fun _ y => a * y : ℝ → ℝ → ℝ)
-      (n : ℝ)
-      n.property
-      )
-
---local infixr:80 " ** " => power
-local infixr:80 " ^ " => power
-
-
-theorem power_mem_graph
-    (a : ℝ) (n : Natural) :
-    ((n : ℝ), power a n) ∈
-      G a (fun _ y => a * y) := by
-  unfold power
-  exact
-    (Classical.choose_spec
-      (G_is_function
-        (a := a)
-        (step := fun _ y => a * y)
-        (n : ℝ)
-        n.property)).1
-
-theorem power_eq_iff_mem_graph
-    (a y : ℝ) (n : Natural) :
-    a ^ n = y ↔
-      ((n : ℝ), y) ∈
-        G a (fun _ y => a * y) := by
-  constructor
-  · intro h
-    rw [← h]
-    exact power_mem_graph a n
-  · intro hy
-    exact
-      ((Classical.choose_spec
-        (G_is_function
-          (a := a)
-          (step := fun _ y => a * y)
-          (n : ℝ)
-          n.property)).2 y hy).symm
+local infixr:80 " ^ " => exp
 ```
+
 Having already defined the power with natural exponent,
 we prove its main properties:
 
@@ -440,111 +426,53 @@ $$`P(n) : a^{m + n} \text{ is equal to } a^m ⋅ a^n`
 whatever the natural number $`m`
 :::
 
-```lean "pow_one"
-theorem pow_one (a : ℝ) :
-    a ^ one = a := by
-  apply
-    (power_eq_iff_mem_graph a a one).mpr
-
-  change
-    ((1 : ℝ), a) ∈
-      ⋂₀ {H : Set (ℝ × ℝ) |
-        G_inductive a (fun _ y => a * y) H}
-
-  intro H hH
-  exact hH.left
+```lean "pow_zero"
+theorem pow_zero (a : ℝ) :
+    a ^ zero = 1 := by
+    unfold exp
+    exact rec_zero 1 (fun _ x => a * x)
 ```
 
 ```lean "pow_succ"
-@[simp]
-theorem power_succ (a : ℝ) (n : Natural) :
-    a ^ succ n = a * (a ^ n) := by
-  apply
-    (power_eq_iff_mem_graph
-      a
-      (a * (a ^ n))
-      (succ n)).mpr
+theorem pow_succ (a : ℝ) (n : Natural) :
+    a ^ (succ n) = a * (a ^ n) := by
+    unfold exp
+    apply rec_succ 1 (fun _ x => a * x)
+```
 
-  have hn :
-      ((n : ℝ), a ^ n) ∈
-        G a (fun _ y => a * y) :=
-    power_mem_graph a n
-
-  have hsucc :
-      ((n : ℝ) + 1, a * (a ^ n)) ∈
-        G a (fun _ y => a * y) :=
-    (G_set_inductive
-      a
-      (fun _ y => a * y)).2 hn
-
-  exact hsucc
-
+```lean "pow_add"
 theorem pow_add
-    (a : ℝ) (n m : Natural) :
-     a ^ (addNat n m) = a ^ n * a ^ m := by
-  let H := {k : Natural | power a (addNat n k) =
-    a ^ n * a ^ k}
-  let H' : Set ℝ := Subtype.val '' H
-  have IH' : Inductive H' := by
-    constructor
-    . show 1 ∈ H'
-      have one_mem_H : one ∈ H := by
-        change  a ^ (succ n) =
-          a ^ n * a ^ one
-        have : a ^ one = a := by
-          exact pow_one a
-        rw [this]
-        have : a ^ n * a = a * a ^ n := by ring
-        rw [this]
-        exact power_succ a n
-      change (1 : ℝ) ∈ Subtype.val '' H
-      exact ⟨one, one_mem_H, rfl⟩
+  (a : ℝ) (n m : Natural) :
+      a ^ (n + m) = a ^ n * a ^ m := by
+  let P (k : Natural) : Prop := a ^ (n + k) = a ^ n * a ^ k
 
-    . show  ∀ {x : ℝ}, x ∈ H' → x + 1 ∈ H'
-      intro k hk
-      change k ∈ Subtype.val '' H at hk
-      rcases hk with ⟨kN, kN_mem_H, rfl⟩
+  have zero_case : P zero := by
+    change a ^ (n + zero) = a ^ n * a ^ zero
+    unfold exp
+    calc a ^ (n + zero)
+    _ = a ^ n := by rw [Nat_add_zero]
+    _ = a ^ n * 1 := by rw [mul_one]
+    _ = a ^ n * a ^ zero := by rw [pow_zero]
 
-      have succ_kN_mem_H : succ kN ∈ H := by
-        change  a ^ (addNat n (succ kN)) =
-          a ^ n * a ^ (succ kN)
-        rw [power_succ a kN]
-        have : a ^ n * (a * a ^ kN) =
-          a ^ n * a ^ kN * a := by ring
-        rw [this]
-        rw [← kN_mem_H]
-        rw [add_succ n kN]
-        have : a ^ addNat n kN * a =
-           a * a ^ addNat n kN := by ring
-        rw [this]
-        exact power_succ a (addNat n kN)
-
-      change (kN : ℝ) + 1 ∈ Subtype.val '' H
-      exact ⟨succ kN, succ_kN_mem_H, rfl⟩
-
-  have hH' : H' ⊆ Natural := by
-    intro x hx
-    change x ∈ Subtype.val '' H at hx
-    rcases hx with ⟨k, hkH, rfl⟩
-    exact k.property
-  have : H' = Natural := by
-    exact eq_natural_of_subset_of_inductive  hH' IH'
-
-  have hmH' : (m : ℝ) ∈ H' := by
+  have succ_case : ∀ k : Natural, P k → P (succ k) := by
+    intro k pk
+    change a ^ (n + k) = a ^ n * a ^ k at pk
+    change a ^ (n + succ k) = a ^ n * a ^ (succ k)
+    have : n + succ k = succ (n + k) := by
+      exact add_succ n k
     rw [this]
-    exact m.property
+    have : a ^ succ (n + k) =  a * a ^ (n + k) :=
+      by exact pow_succ a (n + k)
+    rw [this]
+    rw [pk]
+    have : a * (a ^ n * a ^ k) = a ^ n * (a * a ^ k) :=
+      by ring
+    rw [this]
+    have : a * a ^ k = a ^ (succ k) := by
+      rw [pow_succ a k]
+    rw [this]
 
-  have hmH : m ∈ H := by
-    rcases hmH' with ⟨k, hkH, hk_eq_m⟩
-
-    have hkm : k = m := by
-      exact Subtype.ext hk_eq_m
-
-    simpa [hkm] using hkH
-    -- subst m
-    -- assumption
-
-  exact hmH
+  exact induction zero_case succ_case m
 ```
 
 :::proposition "mul_exponents"
@@ -554,170 +482,133 @@ Then,  `(a ** m) ** n = a ** (m ⋅ n)`
 
 ```lean "power_mul"
 theorem pow_mul
-    (a : ℝ) (n m : Natural) :
-    a ^ (mulNat n  m) = (a ^ n) ^ m := by
+  (a : ℝ) (n m : Natural) :
+    a ^ (n * m) = (a ^ n) ^ m := by
 
-  let H := {k : Natural |
-      a ^ mulNat n k = (a ^ n) ^ k}
+  let P (k : Natural) := a ^ (n * k) = (a ^ n) ^ k
 
-  let H' : Set ℝ := Subtype.val '' H
+  have zero_case : P zero := by
+    calc a ^ (n * zero)
+    _ = a ^ zero := by rw [Nat_mul_zero n]
+    _= 1 := by exact pow_zero a
+    _ = (a ^ n) ^ zero := by
+      rw [pow_zero (a ^ n)]
 
-  have IH' : Inductive H' := by
-    constructor
-    . show 1 ∈ H'
-      have one_mem_H : one ∈ H := by
-        change (a ^ mulNat n one) =
-          (a ^ n) ^ one
-        rw [mul_one]
-        rw [pow_one]
-      change (1 : ℝ) ∈ Subtype.val '' H
-      exact ⟨one, one_mem_H, rfl⟩
+  have succ_case : ∀ k : Natural, P k → P (succ k) := by
+    intro k pk
+    change a ^ (n * succ k) = (a ^ n) ^ succ k
+    calc a ^ (n * succ k)
+    _ = a ^ (n * k + n) := by rw [mul_succ]
+    _ = a ^ (n * k) * a ^ n := by rw [pow_add]
+    _ = (a ^ n) ^ k * a ^ n := by rw [pk]
+    _ =  a ^ n * (a ^ n) ^ k := by rw [mul_comm]
+    _ = (a ^ n) ^ succ k := by rw [pow_succ (a ^ n) k]
 
-
-    . show  ∀ {x : ℝ}, x ∈ H' → x + 1 ∈ H'
-      intro k hk
-      change k ∈ Subtype.val '' H at hk
-      rcases hk with ⟨kN, kN_mem_H, rfl⟩
-      have succ_kN_mem_H : succ kN ∈ H := by
-        change power a (mulNat n (succ kN)) =
-          (a ^ n) ^ (succ kN)
-        rw [mul_succ]
-        rw [power_succ]
-        have : a ^ mulNat n kN = (a ^ n) ^ kN  := by
-          exact kN_mem_H
-
-        rw [pow_add]
-        rw [mul_comm]
-        rw [this]
-
-      change (kN : ℝ) + 1 ∈ Subtype.val '' H
-      exact ⟨succ kN, succ_kN_mem_H, rfl⟩
-
-  have hH' : H' ⊆ Natural := by
-    intro x hx
-    change x ∈ Subtype.val '' H at hx
-    rcases hx with ⟨k, hkH, rfl⟩
-    exact k.property
-
-  have : H' = Natural := by
-    exact eq_natural_of_subset_of_inductive  hH' IH'
-
-  have hmH' : (m : ℝ) ∈ H' := by
-    rw [this]
-    exact m.property
-
-  have hmH : m ∈ H := by
-    rcases hmH' with ⟨k, hkH, hk_eq_m⟩
-
-    have hkm : k = m := by
-      exact Subtype.ext hk_eq_m
-
-    simpa [hkm] using hkH
-
-    -- subst m
-    -- assumption
-
-  exact hmH
+  exact induction zero_case succ_case m
 ```
 
+```lean "square"
+noncomputable def square (x : ℝ) := x ^ two
 
 
+@[simp]
+theorem coe_square (x : ℝ) : square x = x * x := by
+  calc x ^ two
+    _ = x ^ (succ one) := by rw [two]
+    _ = x * x ^ one := by rw [pow_succ]
+    _ = x * (x ^ succ zero) := by rw [one]
+    _ = x * (x * x ^ zero) := by rw [pow_succ]
+    _ = x * (x * 1) := by rw [pow_zero]
+    _ = x * x := by ring
+```
 :::proposition  "prop_1.12" (tags := "Bernoulli's Inequality")(parent := "definitions_induction")(lean := "zero_lt_one")
 If $`h` is a real number greater than $`−1`,
-then for every natural number n it holds:
-$$`(1 + h)^n ≥ 1 +nh`.
-:::
-
-
-:::proof "prop_1.12"
-* *Explanation of the Lean-specific ingredients*
-
-* The command by linarith proves goals that follow from linear equalities and inequalities. In this proof, the assumption is \(h > -1\), and we need to show
-$$`0 \leq 1 + h.`
-Mathematically, adding $`1` to both sides of $`h > -1` gives
-$`h + 1 > 0`, hence $`0 \leq 1 + h`.
-
-* This is linear arithmetic: \(h\) occurs only to the first power,
-with no terms such as $`h^2` or products involving variables.
-Therefore `Lean` can find this consequence automatically with by
-`linarith`.
-
-* The command `by positivity` proves that an expression is nonnegative
-or positive by examining its structure. It is used to establish
-$$`0 \leq n h^2`.
-Lean knows that $`n \geq 0`, because $`n` is a natural number and is
-coerced to a real number. It also knows that
-$`h^2 \geq 0` because every square is nonnegative.
-Since the product of two nonnegative real numbers is nonnegative,
-it concludes \(0 \leq n h^2\). Thus by positivity avoids proving
-these facts manually.
-
-* The commands `rw [Nat.cast_add, Nat.cast_one]` handle the conversion
-from natural numbers to real numbers. Lean distinguishes
-$`\uparrow (n + 1)` from $`\uparrow n + 1`.
-
-The lemma `Nat.cast_add` rewrites $`\uparrow (n + 1)` as
-$`\uparrow n + \uparrow 1`, and `Nat.cast_one rewrites`
-$`\uparrow 1` as $`1` in ℝ.
-After these rewrites, Lean can see that the two sides of the
-final equality are the same.                                                ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+then for every natural number `n` it holds:
+$$`(1 + h)^n ≥ 1 + n · h`.
 :::
 
 ```lean "prop_1.12"
-lemma bernoulli_inequality (h : ℝ) (n : ℕ)
-    (q : h > -1) :
-    (1 + h) ^ n ≥ 1 + n * h := by
-  induction n with
-  | zero =>
-      norm_num
-  | succ n ih =>
-      have hnonneg : 0 ≤ 1 + h := by
-        linarith
-      calc
-        (1 + h) ^ (n + 1)
-            = (1 + h) ^ n * (1 + h) := by
-                rw [pow_succ]
-        _ ≥ (1 + (n : ℝ) * h) * (1 + h) := by
-              exact mul_le_mul_of_nonneg_right ih hnonneg
-        _ = 1 + (n + 1) * h + n * h^2 := by
-              ring
-        _ ≥ 1 + (n + 1) * h := by
-              have hsq : 0 ≤ n * h ^ 2 := by
-                exact mul_nonneg
-                  (Nat.cast_nonneg n) (sq_nonneg h)
-              simpa [add_zero] using
-              add_le_add_right hsq (1 + (n + 1) * h)
-        _ = 1 + ↑(n + 1) * h := by
-          rw [Nat.cast_add, Nat.cast_one]
+lemma bernoulli_inequality
+  (x : ℝ)
+  (hx : -1 < x)
+  (n : Natural) : 1 + (n : ℝ) * x  ≤ (1 + x) ^ n := by
+
+  have hx' : 0 < 1 + x := by
+    calc
+    0 = -1 + 1 := by ring
+    _ < x + 1 := by
+      exact add_lt_add_left hx 1
+    _ = 1 + x := by rw [add_comm]
+
+  let P (k : Natural) : Prop :=
+    1 + (k : ℝ) * x  ≤ (1 + x) ^ k
+
+  have zero_case : 1 + (zero : ℝ) * x ≤
+    (1 + x) ^ zero := by
+    calc 1 + (zero : ℝ) * x
+    _ = 1 := by simp
+    _ = (1 + x) ^ zero := by rw [pow_zero]
+    _ ≤ (1 + x) ^ zero := by exact le_of_eq rfl
+
+  have succ_case : ∀ k : Natural, P k → P (succ k) := by
+    intro k pk
+    change 1 + (k : ℝ) * x  ≤ (1 + x) ^ k at pk
+    change 1 + (succ k : ℝ) * x  ≤ (1 + x) ^ (succ k)
+
+    have hkxsq : 0 ≤ (k : ℝ) * (x * x) := by
+      exact mul_nonneg (nat_nonneg k) (sq_nonneg x)
+
+    calc 1 + (succ k : ℝ) * x
+    _ = 1 + ((k : ℝ) + 1) * x := by
+      simp only [succ]
+    _ = 1 + (k : ℝ) * x + x  + 0 := by ring
+    _ ≤ 1 + (k : ℝ) * x + x + (k : ℝ) * (x * x) := by
+      exact add_le_add_right hkxsq (1 + (k : ℝ) * x + x)
+    _ = (1 + (k : ℝ) * x) + x * (1 + (k : ℝ) * x) := by ring
+    _ = (1 + (k :ℝ) * x) * (1 + x) := by ring
+    _ ≤ (1 + x) ^ k * (1 + x) := by
+      exact mul_le_mul_of_nonneg_right
+        pk (le_of_lt hx')
+    _ = (1 + x) * (1 + x) ^ k := by
+      rw [mul_comm]
+    _ = (1 + x) ^ (succ k) := by
+        rw  [pow_succ (1 + x) k]
+
+  exact induction zero_case succ_case n
 ```
 
-(Question: where have we used the hypothesis $`h > −1`?)
+(Question: where have we used the hypothesis $`x > −1`?)
 
 We are now going to introduce a concept that we will return to in much more
 detail in *Chapter 3* and it is that of sequence;
-by a sequence we mean an assignment to each natural number $`n` of a real
+
+:::definition "Sequence"
+A sequence we mean an assignment to each natural number $`n` of a real
 number that we will indicate as $`a_n`. The sequence is usually written:
-$$`a_1, a_2, a_3, … ,a_n, …`
+$$`a_0, a_1, a_2, … ,a_n, …`
+:::
 
  For example, if to each natural number $`n` we assign its square,
- we obtain the sequence given by $`a_n = n^2` and which is written:
-$$`1, 4, 9, 16, 25,…,n^2`
+ we obtain the sequence given by $`a_n = n ^ two` and which is written:
+$$`0, 1, 4, 9, 16, 25, ...,n^2`
 
 As another example, let us consider the assignment to each natural $`n` of
-the real number $`a_n = (−1)^n`. This gives us the sequence:
+the real number $`a_n = (−1) ^ n`. This gives us the sequence:
 $$`1, −1 , 1, −1, 1, … ,(−1)^n,…`
 
 As a final example, let us consider the assignment to each natural number
-$`n` of the real number $`a_n = ⅟{n}`. This gives us the sequence:
+$`1 ≤ n` of the real number $`a_n = ⅟{n}`. This gives us the sequence:
 $$`1, ⅟{2}, ⅟{3}, ⅟{4}, … , ⅟{n} ,…,`
 
+:::definition "Series"
 If we now have a determined sequence $`a_0, a_1, a_2 ,…,a_n`,
 we want to define the sum of the first $`n` terms of said sequence,
 something we will indicate in the form:
 $$`a_0 + a_1 + a_2 + ⋯ + a_n`
 ​or also, in the more compact and precise form:
-$$`∑_{k=1}^n a_k`
+$$`∑_{k=0}^n a_k`
  (read: "sum from $`k=1` to $`k=n` of the $`a_k`").
+:::
 
 Since we want to define the sum of the first $`n` terms of the sequence and
 as we want to do it for every natural $`n`, there is only one way to do it.
@@ -738,6 +629,30 @@ $$`∑_{k=0}^n a_k`
 
 $$`∑_{k=0}^2 a_k = (∑_{k=0}^1 a_k) + a_2  = (∑_{k=0}^0 a_k + a_1) + a_2 = a_0 + a_1 + a_2.`
 ​
+
+```lean "series"
+noncomputable def series (g : Natural → ℝ) : Natural → ℝ :=
+  rec 0 (fun n x => g (succ n) + x)
+```
+
+```lean "sum_zero"
+theorem sum_zero {g : Natural → ℝ}:
+    series g zero = 0 := by
+    unfold series
+    exact rec_zero 0 (fun n x => g (succ n) + x)
+```
+```lean "sum_succ"
+theorem sum_succ {g : Natural → ℝ}:
+  series g (succ n) =  g (succ n) + series g n := by
+  unfold series
+  apply rec_succ _ (fun n x => g (succ n) + x)
+```
+
+```lean "triangular"
+noncomputable def triangular :=
+  series (fun (n : Natural) => n )
+```
+
 Once the concept of "sum of n terms" is defined for every natural number
 $`n`, we can prove various formulas that are usually a typical application
 of the principle of induction.
@@ -752,33 +667,61 @@ or, if the reader prefers the other notation, $`0 + 1 + 2 + ⋯ + n`.
 We are going to prove that:
 $$`∑_{k = 0}^n k = n(n+1)/2`
 for every natural $`n`, that is, in the other notation,
-$`1 + 2 + ⋯ + n = n(n+1)/2`.
+$`0 + 1 + 2 + ⋯ + n = n(n+1)/2`.
 :::
 
-```lean "triangular_numbers"
-theorem sum_eq_formula (n : Nat) :
-   2 * (∑ i ∈ Finset.range (n + 1), i) = n * (n + 1) := by
-  induction n with
-  | zero => -- Base case: n = 0
-    -- Goal reduces to: 2 * 0 = 0
-    rfl
-  | succ n ih =>
-    -- Inductive step: P(n) => P(succ n)
-    -- Lean gives us the induction hypothesis `ih` for `n`
-    -- Apply `Finset.sum_range_succ` to pull off the last
-    -- element
-    -- Distribute multiplication over addition
-    -- and apply the inductive hypothesis
+```lean "triangular numbers"
+theorem sum_eq_formula (n : Natural) :
+  2 * triangular n = (n : ℝ) * ((n : ℝ) + 1) := by
 
-    rw [Finset.sum_range_succ, Nat.mul_add, ih]
-    -- Simplify
-    ring
+  let P (k : Natural) : Prop :=
+    2 * triangular k = (k : ℝ) * ((k : ℝ) + 1)
+
+  have zero_case : P zero := by
+
+    change  2 * triangular zero =
+      (zero : ℝ) * ((zero : ℝ) + 1)
+
+    have : triangular zero = (0 : ℝ) :=
+      by exact sum_zero
+    simp [zero]
+
+    exact sum_zero
+
+  have succ_case : ∀ k : Natural, P k → P (succ k) := by
+    intro k pk
+
+    change 2 * triangular k = (k : ℝ) * ((k : ℝ) + 1) at pk
+    change 2 * triangular (succ k) =
+      (k + 1 : ℝ) * (k + 1 + 1 : ℝ)
+
+    unfold triangular
+
+    unfold triangular at pk
+
+    rw [sum_succ]
+
+
+    have : 2 * (↑(succ k) + series (fun n => ↑n) k) =
+        2 * ↑(succ k) + 2 * series (fun n => ↑n) k := by
+      ring
+
+    rw [this]
+    rw [pk]
+    simp [succ]
+
+
+    calc 2 * ((k : ℝ) + 1) + ↑k * (↑k + 1)
+    _ = (↑k + 1)  *(↑k + 1 + 1 ) := by ring
+
+  exact induction zero_case succ_case n
 ```
+
 # Exercises
 
 1. Prove that if $`a` and $`b` are any real numbers,
   then for every natural number $`n` it holds:
-$$`(a⋅b)^n = a^n⋅b^n`
+$$`(a ⋅ b) ^ n = a ^ n ⋅ b ^ n`
 (Use induction and $`ℐr{P_1}`).
 
 2. Prove that if $`0 < a < b`, then $`a ^ n < b ^ n`
@@ -895,8 +838,8 @@ $`2^n > n^2
 
   * (d)
 $`n^3 > 4n^2 + 3n + 1
-\quad \text{for all } n\ge 5.
-`
+\quad \text{for all } n\ge 5`.
+
 ```lean "end DefinitionsByInduction"
 end DefinitionsByInduction
 ```

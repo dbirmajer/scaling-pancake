@@ -31,6 +31,13 @@ open Informal
 More definitions by Induction and Newton's formula
 :::
 
+```lean "open MoreDefinitions"
+namespace MoreDefinitions
+open NaturalNumbers
+open BasicProperties
+open DefinitionsByInduction
+```
+
 Let us consider again any sequence $`a_0, ​a_1, …, a_n`.
 We have already defined the sum of the first $`n` elements of this
 sequence, whatever the natural number $`n` may be.
@@ -81,6 +88,24 @@ by itself $`n` times. What we have done is give a precise meaning
 to the expression _the product of $`n` numbers_, regardless of
 the natural number $`n`".
 
+```lean "product"
+noncomputable def product (g : Natural → ℝ) : Natural → ℝ :=
+  rec 1 (fun n x => g (succ n) * x)
+```
+
+```lean "prod_zero"
+theorem prod_zero {g : Natural → ℝ}:
+    product g zero = 1 := by
+    unfold product
+    exact rec_zero 1 (fun n x => g (succ n) * x)
+```
+
+```lean "prod_succ"
+theorem prod_succ {g : Natural → ℝ}:
+  product g (succ n) =  g (succ n) * product g n := by
+  unfold product
+  apply rec_succ _ (fun n x => g (succ n) * x)
+```
 
 We now introduce two definitions that will be useful shortly.
 
@@ -92,30 +117,26 @@ natural numbers from $`1` to $`n`:
 
 $$`
 \begin{align*}
-0! &= 1;\\
-n! &= \prod_{k=1}^{n} k, \;   \text{ for } n ≥ 1.
-\end{align*}
-`
-
-Or, if the reader prefers the more traditional notation,
-
-$$`
-\begin{align*}
 0! &= 1;\
-n! &= 1 \cdot 2 \cdot 3 \cdots n, \; \text{ for } n ≥ 1.
+n! &= n \cdot (n - 1) \cdots 1, \; \text{ for } n ≥ 1.
 \end{align*}
 `
 :::
+
+```lean "factorial"
+noncomputable def factorial :=
+  product (fun (n : Natural) => n )
+```
 
 For example,
 
 $$`
 \begin{align*}
-1! &= 1,\\
-2! &= 1 \cdot 2 = 2,\\
-3! &= 1 \cdot 2 \cdot 3 = 6,\\
-4! &= 1 \cdot 2 \cdot 3 \cdot 4 = 2,\
-5! &= 1 \cdot 2 \cdot 3 \cdot 4 \cdot 5 = 120,
+0! &= 1,\\
+1! &= 1 · 1 = 1,\
+2! &= 2 \cdot 1 = 2,\\
+3! &= 3 \cdot 2  = 6,\\
+4! &= 4 * 6 = 24,\
 \end{align*}
 `
 and so on.
@@ -123,18 +144,20 @@ and so on.
 It is very easy to prove the following property of factorials:
 
 :::lemma_ "factorial_succ" (tags := "Factorial of Succ n")(parent := "more_definitions")(lean := "Nat.factorial_succ")
-$$`(n+1)! = n!(n+1).`
+$$`(n+1)! = (n+1) · n!.`
 :::
 
 Indeed,
 
-```lean "factorial"
-example : Nat.factorial 0 = 1 := by
-  exact Nat.factorial_zero
+```lean "factorial_zero"
+theorem factorial_zero : factorial zero = 1 := by
+  exact prod_zero
+```
 
-example (n : ℕ) :
-  (n + 1).factorial = (n + 1) * n.factorial := by
-    exact Nat.factorial_succ n
+```lean "factorial_succ"
+theorem factorial_succ (n : Natural) :
+  factorial (succ n)= (n + 1) * factorial n := by
+  exact prod_succ
 ```
 
 
@@ -149,6 +172,12 @@ $$`
 \binom{n}{k} =\frac{n!}{k!(n-k)!}.
 `
 :::
+
+```lean "binomial"
+noncomputable def binomial (n k : Natural) : ℝ := sorry
+  --factorial n / (factorial k * factorial (n - k))
+```
+
 
 Why give a special name to this somewhat strange number?
 The reason is the following. Suppose we have $`n` elements,
