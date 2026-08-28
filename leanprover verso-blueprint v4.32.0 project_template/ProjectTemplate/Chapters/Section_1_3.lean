@@ -155,9 +155,6 @@ following properties:
   then the real number $`x + 1` also belongs to $`A`.
 :::
 
-```lean "open NaturalNumbers"
-namespace NaturalNumbers
-```
 
 ```lean "inductive_set"
 def Inductive (A : Set ℝ) : Prop :=
@@ -199,27 +196,6 @@ inductive subsets of ℝ. The set of natural numbers is denoted as `Natural`.
 def Natural := ⋂₀ {A : Set ℝ | Inductive A}
 ```
 
-Equivalently, `n : Natural` means that `n` is an
-element of the _subtype_ determined by the set `Natural`:
-`n : {x : ℝ // x ∈ Natural}`
-
-So it packages both pieces together:
-* `n : ℝ`  the underlying real number
-* `n.property`  a proof that `(n : ℝ) ∈ Natural`
-
-```lean "def_1.2_subtype"
-example {x} (hx : x ∈ Natural) : Natural :=
-  by exact ⟨x, hx⟩
-
-example (n : Natural) : (n : ℝ) ∈ Natural := by
-  exact n.property
-
-example (n m : Natural) : n = m ↔ (n : ℝ) = (m : ℝ) := by
-  constructor
-  . exact congrArg Subtype.val
-  . apply Subtype.ext
-```
-
 :::corollary "natural_nonnegative"
 `Natural ⊆ {x : ℝ | 0 ≤ x}`
 :::
@@ -230,8 +206,6 @@ theorem natural_nonegative :
     apply Set.sInter_subset_of_mem
     exact inductive_zero_le
 
-theorem nat_nonneg (k : Natural) : 0 ≤ (k : ℝ) := by
-  exact natural_nonegative k.property
 ```
 
 :::lemma_ "inductive_natural"
@@ -256,9 +230,34 @@ theorem inductive_natural : Inductive Natural := by
     have : n ∈ A := by
       exact this hn
     exact hA.right this
+```
 
--- theorem zero_mem_Natural : 0 ∈ Natural := by
---   exact inductive_natural.left
+Equivalently, `n : Natural` means that `n` is an
+element of the _subtype_ determined by the set `Natural`:
+`n : {x : ℝ // x ∈ Natural}`
+
+So it packages both pieces together:
+* `n : ℝ`  the underlying real number
+* `n.property`  a proof that `(n : ℝ) ∈ Natural`
+
+```lean "def_1.2_subtype"
+example {x} (hx : x ∈ Natural) : Natural :=
+  by exact ⟨x, hx⟩
+
+example (n : Natural) : (n : ℝ) ∈ Natural := by
+  exact n.property
+
+example (n m : Natural) : n = m ↔ (n : ℝ) = (m : ℝ) := by
+  constructor
+  . exact congrArg Subtype.val
+  . apply Subtype.ext
+```
+
+```lean "open Natural"
+namespace Natural
+
+theorem nat_nonneg (k : Natural) : 0 ≤ (k : ℝ) := by
+  exact natural_nonegative k.property
 
 def zero : Natural := ⟨0, inductive_natural.left⟩
 
@@ -291,8 +290,7 @@ theorem succ.inj {n m : Natural} :
   apply Subtype.ext
 
 
-theorem zero_lt_succ (n : Natural) :
-  zero < succ n := by
+theorem zero_lt_succ (n : Natural) : zero < succ n := by
   change (0 : ℝ) < (n : ℝ) + 1
   calc (0 : ℝ)
   _ ≤ (n : ℝ) := by exact zero_le n
@@ -432,12 +430,11 @@ theorem add_succ (n m : Natural) :
 ```
 
 ```lean "Natural.add_zero"
-theorem Nat_add_zero (n : Natural) :
+theorem add_zero (n : Natural) :
   n + zero  = n := by
   change add n zero = n
   simp [add, zero]
 ```
-
 
 :::proposition "mul_of_naturals"
 If `n` and `m` are natural numbers, then `m ⋅ n` is also
@@ -490,15 +487,16 @@ instance : Mul Natural where
 --   rfl
 ```
 
-```lean "Nat_mul_one"
+```lean "Natural.mul_zero"
 @[simp]
-theorem Nat_mul_zero (n : Natural) :
+theorem mul_zero (n : Natural) :
     n * zero = zero := by
   change mul n zero = zero
   simp [mul, zero]
-
+```
+```lean "Natural.mul_one"
 @[simp]
-theorem Nat_mul_one (n : Natural) :
+theorem mul_one (n : Natural) :
     n * one = n := by
   change mul n one = n
   simp [mul, one]
@@ -513,6 +511,10 @@ theorem mul_succ {n m : Natural} :
   ring
 ```
 
+```lean "end Natural"
+end Natural
+```
+
 # More Properties of the Natural Numbers
 
 We want now to prove the fact, intuitively clear, that if a natural number is
@@ -525,8 +527,9 @@ number.
 :::
 
 ```lean "thm_1.7_proof"
-theorem sub_one_of_pos (n : Natural) (hn : zero < n) :
-    (n : ℝ) - 1 ∈ Natural := by
+theorem sub_one_of_pos (n : Natural)
+  (hn : Natural.zero < n) :
+  (n : ℝ) - 1 ∈ Natural := by
 
   let H : Set ℝ :=
     {x ∈ Natural | x = 0 ∨ (0 < x ∧ x - 1 ∈ Natural)}
@@ -548,12 +551,14 @@ theorem sub_one_of_pos (n : Natural) (hn : zero < n) :
       intro x hx
       let nx : Natural := ⟨x,  hH hx⟩
       have x_is_natural : x ∈ Natural := by exact hH hx
-
+      have : 0 ≤ x := by
+        exact natural_nonegative x_is_natural
       have e1 : 0 < x + 1 := by
         calc
-        0 =  0 + 0 := by rw [add_zero]
+        0 = 0 + 0 := by rw [add_zero]
         _ < x + 1 := by exact
-            add_lt_add_of_le_of_lt (zero_le nx) zero_lt_one
+            add_lt_add_of_le_of_lt this zero_lt_one
+--            (Natural.zero_le nx) zero_lt_one
 
       change x + 1 ∈ Natural
           ∧ (x + 1 = 0 ∨
@@ -561,7 +566,7 @@ theorem sub_one_of_pos (n : Natural) (hn : zero < n) :
 
       constructor
 
-      . exact (succ nx).property
+      . exact (Natural.succ nx).property
 
       . have e2 : x + 1 - 1 ∈ Natural := by
           norm_num
@@ -569,7 +574,7 @@ theorem sub_one_of_pos (n : Natural) (hn : zero < n) :
         exact Or.inr ⟨e1, e2⟩
 
   have HN : H = Natural := by
-    exact eq_natural_of_subset_of_inductive hH IH
+    exact Natural.eq_natural_of_subset_of_inductive hH IH
 
   have nH : (n : ℝ) ∈ H := by
     exact HN.symm.le n.property
@@ -577,7 +582,7 @@ theorem sub_one_of_pos (n : Natural) (hn : zero < n) :
   rcases nH.right with  zero_eq_n | zero_lt_n
   .
     false_or_by_contra
-    have : zero = n := by
+    have : Natural.zero = n := by
       apply Subtype.ext zero_eq_n.symm
     exact ne_of_lt hn this
 
@@ -592,11 +597,11 @@ Let `n, m ∈ Natural`. If  `n < m`, then `n + 1 ≤ m`.
 
 ```lean "succ_le_of_lt"
 theorem succ_le_of_lt (n : Natural) :
-  ∀ m : Natural, n < m → succ n ≤ m := by
+  ∀ m : Natural, n < m → Natural.succ n ≤ m := by
   let P (k : Natural) : Prop :=
-    ∀ m : Natural, k < m → succ k  ≤ m
+    ∀ m : Natural, k < m → Natural.succ k  ≤ m
 
-  have zero_case : P zero := by
+  have zero_case : P Natural.zero := by
     intro m hm
     change 0 + 1 ≤ (m : ℝ)
 
@@ -607,23 +612,25 @@ theorem succ_le_of_lt (n : Natural) :
       exact sub_one_of_pos m hm
 
     have : 0 ≤ (m : ℝ) - 1 :=
-      by exact zero_le ⟨(m : ℝ) - 1, this⟩
+      by exact Natural.zero_le ⟨(m : ℝ) - 1, this⟩
 
     calc
     1 = 0 + 1 := by rw [zero_add]
     _ ≤ (m : ℝ) - 1 + 1 := by exact add_le_add_left this 1
     _ = (m : ℝ) := by ring
 
-  have succ_case : ∀ k : Natural, P k → P (succ k) := by
+  have succ_case : ∀ k : Natural, P k →
+    P (Natural.succ k) := by
 
     intro k pk
-    change ∀ m : Natural, succ k < m → succ (succ k) ≤ m
+    change ∀ m : Natural, Natural.succ k < m →
+      Natural.succ (Natural.succ k) ≤ m
     intro m hm
-    simp [succ] at hm
-    simp [succ]
+    simp [Natural.succ] at hm
+    simp [Natural.succ]
 
     have : (0 : ℝ) ≤ (k : ℝ) := by
-      exact zero_le k
+      exact Natural.zero_le k
 
     have : 0 < (m : ℝ) := by
       calc (0 : ℝ)
@@ -654,7 +661,7 @@ theorem succ_le_of_lt (n : Natural) :
       exact add_le_add_left this 1
     _ = m := by ring
 
-  exact induction zero_case  succ_case n
+  exact Natural.induction zero_case  succ_case n
 ```
 :::corollary "le_of_lt_succ"
 Let `n, m ∈ Natural`. If  `n < m + 1`, then `n ≤ m`.
@@ -663,14 +670,14 @@ Let `n, m ∈ Natural`. If  `n < m + 1`, then `n ≤ m`.
 ```lean "le_of_lt_succ"
 
 theorem le_of_lt_succ (n : Natural) :
-  ∀ m : Natural, n < succ m → n ≤ m := by
+  ∀ m : Natural, n < Natural.succ m → n ≤ m := by
 
   intro m hnm
 
-  have hsucc : succ n ≤ succ m := by
-     exact succ_le_of_lt n (succ m) hnm
+  have hsucc : Natural.succ n ≤ Natural.succ m := by
+     exact succ_le_of_lt n (Natural.succ m) hnm
 
-  simp [succ] at hsucc
+  simp [Natural.succ] at hsucc
   exact hsucc
 ```
 
@@ -688,15 +695,16 @@ theorem sub_of_le (n : Natural) :
   let P (k : Natural) :=
     ∀ m : Natural, k ≤ m → (m : ℝ) - (k : ℝ) ∈ Natural
 
-  have zero_case : P zero := by
+  have zero_case : P Natural.zero := by
     unfold P
     intro m hm
-    simp [zero]
+    simp [Natural.zero]
 
-  have succ_case : ∀ k : Natural, P k → P (succ k) := by
+  have succ_case : ∀ k : Natural, P k →
+    P (Natural.succ k) := by
     unfold P
     intro k pk m hkm
-    simp [succ]
+    simp [Natural.succ]
 
     have k_lt_m : (k : ℝ) < (m : ℝ) :=
       calc (k : ℝ)
@@ -725,7 +733,7 @@ theorem sub_of_le (n : Natural) :
 
     exact sub_one_of_pos nmk this
 
-  exact induction zero_case succ_case n
+  exact Natural.induction zero_case succ_case n
 ```
 
 # The Well Ordering Principle
@@ -763,7 +771,7 @@ theorem well_ordering :
   let P (n : Natural) : Prop :=
     ∀ H ⊆ Natural, (n : ℝ) ∈ H → ∃ m, IsLeast H m
 
-  have zero_case : P zero := by
+  have zero_case : P Natural.zero := by
     intro H hH hnH
     use 0
     unfold IsLeast
@@ -771,10 +779,10 @@ theorem well_ordering :
     . exact hnH
     . unfold lowerBounds
       intro a haH
-      exact zero_le ⟨a, hH haH⟩
+      exact Natural.zero_le ⟨a, hH haH⟩
 
   have succ_case : ∀ n : Natural,
-    P n → P (succ n) := by
+    P n → P (Natural.succ n) := by
     intro n pn H hH succnH
 
     by_cases hnH : ↑n ∈ H
@@ -805,7 +813,7 @@ theorem well_ordering :
             exact Set.mem_union_left {↑n} hxH
           exact hm.right this
 
-      . use (succ n) -- hmH : m ∉ H
+      . use (Natural.succ n) -- hmH : m ∉ H
         have : m = n := by
           rcases hm.left with hm_in_H  | hm_in_singleton
           . exact False.elim (hmH hm_in_H)
@@ -838,7 +846,8 @@ theorem well_ordering :
   rcases hA_nonempty with ⟨n, hnA⟩
   have : n ∈ Natural := by
     exact hA hnA
-  exact (induction zero_case succ_case ⟨n, this⟩) A hA hnA
+  exact (Natural.induction zero_case succ_case ⟨n, this⟩)
+    A hA hnA
 ```
 
 # Exercises
@@ -853,7 +862,3 @@ following conditions are met:
   * `n₀ ∈ H`;
   * If `k ∈ H` for a certain natural $`k`, then `k + 1 ∈ H`.
   Prove that `H = {n ∈ Natural : n₀ ≤ n}`
-```lean "end NaturalNumbers"
-
-end NaturalNumbers
-```
